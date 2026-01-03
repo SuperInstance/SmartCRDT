@@ -1,0 +1,446 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Voice UI Editing - VL-JEPA Example</title>
+  <style>
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
+
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+      min-height: 100vh;
+      padding: 20px;
+    }
+
+    .app {
+      max-width: 1400px;
+      margin: 0 auto;
+      background: white;
+      border-radius: 16px;
+      padding: 30px;
+      box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+    }
+
+    .demo-header h1 {
+      color: #333;
+      margin-bottom: 10px;
+    }
+
+    .demo-header .description {
+      color: #666;
+      margin-bottom: 20px;
+    }
+
+    .voice-ui-editing {
+      display: flex;
+      flex-direction: column;
+      gap: 20px;
+    }
+
+    .control-panel {
+      background: #f8f9fa;
+      padding: 20px;
+      border-radius: 12px;
+    }
+
+    .voice-controls {
+      display: flex;
+      gap: 10px;
+      margin-bottom: 20px;
+    }
+
+    .btn-start, .btn-stop, .btn-reset {
+      padding: 12px 24px;
+      border: none;
+      border-radius: 8px;
+      font-size: 16px;
+      font-weight: 600;
+      cursor: pointer;
+      transition: all 0.3s;
+    }
+
+    .btn-start {
+      background: #4CAF50;
+      color: white;
+    }
+
+    .btn-start:hover {
+      background: #45a049;
+      transform: scale(1.05);
+    }
+
+    .btn-stop {
+      background: #f44336;
+      color: white;
+    }
+
+    .btn-reset {
+      background: #2196F3;
+      color: white;
+    }
+
+    .sample-commands {
+      margin-bottom: 15px;
+    }
+
+    .sample-commands h4 {
+      margin-bottom: 10px;
+      color: #555;
+    }
+
+    .sample-commands button {
+      margin: 5px;
+      padding: 8px 16px;
+      background: #e3f2fd;
+      border: 1px solid #2196F3;
+      border-radius: 20px;
+      cursor: pointer;
+      transition: all 0.2s;
+    }
+
+    .sample-commands button:hover {
+      background: #2196F3;
+      color: white;
+    }
+
+    .last-command {
+      background: #fff3cd;
+      padding: 15px;
+      border-radius: 8px;
+      border-left: 4px solid #ffc107;
+    }
+
+    .comparison-container {
+      background: #f8f9fa;
+      padding: 20px;
+      border-radius: 12px;
+    }
+
+    .comparison-view {
+      display: grid;
+      grid-template-columns: 1fr auto 1fr;
+      gap: 20px;
+      align-items: start;
+    }
+
+    .comparison-panel {
+      background: white;
+      padding: 15px;
+      border-radius: 8px;
+      border: 1px solid #ddd;
+    }
+
+    .comparison-panel h4 {
+      margin-bottom: 10px;
+      color: #333;
+    }
+
+    .comparison-content {
+      background: #f5f5f5;
+      padding: 15px;
+      border-radius: 4px;
+      overflow-x: auto;
+      font-family: 'Courier New', monospace;
+      font-size: 13px;
+      line-height: 1.6;
+    }
+
+    .comparison-divider {
+      font-size: 24px;
+      color: #667eea;
+      padding-top: 40px;
+    }
+
+    .changes-list {
+      background: #f8f9fa;
+      padding: 20px;
+      border-radius: 12px;
+    }
+
+    .changes-list h4 {
+      margin-bottom: 15px;
+    }
+
+    .change-item {
+      background: white;
+      padding: 12px;
+      margin-bottom: 10px;
+      border-radius: 8px;
+      border-left: 4px solid;
+    }
+
+    .change-add { border-color: #4CAF50; }
+    .change-remove { border-color: #f44336; }
+    .change-modify { border-color: #FF9800; }
+
+    .change-type {
+      font-weight: bold;
+      margin-right: 10px;
+    }
+
+    .change-path {
+      color: #666;
+      font-family: monospace;
+    }
+
+    .metrics-display {
+      background: #f8f9fa;
+      padding: 20px;
+      border-radius: 12px;
+    }
+
+    .metrics-container {
+      display: flex;
+      gap: 20px;
+    }
+
+    .metric-card {
+      flex: 1;
+      background: white;
+      padding: 15px;
+      border-radius: 8px;
+      border-top: 4px solid;
+    }
+
+    .metric-success { border-color: #4CAF50; }
+    .metric-warning { border-color: #FF9800; }
+    .metric-error { border-color: #f44336; }
+
+    .metric-value {
+      font-size: 24px;
+      font-weight: bold;
+    }
+
+    @media (max-width: 900px) {
+      .comparison-view {
+        grid-template-columns: 1fr;
+      }
+      .comparison-divider {
+        transform: rotate(90deg);
+      }
+    }
+  </style>
+</head>
+<body>
+  <div id="root"></div>
+
+  <div class="app">
+    <header class="demo-header">
+      <h1>🎤 Voice UI Editing</h1>
+      <p class="description">Use voice commands to edit UI components. VL-JEPA understands your intent and generates code changes automatically.</p>
+    </header>
+
+    <div class="voice-ui-editing">
+      <div class="control-panel">
+        <div class="voice-controls">
+          <button class="btn-start" onclick="startListening()">🎤 Start Listening</button>
+          <button class="btn-stop" onclick="stopListening()">⏹️ Stop</button>
+          <button class="btn-reset" onclick="resetDemo()">🔄 Reset</button>
+        </div>
+
+        <div class="sample-commands">
+          <h4>Try these commands:</h4>
+          <button onclick="simulateCommand('Make the button blue')">Make the button blue</button>
+          <button onclick="simulateCommand('Add email address')">Add email address</button>
+          <button onclick="simulateCommand('Make the avatar larger')">Make the avatar larger</button>
+          <button onclick="simulateCommand('Center the content')">Center the content</button>
+        </div>
+
+        <div id="lastCommand" class="last-command" style="display: none;"></div>
+      </div>
+
+      <div class="comparison-container">
+        <div class="comparison-view">
+          <div class="comparison-panel before">
+            <h4>Before</h4>
+            <pre class="comparison-content" id="originalUI">export const UserProfile = () => {
+  return (
+    &lt;div className="user-profile"&gt;
+      &lt;img src="/avatar.jpg" alt="User Avatar" /&gt;
+      &lt;h2&gt;John Doe&lt;/h2&gt;
+      &lt;p&gt;Software Engineer&lt;/p&gt;
+      &lt;button&gt;Contact&lt;/button&gt;
+    &lt;/div&gt;
+  );
+};</pre>
+          </div>
+
+          <div class="comparison-divider">→</div>
+
+          <div class="comparison-panel after">
+            <h4>After</h4>
+            <pre class="comparison-content" id="modifiedUI">[Changes will appear here]</pre>
+          </div>
+        </div>
+      </div>
+
+      <div id="changesList" class="changes-list" style="display: none;">
+        <h4>Applied Changes:</h4>
+        <div id="changesItems"></div>
+      </div>
+
+      <div class="metrics-display">
+        <h3>Live Metrics</h3>
+        <div class="metrics-container">
+          <div class="metric-card metric-success">
+            <div class="metric-header">
+              <span class="metric-label">Accuracy</span>
+            </div>
+            <div class="metric-value">95.0%</div>
+          </div>
+          <div class="metric-card metric-success">
+            <div class="metric-header">
+              <span class="metric-label">Latency</span>
+            </div>
+            <div class="metric-value">150ms</div>
+          </div>
+          <div class="metric-card metric-success">
+            <div class="metric-header">
+              <span class="metric-label">Confidence</span>
+            </div>
+            <div class="metric-value">87%</div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    const ORIGINAL_UI = `export const UserProfile = () => {
+  return (
+    <div className="user-profile">
+      <img src="/avatar.jpg" alt="User Avatar" />
+      <h2>John Doe</h2>
+      <p>Software Engineer</p>
+      <button>Contact</button>
+    </div>
+  );
+};`;
+
+    let currentUI = ORIGINAL_UI;
+    let isListening = false;
+    let recognition = null;
+
+    function startListening() {
+      if ('webkitSpeechRecognition' in window || 'SpeechRecognition' in window) {
+        const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
+        recognition = new SpeechRecognition();
+        recognition.continuous = true;
+        recognition.interimResults = true;
+
+        recognition.onresult = (event) => {
+          const last = event.results.length - 1;
+          const transcript = event.results[last][0].transcript;
+          processCommand(transcript);
+        };
+
+        recognition.start();
+        isListening = true;
+        updateButtonStates();
+      }
+    }
+
+    function stopListening() {
+      if (recognition) {
+        recognition.stop();
+        isListening = false;
+        updateButtonStates();
+      }
+    }
+
+    function updateButtonStates() {
+      document.querySelector('.btn-start').style.display = isListening ? 'none' : 'inline-block';
+      document.querySelector('.btn-stop').style.display = isListening ? 'inline-block' : 'none';
+    }
+
+    function processCommand(command) {
+      const lastCommandDiv = document.getElementById('lastCommand');
+      lastCommandDiv.style.display = 'block';
+      lastCommandDiv.innerHTML = `<strong>Last command:</strong> "${command}"`;
+
+      const changes = [];
+      const lowerCommand = command.toLowerCase();
+
+      if (lowerCommand.includes('blue') && lowerCommand.includes('button')) {
+        changes.push({
+          type: 'modify',
+          path: 'button.style',
+          reason: 'Change button color to blue'
+        });
+        currentUI = currentUI.replace(
+          '<button>Contact</button>',
+          '<button style={{backgroundColor: "blue", color: "white"}}>Contact</button>'
+        );
+      }
+
+      if (lowerCommand.includes('add') && lowerCommand.includes('email')) {
+        changes.push({
+          type: 'add',
+          path: 'div.children',
+          reason: 'Add email field'
+        });
+        currentUI = currentUI.replace(
+          '<p>Software Engineer</p>',
+          '<p>Software Engineer</p>\\n      <p>john.doe@example.com</p>'
+        );
+      }
+
+      if (lowerCommand.includes('larger') && lowerCommand.includes('avatar')) {
+        changes.push({
+          type: 'modify',
+          path: 'img.style',
+          reason: 'Increase avatar size'
+        });
+        currentUI = currentUI.replace(
+          '<img src="/avatar.jpg"',
+          '<img src="/avatar.jpg" style={{width: "120px", height: "120px"}}'
+        );
+      }
+
+      if (lowerCommand.includes('center')) {
+        changes.push({
+          type: 'modify',
+          path: 'div.style',
+          reason: 'Center align content'
+        });
+        currentUI = currentUI.replace(
+          'className="user-profile"',
+          'className="user-profile" style={{textAlign: "center"}}'
+        );
+      }
+
+      document.getElementById('modifiedUI').textContent = currentUI;
+
+      if (changes.length > 0) {
+        const changesList = document.getElementById('changesList');
+        const changesItems = document.getElementById('changesItems');
+        changesList.style.display = 'block';
+        changesItems.innerHTML = changes.map(c => `
+          <div class="change-item change-${c.type}">
+            <span class="change-type">${c.type.toUpperCase()}</span>
+            <span class="change-path">${c.path}</span>
+            <p class="change-reason">${c.reason}</p>
+          </div>
+        `).join('');
+      }
+    }
+
+    function simulateCommand(command) {
+      processCommand(command);
+    }
+
+    function resetDemo() {
+      currentUI = ORIGINAL_UI;
+      document.getElementById('modifiedUI').textContent = '[Changes will appear here]';
+      document.getElementById('changesList').style.display = 'none';
+      document.getElementById('lastCommand').style.display = 'none';
+    }
+  </script>
+</body>
+</html>

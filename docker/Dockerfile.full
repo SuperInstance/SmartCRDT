@@ -1,0 +1,97 @@
+# Dockerfile.full - Full application image
+# Includes all packages and server components
+
+FROM node:20-alpine AS deps
+
+# Install build dependencies
+RUN apk add --no-cache \
+    python3 \
+    make \
+    g++ \
+    cairo-dev \
+    jpeg-dev \
+    pango-dev \
+    musl-dev \
+    giflib-dev \
+    pixman-dev \
+    pangomm-dev \
+    libjpeg-turbo-dev \
+    freetype-dev
+
+# Copy package files
+COPY package.json package-lock.json ./
+COPY packages packages/
+
+# Install all dependencies
+RUN npm ci
+
+FROM node:20-alpine AS builder
+
+# Install build dependencies
+RUN apk add --no-cache \
+    python3 \
+    make \
+    g++ \
+    cairo-dev \
+    jpeg-dev \
+    pango-dev \
+    musl-dev \
+    giflib-dev \
+    pixman-dev \
+    pangomm-dev \
+    libjpeg-turbo-dev \
+    freetype-dev
+
+# Copy dependencies
+COPY --from=deps /app/node_modules ./node_modules
+COPY --from=deps /app/package*.json ./
+COPY --from=deps /app/packages ./packages
+
+# Build all packages
+RUN npm run build
+
+FROM node:20-alpine AS production
+
+# Install runtime libraries
+RUN apk add --no-cache \
+    cairo \
+    jpeg \
+    pango \
+    musl \
+    giflib \
+    pixman \
+    pangomm \
+    libjpeg-turbo \
+    freetype \
+    && addgroup -g 1001 -S nodejs \
+    && adduser -S aequor -u 1001
+
+# Set environment
+ENV NODE_ENV=production \
+    AEGEUS_VERSION=2.0.0
+
+WORKDIR /app
+
+# Copy built artifacts
+COPY --from=builder /app/packages ./packages
+COPY --from=builder /app/package*.json ./
+
+# Copy production dependencies only
+COPY --from=deps /app/node_modules ./node_modules
+
+# Create directories
+RUN mkdir -p /app/data /app/logs /app/cartridges && \
+    chown -R aequor:nodejs /app
+
+# Switch to non-root user
+USER aequor
+
+# Expose ports
+EXPOSE 3000 8001
+
+# Health check
+HEALTHCHECK --interval=30s --timeout=10s --start-period=40s --retries=3 \
+    CMD node -e "require('http').get('http://localhost:3000/health', (r) => {process.exit(r.statusCode === 200 ? 0 : 1)})" || exit 1
+
+# Default entrypoint - runs the server
+ENTRYPOINT ["node", "packages/core/dist/server.js"]

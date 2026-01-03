@@ -1,0 +1,86 @@
+apiVersion: "v1"
+kind: "Component"
+
+metadata:
+  name: openai-embeddings
+  version: 1.0.0
+  description: OpenAI embedding service with 1536-dim vectors and batch processing
+  author: SuperInstance
+  license: Apache-2.0
+  homepage: https://platform.openai.com/docs/guides/embeddings
+  repository: https://github.com/lsi/aequor
+  tags: [embeddings, openai, vectors, cloud]
+
+type: embeddings
+language: typescript
+runtime: nodejs
+
+dependencies:
+  protocol: ">=1.0.0"
+  npm:
+    openai: "^4.0.0"
+
+configuration:
+  properties:
+    api_key:
+      type: string
+      description: OpenAI API key
+
+    model:
+      type: string
+      default: "text-embedding-3-small"
+      description: Embedding model to use
+      enum: ["text-embedding-3-small", "text-embedding-3-large", "text-embedding-ada-002"]
+
+    dimensions:
+      type: integer
+      default: 1536
+      description: Embedding dimensions (model-dependent)
+      enum: [256, 512, 1536, 3072]
+
+    batch_size:
+      type: integer
+      default: 100
+      description: Batch size for embedding requests
+      minimum: 1
+      maximum: 2048
+
+    timeout_ms:
+      type: integer
+      default: 30000
+      description: Request timeout in milliseconds
+      minimum: 1000
+
+    encoding_format:
+      type: string
+      default: "float"
+      description: Encoding format
+      enum: ["float", "base64"]
+
+  required: ["api_key"]
+  additionalProperties: false
+
+hardware:
+  min_memory_mb: 50
+  recommended_memory_mb: 100
+  network: true
+
+performance:
+  benchmark_qps: 100
+  latency_p50_ms: 100
+  latency_p95_ms: 500
+  latency_p99_ms: 1000
+  throughput_mb_per_sec: 10
+
+interface:
+  main: ./dist/index.js
+  exports:
+    - OpenAIEmbeddingService
+    - EmbeddingResult
+  protocol: IEmbeddingService
+
+tests:
+  framework: vitest
+  command: npm test
+  coverage_threshold: 70
+  unit_tests: "**/*.test.ts"

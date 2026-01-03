@@ -1,0 +1,78 @@
+# CLI Tools Dockerfile for LSI Ecosystem
+# Lightweight image with lsictl CLI tools only
+
+FROM node:20-alpine AS builder
+WORKDIR /app
+
+# Install build dependencies
+RUN apk add --no-cache \
+    python3 \
+    make \
+    g++
+
+# Copy package files
+COPY package.json package-lock.json ./
+COPY packages packages/
+
+# Install all dependencies
+RUN npm ci
+
+# Build CLI and its dependencies
+RUN npm run build --workspace=@lsi/cli && \
+    npm run build --workspace=@lsi/core && \
+    npm run build --workspace=@lsi/protocol && \
+    npm run build --workspace=@lsi/cascade && \
+    npm run build --workspace=@lsi/superinstance
+
+# ============================================================================
+# CLI Runtime Stage
+# ============================================================================
+FROM node:20-alpine
+
+RUN apk add --no-cache \
+    cairo \
+    jpeg \
+    pango \
+    musl \
+    giflib \
+    tini
+
+# Create app user
+RUN addgroup -g 1001 -S nodejs && \
+    adduser -S lsi -u 1001
+
+WORKDIR /app
+
+# Set environment
+ENV NODE_ENV=production
+
+# Copy built CLI artifacts
+COPY --from=builder /app/packages/cli/dist ./packages/cli/dist
+COPY --from=builder /app/packages/core/dist ./packages/core/dist
+COPY --from=builder /app/packages/protocol/dist ./packages/protocol/dist
+COPY --from=builder /app/packages/cascade/dist ./packages/cascade/dist
+COPY --from=builder /app/packages/superinstance/dist ./packages/superinstance/dist
+
+# Copy production dependencies only
+COPY package.json package-lock.json ./
+RUN npm ci --production --no-optional && \
+    npm cache clean --force
+
+# Copy runtime dependencies from builder
+COPY --from=builder /app/node_modules ./node_modules
+COPY --from=builder /app/packages/*/node_modules ./packages/*/node_modules 2>/dev/null || true
+
+# Create directories for CLI operations
+RUN mkdir -p /app/data /app/cartridges /home/lsi/.lsi && \
+    chown -R lsi:nodejs /app /home/lsi
+
+USER lsi
+
+# Make CLI executable
+RUN chmod +x /app/packages/cli/dist/index.js
+
+# Set CLI as entry point
+ENTRYPOINT ["/sbin/tini", "--", "node", "/app/packages/cli/dist/index.js"]
+
+# Default: show help
+CMD ["--help"]

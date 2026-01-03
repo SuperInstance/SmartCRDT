@@ -1,0 +1,115 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>Attention Visualization</title>
+  <style>
+    body { font-family: Arial, sans-serif; margin: 20px; }
+    .controls { margin: 20px 0; }
+    select, button { margin: 0 5px; padding: 5px 10px; }
+    #container { display: flex; gap: 20px; }
+    #attentionMap { flex: 1; }
+    #info { flex: 1; min-width: 300px; }
+    .cell {
+      display: inline-block;
+      width: 20px;
+      height: 20px;
+      margin: 1px;
+      border: 1px solid #ccc;
+    }
+    .tokens { display: flex; flex-direction: column; }
+    .token { padding: 5px; border-bottom: 1px solid #eee; }
+    .legend { margin: 10px 0; }
+    .legend-color { display: inline-block; width: 20px; height: 20px; vertical-align: middle; }
+  </style>
+</head>
+<body>
+  <h1>Attention Visualization</h1>
+  <div class="controls">
+    <label>Layer: <select id="layerSelect">
+      <option value="0">Layer 1</option><option value="1">Layer 2</option>
+    </select></label>
+    <label>Head: <select id="headSelect">
+      <option value="0">Head 1</option>
+    </select></label>
+  </div>
+  <div id="container">
+    <div id="attentionMap"></div>
+    <div id="info">
+      <h3>Selected Token</h3>
+      <div id="selectedToken">-</div>
+      <h3>Attention Distribution</h3>
+      <div id="attentionDist"></div>
+    </div>
+  </div>
+  <script>
+    const data = {"attention":[[[[0.25,0.25,0.25,0.25],[0.25,0.25,0.25,0.25]]],[[[0.5,0.5],[0.5,0.5]]]],"tokens":["T0","T1"]};
+
+    const layerSelect = document.getElementById('layerSelect');
+    const headSelect = document.getElementById('headSelect');
+    const container = document.getElementById('attentionMap');
+
+    function renderAttention() {
+      const layer = parseInt(layerSelect.value);
+      const head = parseInt(headSelect.value);
+      const attention = data.attention[layer][head];
+
+      let html = '<table style="border-collapse: collapse;">';
+      html += '<tr><th></th>';
+      data.tokens.forEach(token => {
+        html += '<th style="font-size: 10px; max-width: 50px;">' + token + '</th>';
+      });
+      html += '</tr>';
+
+      for (let i = 0; i < attention.length; i++) {
+        html += '<tr>';
+        html += '<td style="font-weight: bold;">' + data.tokens[i] + '</td>';
+        for (let j = 0; j < attention[i].length; j++) {
+          const value = attention[i][j];
+          const color = getColor(value);
+          html += '<td style="background-color: ' + color + '; width: 30px; height: 30px;" ' +
+                   'data-i="' + i + '" data-j="' + j + '" data-value="' + value.toFixed(4) + '"></td>';
+        }
+        html += '</tr>';
+      }
+      html += '</table>';
+
+      container.innerHTML = html;
+
+      // Add click handlers
+      container.querySelectorAll('td[data-i]').forEach(cell => {
+        cell.addEventListener('click', (e) => {
+          const i = parseInt(e.target.dataset.i);
+          const j = parseInt(e.target.dataset.j);
+          showInfo(i, j, attention);
+        });
+      });
+    }
+
+    function getColor(value) {
+      // Blue to red colormap
+      const r = Math.floor(255 * value);
+      const b = Math.floor(255 * (1 - value));
+      return 'rgba(' + r + ', 0, ' + b + ', 0.8)';
+    }
+
+    function showInfo(i, j, attention) {
+      document.getElementById('selectedToken').textContent =
+        'Query: ' + data.tokens[i] + ' -> Key: ' + data.tokens[j];
+
+      let distHtml = '<ul>';
+      for (let k = 0; k < attention[i].length; k++) {
+        if (attention[i][k] > 0.05) {
+          distHtml += '<li>' + data.tokens[k] + ': ' + (attention[i][k] * 100).toFixed(1) + '%</li>';
+        }
+      }
+      distHtml += '</ul>';
+      document.getElementById('attentionDist').innerHTML = distHtml;
+    }
+
+    layerSelect.addEventListener('change', renderAttention);
+    headSelect.addEventListener('change', renderAttention);
+
+    renderAttention();
+  </script>
+</body>
+</html>

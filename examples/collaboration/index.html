@@ -1,0 +1,737 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Aequor CRDT Collaborative Editor Demo</title>
+    <style>
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 20px;
+        }
+
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
+        }
+
+        .header {
+            background: white;
+            padding: 20px 30px;
+            border-radius: 12px;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+            margin-bottom: 20px;
+        }
+
+        .header h1 {
+            color: #667eea;
+            font-size: 28px;
+            margin-bottom: 10px;
+        }
+
+        .header p {
+            color: #666;
+            font-size: 14px;
+        }
+
+        .main-content {
+            display: grid;
+            grid-template-columns: 1fr 300px;
+            gap: 20px;
+        }
+
+        .editor-section {
+            background: white;
+            border-radius: 12px;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+            overflow: hidden;
+        }
+
+        .editor-toolbar {
+            background: #f8f9fa;
+            padding: 15px 20px;
+            border-bottom: 1px solid #dee2e6;
+            display: flex;
+            align-items: center;
+            gap: 15px;
+        }
+
+        .editor-toolbar input {
+            padding: 8px 12px;
+            border: 1px solid #dee2e6;
+            border-radius: 6px;
+            font-size: 14px;
+        }
+
+        .editor-toolbar button {
+            padding: 8px 16px;
+            background: #667eea;
+            color: white;
+            border: none;
+            border-radius: 6px;
+            font-size: 14px;
+            cursor: pointer;
+            transition: background 0.2s;
+        }
+
+        .editor-toolbar button:hover {
+            background: #5568d3;
+        }
+
+        .editor-toolbar button:disabled {
+            background: #ccc;
+            cursor: not-allowed;
+        }
+
+        .connection-status {
+            padding: 6px 12px;
+            border-radius: 20px;
+            font-size: 12px;
+            font-weight: 600;
+            text-transform: uppercase;
+        }
+
+        .connection-status.connected {
+            background: #d4edda;
+            color: #155724;
+        }
+
+        .connection-status.disconnected {
+            background: #f8d7da;
+            color: #721c24;
+        }
+
+        .editor-container {
+            position: relative;
+            min-height: 500px;
+        }
+
+        #editor {
+            width: 100%;
+            min-height: 500px;
+            padding: 20px;
+            border: none;
+            resize: none;
+            font-family: 'Monaco', 'Menlo', 'Ubuntu Mono', monospace;
+            font-size: 14px;
+            line-height: 1.6;
+            outline: none;
+        }
+
+        .remote-cursor {
+            position: absolute;
+            pointer-events: none;
+            z-index: 100;
+        }
+
+        .remote-cursor-flag {
+            padding: 2px 6px;
+            border-radius: 3px;
+            color: white;
+            font-size: 11px;
+            font-weight: 600;
+            white-space: nowrap;
+        }
+
+        .remote-cursor-line {
+            width: 2px;
+            height: 20px;
+        }
+
+        .sidebar {
+            display: flex;
+            flex-direction: column;
+            gap: 20px;
+        }
+
+        .panel {
+            background: white;
+            border-radius: 12px;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+            overflow: hidden;
+        }
+
+        .panel-header {
+            background: #f8f9fa;
+            padding: 15px 20px;
+            border-bottom: 1px solid #dee2e6;
+            font-weight: 600;
+            color: #495057;
+        }
+
+        .panel-content {
+            padding: 15px 20px;
+        }
+
+        .user-list {
+            list-style: none;
+        }
+
+        .user-item {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            padding: 10px;
+            border-radius: 6px;
+            margin-bottom: 8px;
+        }
+
+        .user-item:hover {
+            background: #f8f9fa;
+        }
+
+        .user-color {
+            width: 12px;
+            height: 12px;
+            border-radius: 50%;
+        }
+
+        .user-name {
+            flex: 1;
+            font-size: 14px;
+            color: #495057;
+        }
+
+        .user-status {
+            font-size: 11px;
+            color: #6c757d;
+        }
+
+        .stats-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 10px;
+        }
+
+        .stat-item {
+            background: #f8f9fa;
+            padding: 10px;
+            border-radius: 6px;
+            text-align: center;
+        }
+
+        .stat-value {
+            font-size: 24px;
+            font-weight: 700;
+            color: #667eea;
+        }
+
+        .stat-label {
+            font-size: 11px;
+            color: #6c757d;
+            text-transform: uppercase;
+            margin-top: 4px;
+        }
+
+        .conflict-log {
+            max-height: 200px;
+            overflow-y: auto;
+            font-family: 'Monaco', 'Menlo', 'Ubuntu Mono', monospace;
+            font-size: 12px;
+        }
+
+        .conflict-item {
+            padding: 8px;
+            border-radius: 4px;
+            margin-bottom: 6px;
+            background: #fff3cd;
+            border-left: 3px solid #ffc107;
+        }
+
+        .conflict-item.resolved {
+            background: #d4edda;
+            border-left-color: #28a745;
+        }
+
+        .typing-indicator {
+            font-size: 12px;
+            color: #6c757d;
+            font-style: italic;
+        }
+
+        @keyframes pulse {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0.5; }
+        }
+
+        .typing {
+            animation: pulse 1s infinite;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>Aequor CRDT Collaborative Editor</h1>
+            <p>Real-time multi-user document editing with conflict-free replicated data types</p>
+        </div>
+
+        <div class="main-content">
+            <div class="editor-section">
+                <div class="editor-toolbar">
+                    <input type="text" id="userName" placeholder="Your name" value="User">
+                    <input type="text" id="documentId" placeholder="Document ID" value="demo-doc">
+                    <button id="connectBtn">Connect</button>
+                    <button id="disconnectBtn" disabled>Disconnect</button>
+                    <span class="connection-status disconnected" id="connectionStatus">Disconnected</span>
+                    <span class="typing-indicator" id="typingIndicator"></span>
+                </div>
+                <div class="editor-container">
+                    <textarea id="editor" placeholder="Start typing... Open this page in multiple browser windows to see real-time collaboration!"></textarea>
+                    <div id="cursors"></div>
+                </div>
+            </div>
+
+            <div class="sidebar">
+                <div class="panel">
+                    <div class="panel-header">Active Users</div>
+                    <div class="panel-content">
+                        <ul class="user-list" id="userList">
+                            <li style="color: #999; font-size: 14px;">No users connected</li>
+                        </ul>
+                    </div>
+                </div>
+
+                <div class="panel">
+                    <div class="panel-header">Document Stats</div>
+                    <div class="panel-content">
+                        <div class="stats-grid">
+                            <div class="stat-item">
+                                <div class="stat-value" id="charCount">0</div>
+                                <div class="stat-label">Characters</div>
+                            </div>
+                            <div class="stat-item">
+                                <div class="stat-value" id="version">0</div>
+                                <div class="stat-label">Version</div>
+                            </div>
+                            <div class="stat-item">
+                                <div class="stat-value" id="operationCount">0</div>
+                                <div class="stat-label">Operations</div>
+                            </div>
+                            <div class="stat-item">
+                                <div class="stat-value" id="userCount">0</div>
+                                <div class="stat-label">Users</div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="panel">
+                    <div class="panel-header">Conflict Log</div>
+                    <div class="panel-content">
+                        <div class="conflict-log" id="conflictLog">
+                            <div style="color: #999;">No conflicts</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Simple CRDT implementation for demo
+        class SimpleCRDT {
+            constructor() {
+                this.content = '';
+                this.version = 0;
+                this.operations = [];
+            }
+
+            insert(position, text, userId) {
+                this.content = this.content.slice(0, position) + text + this.content.slice(position);
+                this.version++;
+                const op = {
+                    id: Date.now() + '-' + Math.random(),
+                    type: 'insert',
+                    position,
+                    text,
+                    userId,
+                    timestamp: Date.now(),
+                    version: this.version
+                };
+                this.operations.push(op);
+                return op;
+            }
+
+            delete(position, length, userId) {
+                this.content = this.content.slice(0, position) + this.content.slice(position + length);
+                this.version++;
+                const op = {
+                    id: Date.now() + '-' + Math.random(),
+                    type: 'delete',
+                    position,
+                    length,
+                    userId,
+                    timestamp: Date.now(),
+                    version: this.version
+                };
+                this.operations.push(op);
+                return op;
+            }
+
+            applyRemote(op) {
+                // Check if already applied
+                if (this.operations.some(o => o.id === op.id)) {
+                    return null;
+                }
+
+                // Transform position based on concurrent ops
+                let position = op.position;
+                for (const existingOp of this.operations) {
+                    if (existingOp.userId === op.userId) continue;
+                    if (existingOp.timestamp > op.timestamp) continue;
+
+                    if (existingOp.type === 'insert' && existingOp.position <= position) {
+                        position += existingOp.text.length;
+                    } else if (existingOp.type === 'delete') {
+                        if (existingOp.position + existingOp.length <= position) {
+                            position -= existingOp.length;
+                        }
+                    }
+                }
+
+                // Apply operation
+                if (op.type === 'insert') {
+                    this.content = this.content.slice(0, position) + op.text + this.content.slice(position);
+                } else if (op.type === 'delete') {
+                    this.content = this.content.slice(0, position) + this.content.slice(position + op.length);
+                }
+
+                this.version++;
+                this.operations.push({ ...op, position });
+                return { ...op, position };
+            }
+
+            getContent() {
+                return this.content;
+            }
+
+            getVersion() {
+                return this.version;
+            }
+
+            getStats() {
+                return {
+                    contentLength: this.content.length,
+                    version: this.version,
+                    operationCount: this.operations.length
+                };
+            }
+        }
+
+        // Main application
+        class CollaborativeEditor {
+            constructor() {
+                this.crdt = new SimpleCRDT();
+                this.ws = null;
+                this.userId = 'user-' + Date.now() + '-' + Math.random().toString(36).substr(2, 9);
+                this.userName = 'User';
+                this.documentId = 'demo-doc';
+                this.users = new Map();
+                this.remoteCursors = new Map();
+                this.typingTimeout = null;
+
+                this.editor = document.getElementById('editor');
+                this.connectBtn = document.getElementById('connectBtn');
+                this.disconnectBtn = document.getElementById('disconnectBtn');
+                this.connectionStatus = document.getElementById('connectionStatus');
+                this.userList = document.getElementById('userList');
+                this.cursorsContainer = document.getElementById('cursors');
+
+                this.init();
+            }
+
+            init() {
+                this.connectBtn.addEventListener('click', () => this.connect());
+                this.disconnectBtn.addEventListener('click', () => this.disconnect());
+
+                this.editor.addEventListener('input', (e) => this.handleInput(e));
+                this.editor.addEventListener('keydown', (e) => this.handleKeyDown(e));
+                this.editor.addEventListener('click', () => this.sendCursorPosition());
+                this.editor.addEventListener('keyup', () => this.sendCursorPosition());
+
+                document.getElementById('userName').value = this.userName;
+                document.getElementById('documentId').value = this.documentId;
+            }
+
+            connect() {
+                this.userName = document.getElementById('userName').value || 'User';
+                this.documentId = document.getElementById('documentId').value || 'demo-doc';
+
+                const wsUrl = `ws://localhost:8080`;
+                this.ws = new WebSocket(wsUrl);
+
+                this.ws.onopen = () => {
+                    this.connectionStatus.textContent = 'Connected';
+                    this.connectionStatus.className = 'connection-status connected';
+                    this.connectBtn.disabled = true;
+                    this.disconnectBtn.disabled = false;
+
+                    // Join document
+                    this.ws.send(JSON.stringify({
+                        type: 'join',
+                        payload: {
+                            userId: this.userId,
+                            userName: this.userName,
+                            documentId: this.documentId
+                        }
+                    }));
+
+                    this.log('Connected to collaboration server');
+                };
+
+                this.ws.onmessage = (event) => {
+                    const message = JSON.parse(event.data);
+                    this.handleMessage(message);
+                };
+
+                this.ws.onclose = () => {
+                    this.connectionStatus.textContent = 'Disconnected';
+                    this.connectionStatus.className = 'connection-status disconnected';
+                    this.connectBtn.disabled = false;
+                    this.disconnectBtn.disabled = true;
+                    this.log('Disconnected from server');
+                };
+
+                this.ws.onerror = (error) => {
+                    console.error('WebSocket error:', error);
+                    this.log('Connection error');
+                };
+            }
+
+            disconnect() {
+                if (this.ws) {
+                    this.ws.close();
+                    this.ws = null;
+                }
+            }
+
+            handleMessage(message) {
+                switch (message.type) {
+                    case 'operation':
+                        this.handleRemoteOperation(message.payload);
+                        break;
+                    case 'state':
+                        this.handleState(message.payload);
+                        break;
+                    case 'user_joined':
+                        this.handleUserJoined(message.payload);
+                        break;
+                    case 'user_left':
+                        this.handleUserLeft(message.payload);
+                        break;
+                    case 'user_list':
+                        this.handleUserList(message.payload);
+                        break;
+                    case 'cursor':
+                        this.handleCursor(message.payload);
+                        break;
+                }
+            }
+
+            handleInput(e) {
+                // This is simplified - in real implementation would track selection
+                const cursorPos = this.editor.selectionStart;
+                const oldContent = this.crdt.getContent();
+
+                if (this.editor.value.length > oldContent.length) {
+                    // Insert
+                    const inserted = this.editor.value.slice(cursorPos - (this.editor.value.length - oldContent.length), cursorPos);
+                    const op = this.crdt.insert(cursorPos - inserted.length, inserted, this.userId);
+                    this.sendOperation(op);
+                } else if (this.editor.value.length < oldContent.length) {
+                    // Delete
+                    const deletedLength = oldContent.length - this.editor.value.length;
+                    const op = this.crdt.delete(cursorPos, deletedLength, this.userId);
+                    this.sendOperation(op);
+                }
+
+                this.updateStats();
+                this.showTyping();
+            }
+
+            handleKeyDown(e) {
+                // Handle special keys
+                if (e.key === 'Enter') {
+                    e.preventDefault();
+                    const pos = this.editor.selectionStart;
+                    const op = this.crdt.insert(pos, '\n', this.userId);
+                    this.sendOperation(op);
+                    this.editor.value = this.crdt.getContent();
+                    this.editor.selectionStart = this.editor.selectionEnd = pos + 1;
+                    this.showTyping();
+                }
+            }
+
+            handleRemoteOperation(op) {
+                if (op.userId === this.userId) return;
+
+                const before = this.crdt.getContent();
+                const result = this.crdt.applyRemote(op);
+
+                if (result) {
+                    const after = this.crdt.getContent();
+                    if (before !== after) {
+                        // Preserve cursor position
+                        const cursorPos = this.editor.selectionStart;
+                        this.editor.value = after;
+
+                        // Adjust cursor if needed
+                        if (result.type === 'insert' && result.position <= cursorPos) {
+                            this.editor.selectionStart = this.editor.selectionEnd = cursorPos + result.text.length;
+                        }
+
+                        this.logConflict(op);
+                        this.updateStats();
+                    }
+                }
+            }
+
+            handleState(payload) {
+                this.crdt.content = payload.content;
+                this.crdt.version = payload.version;
+                this.crdt.operations = payload.operations || [];
+                this.editor.value = payload.content;
+                this.updateStats();
+                this.log('Received document state');
+            }
+
+            handleUserJoined(user) {
+                this.users.set(user.userId, user);
+                this.updateUserList();
+                this.log(`${user.userName} joined`);
+            }
+
+            handleUserLeft(payload) {
+                const user = this.users.get(payload.userId);
+                if (user) {
+                    this.log(`${user.userName} left`);
+                    this.users.delete(payload.userId);
+                    this.removeRemoteCursor(payload.userId);
+                    this.updateUserList();
+                }
+            }
+
+            handleUserList(users) {
+                for (const user of users) {
+                    if (user.userId !== this.userId) {
+                        this.users.set(user.userId, user);
+                    }
+                }
+                this.updateUserList();
+            }
+
+            handleCursor(payload) {
+                if (payload.userId === this.userId) return;
+                this.updateRemoteCursor(payload.userId, payload.userName, payload.color, payload.cursor);
+            }
+
+            sendOperation(op) {
+                if (this.ws && this.ws.readyState === WebSocket.OPEN) {
+                    this.ws.send(JSON.stringify({
+                        type: 'operation',
+                        documentId: this.documentId,
+                        payload: op
+                    }));
+                }
+            }
+
+            sendCursorPosition() {
+                if (!this.ws || this.ws.readyState !== WebSocket.OPEN) return;
+
+                const pos = this.editor.selectionStart;
+                const textBefore = this.editor.value.substring(0, pos);
+                const line = textBefore.split('\n').length - 1;
+                const column = textBefore.split('\n').pop().length;
+
+                this.ws.send(JSON.stringify({
+                    type: 'cursor',
+                    documentId: this.documentId,
+                    payload: { line, column }
+                }));
+            }
+
+            updateRemoteCursor(userId, userName, color, cursor) {
+                // Simplified cursor visualization
+                // In full implementation would show cursor at exact position
+            }
+
+            removeRemoteCursor(userId) {
+                // Remove cursor visualization
+            }
+
+            updateUserList() {
+                if (this.users.size === 0) {
+                    this.userList.innerHTML = '<li style="color: #999; font-size: 14px;">No other users</li>';
+                    return;
+                }
+
+                this.userList.innerHTML = '';
+                for (const [userId, user] of this.users) {
+                    const li = document.createElement('li');
+                    li.className = 'user-item';
+                    li.innerHTML = `
+                        <div class="user-color" style="background: ${user.color}"></div>
+                        <span class="user-name">${user.userName}</span>
+                        <span class="user-status">editing</span>
+                    `;
+                    this.userList.appendChild(li);
+                }
+
+                document.getElementById('userCount').textContent = this.users.size + 1;
+            }
+
+            updateStats() {
+                const stats = this.crdt.getStats();
+                document.getElementById('charCount').textContent = stats.contentLength;
+                document.getElementById('version').textContent = stats.version;
+                document.getElementById('operationCount').textContent = stats.operationCount;
+            }
+
+            showTyping() {
+                const indicator = document.getElementById('typingIndicator');
+                indicator.textContent = 'You are typing...';
+                indicator.classList.add('typing');
+
+                clearTimeout(this.typingTimeout);
+                this.typingTimeout = setTimeout(() => {
+                    indicator.textContent = '';
+                    indicator.classList.remove('typing');
+                }, 1000);
+            }
+
+            logConflict(op) {
+                const log = document.getElementById('conflictLog');
+                if (log.firstChild?.textContent === 'No conflicts') {
+                    log.innerHTML = '';
+                }
+
+                const item = document.createElement('div');
+                item.className = 'conflict-item resolved';
+                item.textContent = `[${new Date().toLocaleTimeString()}] Applied ${op.type} from user ${op.userId.substr(0, 8)}`;
+                log.insertBefore(item, log.firstChild);
+
+                // Keep only last 20 items
+                while (log.children.length > 20) {
+                    log.removeChild(log.lastChild);
+                }
+            }
+
+            log(message) {
+                console.log(`[Collaboration Demo] ${message}`);
+            }
+        }
+
+        // Initialize
+        const editor = new CollaborativeEditor();
+    </script>
+</body>
+</html>

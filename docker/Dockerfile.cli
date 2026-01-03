@@ -1,0 +1,90 @@
+# Dockerfile.cli - CLI tool image
+# Includes the full CLI tool and dependencies
+
+FROM node:20-alpine AS deps
+
+# Install build dependencies
+RUN apk add --no-cache \
+    python3 \
+    make \
+    g++ \
+    cairo-dev \
+    jpeg-dev \
+    pango-dev \
+    musl-dev \
+    giflib-dev \
+    pixman-dev \
+    pangomm-dev \
+    libjpeg-turbo-dev \
+    freetype-dev
+
+# Copy package files
+COPY package.json package-lock.json ./
+COPY packages packages/
+
+# Install all dependencies
+RUN npm ci
+
+FROM node:20-alpine AS builder
+
+# Install build dependencies
+RUN apk add --no-cache \
+    python3 \
+    make \
+    g++ \
+    cairo-dev \
+    jpeg-dev \
+    pango-dev \
+    musl-dev \
+    giflib-dev \
+    pixman-dev \
+    pangomm-dev \
+    libjpeg-turbo-dev \
+    freetype-dev
+
+# Copy dependencies
+COPY --from=deps /app/node_modules ./node_modules
+COPY --from=deps /app/package*.json ./
+COPY --from=deps /app/packages ./packages
+
+# Build CLI package
+RUN npm run build -- --workspace=packages/cli
+
+FROM node:20-alpine AS cli
+
+# Install runtime libraries
+RUN apk add --no-cache \
+    cairo \
+    jpeg \
+    pango \
+    musl \
+    giflib \
+    pixman \
+    pangomm \
+    libjpeg-turbo \
+    freetype \
+    && addgroup -g 1001 -S nodejs \
+    && adduser -S aequor -u 1001
+
+# Set environment
+ENV NODE_ENV=production
+
+WORKDIR /app
+
+# Copy built CLI
+COPY --from=builder /app/packages/cli/dist ./packages/cli/dist
+COPY --from=builder /app/packages/cli/package.json ./packages/cli/
+COPY --from=builder /app/node_modules ./node_modules
+
+# Create directories
+RUN mkdir -p /app/data /app/logs && \
+    chown -R aequor:nodejs /app
+
+# Switch to non-root user
+USER aequor
+
+# Set entrypoint
+ENTRYPOINT ["node", "packages/cli/dist/index.js"]
+
+# Default command shows help
+CMD ["--help"]

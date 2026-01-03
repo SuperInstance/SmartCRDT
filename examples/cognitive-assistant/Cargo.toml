@@ -1,0 +1,16 @@
+[package]
+name = "activelog-cognitive-assistant"
+version = "0.1.0"
+edition = "2021"
+publish = false
+
+[dependencies]
+activelog = { path = "../../packages/activelog" }
+tokio = { version = "1.40", features = ["rt-multi-thread", "sync", "io-util"] }
+serde = { version = "1.0", features = ["derive"] }
+serde_json = "1.0"
+
+[profile.release]
+opt-level = 3
+lto = true
+codegen-units = 1

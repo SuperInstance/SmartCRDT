@@ -1,0 +1,126 @@
+apiVersion: "v1"
+kind: "App"
+
+metadata:
+  name: code-assistant
+  version: 1.0.0
+  description: AI-powered code assistant with context awareness and code analysis
+  author: SuperInstance
+  license: MIT
+  tags: [development, code, ai, programming]
+  keywords: [code, assistant, ide, completion, analysis]
+
+category: development
+
+components:
+  - name: cascade-router
+    version: ">=1.0.0"
+    required: true
+    configuration:
+      complexity_threshold: 0.8
+      cache_enabled: true
+
+  - name: code-analyzer
+    version: "^1.0.0"
+    required: true
+    configuration:
+      supported_languages: [typescript, python, rust, go, javascript, java]
+      parse_ast: true
+      extract_functions: true
+      extract_classes: true
+
+  - name: semantic-cache
+    version: "^1.0.0"
+    required: true
+    configuration:
+      cache_size: "200MB"
+      ttl_seconds: 7200
+
+  - name: llm-adapter
+    version: ">=1.0.0"
+    required: true
+    configuration:
+      provider: openai
+      model: gpt-4
+      max_tokens: 2000
+      temperature: 0.2
+
+  - name: context-manager
+    version: ">=1.0.0"
+    required: true
+    configuration:
+      max_context_files: 50
+      max_context_size: "100MB"
+      include_tests: false
+
+advanced_components:
+  - name: code-indexer
+    version: ">=1.0.0"
+    description: Index codebase for semantic search and context retrieval
+    configuration:
+      index_tests: false
+      index_comments: true
+      index_docstrings: true
+      chunk_size: 500
+
+  - name: security-scanner
+    version: ">=1.0.0"
+    description: Scan code for security vulnerabilities and best practices
+    configuration:
+      severity_threshold: medium
+      check_dependencies: true
+      check_secrets: true
+
+  - name: test-generator
+    version: ">=1.0.0"
+    description: Automatically generate unit tests for code
+    configuration:
+      test_framework: infer
+      coverage_target: 80
+      max_test_cases: 10
+
+  - name: refactoring-engine
+    version: ">=1.0.0"
+    description: Suggest and apply code refactoring improvements
+    configuration:
+      aggressiveness: medium
+      preserve_comments: true
+      generate_diff: true
+
+configuration:
+  environment: development
+  log_level: debug
+  enable_metrics: true
+  enable_tracing: true
+
+environment_vars:
+  OPENAI_API_KEY: "${OPENAI_API_KEY}"
+  LOG_LEVEL: "debug"
+  NODE_ENV: "development"
+
+networking:
+  host: "127.0.0.1"
+  port: 3000
+  expose:
+    - "3000/tcp"
+
+storage:
+  data_path: "/var/lib/aequor/code-assistant/data"
+  cache_path: "/var/lib/aequor/code-assistant/cache"
+  persistence_enabled: true
+  backup_enabled: false
+
+scaling:
+  mode: standalone
+  instances: 1
+  cpu_limit: "2"
+  memory_limit: "4Gi"
+
+health_checks:
+  enabled: true
+  interval_seconds: 60
+  timeout_seconds: 5
+  failure_threshold: 3
+
+telemetry:
+  enabled: false

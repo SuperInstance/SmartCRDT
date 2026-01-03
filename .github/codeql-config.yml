@@ -1,0 +1,40 @@
+# CodeQL Configuration File
+# See: https://docs.github.com/en/code-security/code-scanning/automatically-scanning-your-code-for-vulnerabilities-and-errors/configuring-code-scanning
+
+# Choose the queries to run
+query-suite:
+  # Use the default security-extended query suite for JavaScript/TypeScript
+  - security-extended
+
+# Include custom queries (if any)
+# queries:
+#   - .github/codeql-queries/custom-query.ql
+
+# Exclude directories from analysis
+exclude:
+  - node_modules/
+  - dist/
+  - build/
+  - coverage/
+  - '*.config.js'
+  - '*.config.ts'
+  - 'scripts/'
+  - 'docs/'
+  - 'tutorials/'
+  - 'archive/'
+  - 'oldprojects/'
+  - 'research/'
+
+# Paths to include in analysis
+paths:
+  - packages/
+  - src/
+
+# Advanced configuration
+packs:
+  javascript:
+    - codeql/javascript-queries:AlertSuppression.ql
+    - codeql/javascript-queries:Security
+  typescript:
+    - codeql/typescript-queries:AlertSuppression.ql
+    - codeql/typescript-queries:Security

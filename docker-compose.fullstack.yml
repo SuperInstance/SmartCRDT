@@ -1,0 +1,589 @@
+# ============================================================================
+# Aequor Cognitive Orchestration Platform - Full Stack Docker Compose
+# ============================================================================
+# Production-ready multi-service orchestration
+
+version: '3.9'
+
+services:
+  # ==========================================================================
+  # Aequor Core Services
+  # ==========================================================================
+
+  # ------------------------------------------------------------------------
+  # Protocol Service (Library package - rarely standalone)
+  # ------------------------------------------------------------------------
+  protocol:
+    build:
+      context: ./packages/protocol
+      dockerfile: Dockerfile
+    image: aequor/protocol:4.0.0
+    container_name: aequor-protocol
+    restart: unless-stopped
+    networks:
+      - aequor-network
+    environment:
+      - NODE_ENV=production
+    healthcheck:
+      test: ["CMD", "node", "-e", "console.log('healthy')"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 10s
+
+  # ------------------------------------------------------------------------
+  # Cascade Router Service
+  # ------------------------------------------------------------------------
+  cascade:
+    build:
+      context: ./packages/cascade
+      dockerfile: Dockerfile
+    image: aequor/cascade:4.0.0
+    container_name: aequor-cascade
+    restart: unless-stopped
+    ports:
+      - "3000:3000"
+      - "9090:9090"  # Metrics
+    networks:
+      - aequor-network
+    environment:
+      - NODE_ENV=production
+      - CASCADE_LOG_LEVEL=info
+      - OPENAI_API_KEY=${OPENAI_API_KEY:-}
+      - ANTHROPIC_API_KEY=${ANTHROPIC_API_KEY:-}
+      - OLLAMA_HOST=http://ollama:11434
+    volumes:
+      - cascade-data:/app/data
+      - cascade-logs:/app/logs
+    depends_on:
+      - protocol
+      - redis
+      - ollama
+    healthcheck:
+      test: ["CMD", "node", "-e", "console.log('Cascade healthy')"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 40s
+    deploy:
+      resources:
+        limits:
+          cpus: '2'
+          memory: 2G
+        reservations:
+          cpus: '0.5'
+          memory: 512M
+
+  # ------------------------------------------------------------------------
+  # Privacy Suite Service
+  # ------------------------------------------------------------------------
+  privacy:
+    build:
+      context: ./packages/privacy
+      dockerfile: Dockerfile
+    image: aequor/privacy:4.0.0
+    container_name: aequor-privacy
+    restart: unless-stopped
+    ports:
+      - "3001:3001"
+    networks:
+      - aequor-network
+    environment:
+      - NODE_ENV=production
+      - PRIVACY_LOG_LEVEL=info
+      - PRIVACY_AUDIT_ENABLED=true
+      - PRIVACY_EPSILON=1.0
+      - REDIS_HOST=redis
+      - REDIS_PORT=6379
+    volumes:
+      - privacy-audit:/app/audit
+      - privacy-logs:/app/logs
+    depends_on:
+      - protocol
+      - redis
+    healthcheck:
+      test: ["CMD", "node", "-e", "console.log('Privacy healthy')"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 40s
+    deploy:
+      resources:
+        limits:
+          cpus: '1'
+          memory: 1G
+        reservations:
+          cpus: '0.25'
+          memory: 256M
+
+  # ------------------------------------------------------------------------
+  # SuperInstance Service
+  # ------------------------------------------------------------------------
+  superinstance:
+    build:
+      context: ./packages/superinstance
+      dockerfile: Dockerfile
+    image: aequor/superinstance:4.0.0
+    container_name: aequor-superinstance
+    restart: unless-stopped
+    ports:
+      - "3002:3002"
+      - "9229:9229"  # Debug
+    networks:
+      - aequor-network
+    environment:
+      - NODE_ENV=production
+      - SUPERINSTANCE_LOG_LEVEL=info
+      - CONTEXT_ENABLED=true
+      - INTENTION_ENABLED=true
+      - LUCIDDREAMER_ENABLED=false
+      - CASCADE_HOST=http://cascade:3000
+      - PRIVACY_HOST=http://privacy:3001
+      - CHROMA_HOST=http://chroma:8000
+    volumes:
+      - superinstance-cache:/app/cache
+      - superinstance-cartridges:/app/cartridges
+      - superinstance-knowledge:/app/knowledge
+      - superinstance-logs:/app/logs
+    depends_on:
+      - protocol
+      - cascade
+      - privacy
+      - chroma
+    healthcheck:
+      test: ["CMD", "node", "-e", "console.log('SuperInstance healthy')"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 60s
+    deploy:
+      resources:
+        limits:
+          cpus: '4'
+          memory: 4G
+        reservations:
+          cpus: '1'
+          memory: 1G
+
+  # ------------------------------------------------------------------------
+  # Performance Optimizer Service
+  # ------------------------------------------------------------------------
+  performance:
+    build:
+      context: ./packages/performance-optimizer
+      dockerfile: Dockerfile
+    image: aequor/performance:4.0.0
+    container_name: aequor-performance
+    restart: unless-stopped
+    ports:
+      - "9091:9091"  # Metrics
+    networks:
+      - aequor-network
+    environment:
+      - NODE_ENV=production
+      - PERFORMANCE_LOG_LEVEL=info
+      - PROFILING_ENABLED=false
+      - NUMA_ENABLED=true
+    volumes:
+      - performance-profiles:/app/profiles
+      - performance-logs:/app/logs
+    privileged: true  # Required for performance profiling
+    healthcheck:
+      test: ["CMD", "node", "-e", "console.log('Performance healthy')"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 40s
+    deploy:
+      resources:
+        limits:
+          cpus: '2'
+          memory: 2G
+        reservations:
+          cpus: '0.5'
+          memory: 512M
+
+  # ------------------------------------------------------------------------
+  # Security Audit Service
+  # ------------------------------------------------------------------------
+  security:
+    build:
+      context: ./packages/security-audit
+      dockerfile: Dockerfile
+    image: aequor/security:4.0.0
+    container_name: aequor-security
+    restart: unless-stopped
+    ports:
+      - "3003:3003"
+    networks:
+      - aequor-network
+    environment:
+      - NODE_ENV=production
+      - SECURITY_LOG_LEVEL=info
+      - AUDIT_ENABLED=true
+      - SCAN_ON_STARTUP=false
+    volumes:
+      - security-scans:/app/scans
+      - security-audits:/app/audits
+      - security-logs:/app/logs
+    healthcheck:
+      test: ["CMD", "node", "-e", "console.log('Security healthy')"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 40s
+    deploy:
+      resources:
+        limits:
+          cpus: '1'
+          memory: 1G
+        reservations:
+          cpus: '0.25'
+          memory: 256M
+
+  # ------------------------------------------------------------------------
+  # Sanitization Service
+  # ------------------------------------------------------------------------
+  sanitization:
+    build:
+      context: ./packages/sanitization
+      dockerfile: Dockerfile
+    image: aequor/sanitization:4.0.0
+    container_name: aequor-sanitization
+    restart: unless-stopped
+    networks:
+      - aequor-network
+    environment:
+      - NODE_ENV=production
+      - SANITIZATION_LOG_LEVEL=info
+      - STRICT_MODE=true
+    volumes:
+      - sanitization-logs:/app/logs
+    healthcheck:
+      test: ["CMD", "node", "-e", "console.log('Sanitization healthy')"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 40s
+    deploy:
+      resources:
+        limits:
+          cpus: '0.5'
+          memory: 512M
+        reservations:
+          cpus: '0.1'
+          memory: 128M
+
+  # ------------------------------------------------------------------------
+  # CLI Service (Utility)
+  # ------------------------------------------------------------------------
+  cli:
+    build:
+      context: ./packages/cli
+      dockerfile: Dockerfile
+    image: aequor/cli:4.0.0
+    container_name: aequor-cli
+    restart: "no"  # CLI is not a long-running service
+    networks:
+      - aequor-network
+    environment:
+      - NODE_ENV=production
+      - CLI_LOG_LEVEL=info
+      - CLI_COLOR=true
+    volumes:
+      - cli-config:/app/config
+    stdin_open: true
+    tty: true
+
+  # ==========================================================================
+  # Infrastructure Services
+  # ==========================================================================
+
+  # ------------------------------------------------------------------------
+  # PostgreSQL Database
+  # ------------------------------------------------------------------------
+  postgres:
+    image: postgres:15-alpine
+    container_name: aequor-postgres
+    restart: unless-stopped
+    ports:
+      - "5432:5432"
+    networks:
+      - aequor-network
+    environment:
+      - POSTGRES_USER=aequor
+      - POSTGRES_PASSWORD=${POSTGRES_PASSWORD:-aequor_dev}
+      - POSTGRES_DB=aequor_db
+      - PGDATA=/var/lib/postgresql/data/pgdata
+    volumes:
+      - postgres-data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U aequor -d aequor_db"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 30s
+    deploy:
+      resources:
+        limits:
+          cpus: '2'
+          memory: 2G
+        reservations:
+          cpus: '0.5'
+          memory: 512M
+
+  # ------------------------------------------------------------------------
+  # Redis Cache
+  # ------------------------------------------------------------------------
+  redis:
+    image: redis:7-alpine
+    container_name: aequor-redis
+    restart: unless-stopped
+    ports:
+      - "6379:6379"
+    networks:
+      - aequor-network
+    command: >
+      redis-server
+      --appendonly yes
+      --maxmemory 1gb
+      --maxmemory-policy allkeys-lru
+      --save 60 1000
+    volumes:
+      - redis-data:/data
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 10s
+      timeout: 3s
+      retries: 5
+      start_period: 30s
+    deploy:
+      resources:
+        limits:
+          cpus: '1'
+          memory: 1G
+        reservations:
+          cpus: '0.25'
+          memory: 256M
+
+  # ------------------------------------------------------------------------
+  # Chroma Vector Database
+  # ------------------------------------------------------------------------
+  chroma:
+    image: chromadb/chroma:latest
+    container_name: aequor-chroma
+    restart: unless-stopped
+    ports:
+      - "8000:8000"
+    networks:
+      - aequor-network
+    environment:
+      - ANONYMIZED_TELEMETRY=False
+      - CHROMA_SERVER_AUTH_CREDENTIALS=
+      - CHROMA_SERVER_AUTH_PROVIDER=chromadb.auth.token.TokenAuthServerProvider
+    volumes:
+      - chroma-data:/chroma/chroma
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8000/api/v1/heartbeat"]
+      interval: 30s
+      timeout: 10s
+      retries: 5
+      start_period: 60s
+    deploy:
+      resources:
+        limits:
+          cpus: '2'
+          memory: 2G
+        reservations:
+          cpus: '0.5'
+          memory: 512M
+
+  # ------------------------------------------------------------------------
+  # Ollama (Local LLM)
+  # ------------------------------------------------------------------------
+  ollama:
+    image: ollama/ollama:latest
+    container_name: aequor-ollama
+    restart: unless-stopped
+    ports:
+      - "11434:11434"
+    networks:
+      - aequor-network
+    volumes:
+      - ollama-data:/root/.ollama
+    environment:
+      - OLLAMA_HOST=0.0.0.0
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:11434/api/tags"]
+      interval: 30s
+      timeout: 10s
+      retries: 5
+      start_period: 60s
+    deploy:
+      resources:
+        limits:
+          cpus: '4'
+          memory: 8G
+        reservations:
+          cpus: '1'
+          memory: 2G
+      # Uncomment for GPU support:
+      #   resources:
+      #     reservations:
+      #       devices:
+      #         - driver: nvidia
+      #           count: 1
+      #           capabilities: [gpu]
+
+  # ==========================================================================
+  # Observability Stack
+  # ==========================================================================
+
+  # ------------------------------------------------------------------------
+  # Prometheus (Metrics)
+  # ------------------------------------------------------------------------
+  prometheus:
+    image: prom/prometheus:latest
+    container_name: aequor-prometheus
+    restart: unless-stopped
+    ports:
+      - "9092:9090"
+    networks:
+      - aequor-network
+    command:
+      - '--config.file=/etc/prometheus/prometheus.yml'
+      - '--storage.tsdb.path=/prometheus'
+      - '--web.console.libraries=/usr/share/prometheus/console_libraries'
+      - '--web.console.templates=/usr/share/prometheus/consoles'
+    volumes:
+      - ./docker/prometheus/prometheus.yml:/etc/prometheus/prometheus.yml:ro
+      - prometheus-data:/prometheus
+    healthcheck:
+      test: ["CMD", "wget", "--spider", "http://localhost:9090/-/healthy"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 30s
+
+  # ------------------------------------------------------------------------
+  # Grafana (Dashboards)
+  # ------------------------------------------------------------------------
+  grafana:
+    image: grafana/grafana:latest
+    container_name: aequor-grafana
+    restart: unless-stopped
+    ports:
+      - "3001:3000"
+    networks:
+      - aequor-network
+    environment:
+      - GF_SECURITY_ADMIN_USER=${GRAFANA_ADMIN_USER:-admin}
+      - GF_SECURITY_ADMIN_PASSWORD=${GRAFANA_ADMIN_PASSWORD:-admin}
+      - GF_INSTALL_PLUGINS=
+    volumes:
+      - grafana-data:/var/lib/grafana
+      - ./docker/grafana/provisioning:/etc/grafana/provisioning:ro
+      - ./docker/grafana/dashboards:/var/lib/grafana/dashboards:ro
+    healthcheck:
+      test: ["CMD", "wget", "--spider", "http://localhost:3000/api/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 60s
+    deploy:
+      resources:
+        limits:
+          cpus: '1'
+          memory: 1G
+        reservations:
+          cpus: '0.25'
+          memory: 256M
+
+  # ------------------------------------------------------------------------
+  # Jaeger (Tracing)
+  # ------------------------------------------------------------------------
+  jaeger:
+    image: jaegertracing/all-in-one:latest
+    container_name: aequor-jaeger
+    restart: unless-stopped
+    ports:
+      - "5775:5775/udp"
+      - "6831:6831/udp"
+      - "6832:6832/udp"
+      - "5778:5778"
+      - "16686:16686"  # UI
+      - "14268:14268"
+      - "14250:14250"
+      - "9411:9411"
+    networks:
+      - aequor-network
+    environment:
+      - COLLECTOR_OTLP_ENABLED=true
+    healthcheck:
+      test: ["CMD", "wget", "--spider", "http://localhost:16686/api/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 30s
+
+# ============================================================================
+# Networks
+# ============================================================================
+networks:
+  aequor-network:
+    driver: bridge
+    ipam:
+      config:
+        - subnet: 172.20.0.0/16
+
+# ============================================================================
+# Volumes
+# ============================================================================
+volumes:
+  # Aequor Services
+  cascade-data:
+    driver: local
+  cascade-logs:
+    driver: local
+  privacy-audit:
+    driver: local
+  privacy-logs:
+    driver: local
+  superinstance-cache:
+    driver: local
+  superinstance-cartridges:
+    driver: local
+  superinstance-knowledge:
+    driver: local
+  superinstance-logs:
+    driver: local
+  performance-profiles:
+    driver: local
+  performance-logs:
+    driver: local
+  security-scans:
+    driver: local
+  security-audits:
+    driver: local
+  security-logs:
+    driver: local
+  sanitization-logs:
+    driver: local
+  cli-config:
+    driver: local
+
+  # Infrastructure
+  postgres-data:
+    driver: local
+  redis-data:
+    driver: local
+  chroma-data:
+    driver: local
+  ollama-data:
+    driver: local
+
+  # Observability
+  prometheus-data:
+    driver: local
+  grafana-data:
+    driver: local

@@ -1,0 +1,30 @@
+{"query":"What is the capital of France?","category":"LOGIC","piiTypes":[],"confidence":1.0}
+{"query":"Explain how binary search works","category":"LOGIC","piiTypes":[],"confidence":1.0}
+{"query":"What is the difference between TCP and UDP?","category":"LOGIC","piiTypes":[],"confidence":1.0}
+{"query":"How do I implement a linked list in Python?","category":"LOGIC","piiTypes":[],"confidence":1.0}
+{"query":"What is the time complexity of quicksort?","category":"LOGIC","piiTypes":[],"confidence":1.0}
+{"query":"My email is john.doe@example.com","category":"SECRET","piiTypes":["EMAIL"],"confidence":1.0}
+{"query":"My SSN is 123-45-6789","category":"SECRET","piiTypes":["SSN"],"confidence":1.0}
+{"query":"Call me at 555-123-4567","category":"SECRET","piiTypes":["PHONE"],"confidence":1.0}
+{"query":"Credit card number is 4532-1234-5678-9010","category":"SECRET","piiTypes":["CREDIT_CARD"],"confidence":1.0}
+{"query":"My date of birth is 01/15/1985","category":"SECRET","piiTypes":["DATE_OF_BIRTH"],"confidence":1.0}
+{"query":"Our company website is not working","category":"STYLE","piiTypes":[],"confidence":0.8}
+{"query":"I need help with my account","category":"STYLE","piiTypes":[],"confidence":0.7}
+{"query":"My team is having trouble with the API","category":"STYLE","piiTypes":[],"confidence":0.7}
+{"query":"Our customers are reporting login issues","category":"STYLE","piiTypes":[],"confidence":0.8}
+{"query":"My boss needs access to the dashboard","category":"STYLE","piiTypes":[],"confidence":0.7}
+{"query":"What is machine learning?","category":"LOGIC","piiTypes":[],"confidence":1.0}
+{"query":"How do I sort an array in JavaScript?","category":"LOGIC","piiTypes":[],"confidence":1.0}
+{"query":"My passport number is AB1234567","category":"SECRET","piiTypes":["PASSPORT"],"confidence":1.0}
+{"query":"Driver's license is DL12345678","category":"SECRET","piiTypes":["DRIVERS_LICENSE"],"confidence":1.0}
+{"query":"Our organization uses Slack for communication","category":"STYLE","piiTypes":[],"confidence":0.6}
+{"query":"Write a function to calculate fibonacci","category":"LOGIC","piiTypes":[],"confidence":1.0}
+{"query":"My home IP address is 192.168.1.1","category":"SECRET","piiTypes":["IP_ADDRESS"],"confidence":1.0}
+{"query":"At work we use Kubernetes","category":"STYLE","piiTypes":[],"confidence":0.6}
+{"query":"My department handles customer support","category":"STYLE","piiTypes":[],"confidence":0.7}
+{"query":"What is a REST API?","category":"LOGIC","piiTypes":[],"confidence":1.0}
+{"query":"My address is 123 Main St, Springfield, IL 62701","category":"SECRET","piiTypes":["ADDRESS"],"confidence":1.0}
+{"query":"I work from home","category":"STYLE","piiTypes":[],"confidence":0.6}
+{"query":"Our office is in downtown","category":"STYLE","piiTypes":[],"confidence":0.6}
+{"query":"How does a hash table work?","category":"LOGIC","piiTypes":[],"confidence":1.0}
+{"query":"My client is asking about the project status","category":"STYLE","piiTypes":[],"confidence":0.7}

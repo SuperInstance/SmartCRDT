@@ -1,0 +1,85 @@
+apiVersion: "v1"
+kind: "Component"
+
+metadata:
+  name: privacy-layer
+  version: 1.0.0
+  description: Intent encoding and redaction-addition protocol for functional privacy with differential privacy
+  author: SuperInstance
+  license: Apache-2.0
+  repository: https://github.com/lsi/aequor
+  tags: [privacy, security, encryption, gdpr, hipaa]
+
+type: privacy
+language: typescript
+runtime: nodejs
+
+dependencies:
+  protocol: ">=1.0.0"
+  components:
+    embeddings: "^1.0.0"
+  npm:
+    zod: "^3.22.0"
+
+configuration:
+  properties:
+    epsilon:
+      type: number
+      default: 1.0
+      description: Differential privacy parameter (lower = more private)
+      minimum: 0.1
+      maximum: 10.0
+
+    enable_redaction:
+      type: boolean
+      default: true
+      description: Enable automatic PII redaction
+
+    sensitivity_level:
+      type: string
+      default: "medium"
+      description: Privacy sensitivity level
+      enum: ["low", "medium", "high"]
+
+    redaction_entities:
+      type: array
+      description: Entity types to redact
+      items:
+        type: string
+      default: ["EMAIL", "PHONE", "SSN", "CREDIT_CARD", "ADDRESS"]
+      uniqueItems: true
+
+    preserve_format:
+      type: boolean
+      default: true
+      description: Preserve formatting after redaction
+
+    audit_logging:
+      type: boolean
+      default: false
+      description: Enable audit logging for privacy operations
+
+  required: []
+  additionalProperties: false
+
+hardware:
+  min_memory_mb: 75
+  recommended_memory_mb: 150
+  network: false
+
+interface:
+  main: ./dist/index.js
+  exports:
+    - RedactionAdditionProtocol
+    - IntentEncoder
+    - PrivacyClassifier
+  imports:
+    - IEmbeddingService
+  protocol: IPrivacyLayer
+
+tests:
+  framework: vitest
+  command: npm test
+  coverage_threshold: 85
+  unit_tests: "**/*.test.ts"
+  integration_tests: "**/*.int.test.ts"

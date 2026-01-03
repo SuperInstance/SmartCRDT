@@ -1,0 +1,1001 @@
+query,intent,difficulty,domain,variation,length
+"I'm getting a connection error. How do I fix it? - this is urgent!","debugging","beginner","data-science","urgent",66
+"I would like to know: What's wrong with my async code?","debugging","intermediate","api-design","formal",54
+"Optimize database queries for resource usage. Can you explain in detail with examples?","command","intermediate","monitoring","detailed",86
+"Ugh, implement oblivious RAM for database queries???","command","advanced","devops","frustrated",52
+"I'm not sure, but given network timeouts and retries, what can we conclude?","code_generation","advanced","security","confused",75
+"Create an analogy for APIs (advanced/expert level)","creative","intermediate","data-science","expert",50
+"What are common pitfalls when working with Rust ownership? - please explain for a beginner","query","intermediate","testing","beginner-friendly",90
+"How do I trace a performance issue in async code? - please explain for a beginner","debugging","advanced","mobile-development","beginner-friendly",81
+"How does throughput relate to user experience?","code_generation","intermediate","blockchain","standard",46
+"I'm working on a new feature and need advice","conversation","beginner","fullstack","standard",44
+"Hi, can you help me with architecture?","conversation","beginner","cloud","standard",38
+"hey, i'm experiencing slow queries. How can I optimize?","analysis","intermediate","database","casual",55
+"My application is returning errors. Help!","debugging","intermediate","data-science","concise",41
+"What strategies can I use to improve query performance? (technical details please)","analysis","intermediate","monitoring","technical",82
+"hey, what are the theoretical limits of caching strategies?","query","advanced","backend","casual",59
+"How do I allocate resources for cost constraints? - this is urgent!","analysis","advanced","embedded-systems","urgent",67
+"What are the mathematical foundations of machine learning?. Can you explain in detail with examples?","query","advanced","mobile-development","detailed",100
+"Design a architecture for content management (advanced/expert level)","creative","intermediate","cloud","expert",68
+"That makes sense. Now, what about performance considerations?. Can you explain in detail with examples?","conversation","intermediate","database","detailed",103
+"hey, what tools can I use to debug distributed systems?","debugging","intermediate","machine-learning","casual",55
+"I would like to know: What strategies can I use to improve response time?","analysis","intermediate","backend","formal",73
+"I'm not sure, but what's wrong with my SQL query?","debugging","intermediate","embedded-systems","confused",49
+"I'm not sure, but optimize frontend rendering for scalability","command","intermediate","gamedev","confused",61
+"Just wondering, generate test data for performance testing?","creative","beginner","blockchain","curious",59
+"hey, how do I optimize frontend rendering?","analysis","intermediate","blockchain","casual",42
+"How do I scale my database to handle higher concurrency? - this is urgent!","analysis","advanced","blockchain","urgent",74
+"What do you think about Kubernetes?","conversation","intermediate","blockchain","standard",35
+"I would like to know: Design a database schema for social media","creative","intermediate","blockchain","formal",63
+"I would like to know: Do you have experience with blockchain?","conversation","intermediate","fullstack","formal",61
+"Ugh, hi, can you help me with database design????","conversation","beginner","system-design","frustrated",49
+"Ugh, teach me Python fundamentals???","command","beginner","performance","frustrated",36
+"Thanks for the help with the code review - please explain for a beginner","conversation","beginner","machine-learning","beginner-friendly",72
+"I would like to know: How can I improve performance in Rust?","query","intermediate","system-design","formal",60
+"Can you prove this design is sound?","code_generation","advanced","fullstack","concise",35
+"Thanks for the help with debugging (advanced/expert level)","conversation","beginner","embedded-systems","expert",58
+"hey, what are the implications of linearizability?","code_generation","advanced","performance","casual",50
+"Why am I getting ValidationError when connecting to the database? - please explain for a beginner","debugging","beginner","database","beginner-friendly",97
+"How do I investigate performance degradation in distributed systems?","debugging","advanced","monitoring","concise",68
+"Just wondering, can you clarify what you mean by horizontal scaling??","conversation","intermediate","security","curious",69
+"Invent a algorithm for processing events - please explain for a beginner","creative","advanced","cloud","beginner-friendly",72
+"Debug the error in my API call (advanced/expert level)","command","beginner","frontend","expert",54
+"I'm not sure, but i'm working on a migration and need advice","conversation","beginner","fullstack","confused",60
+"Ugh, i'm seeing connection refused in my logs. What does it mean????","debugging","intermediate","fullstack","frustrated",68
+"Write a tutorial about GraphQL - please explain for a beginner","creative","beginner","blockchain","beginner-friendly",62
+"Ugh, is monolith a good idea for our use case????","conversation","intermediate","monitoring","frustrated",49
+"How do I scale my application to handle more users?. Can you explain in detail with examples?","analysis","advanced","blockchain","detailed",93
+"What are the implications of linearizability? (advanced/expert level)","code_generation","advanced","backend","expert",69
+"Just wondering, what is the logical sequence for migrating to microservices??","code_generation","advanced","frontend","curious",77
+"Ugh, what's wrong with my async code????","debugging","intermediate","backend","frustrated",40
+"hey, why am I getting ReferenceError when authenticating?","debugging","beginner","machine-learning","casual",57
+"Ugh, give me a code example for implementing a REST API???","command","beginner","web-development","frustrated",58
+"If I implement caching, then will throughput increase? (technical details please)","code_generation","intermediate","security","technical",81
+"Have you seen this error before? - please explain for a beginner","conversation","intermediate","database","beginner-friendly",64
+"I'm not sure, but why does race conditions occur?","code_generation","advanced","frontend","confused",49
+"Tell me about continuous integration (advanced/expert level)","query","beginner","mobile-development","expert",60
+"Come up with a name for my startup (advanced/expert level)","creative","beginner","devops","expert",58
+"I'm not sure, but how do I optimize API performance?","analysis","intermediate","database","confused",52
+"Generate use cases. Can you explain in detail with examples?","creative","beginner","architecture","detailed",60
+"Set up caching layer with disaster recovery (technical details please)","command","intermediate","performance","technical",70
+"Prove fairness about locking mechanism - this is urgent!","command","advanced","architecture","urgent",56
+"Write a basic Express server - this is urgent!","command","beginner","gamedev","urgent",46
+"Ugh, brainstorm ideas for a mobile app???","creative","intermediate","performance","frustrated",41
+"I would like to know: How does availability relate to performance?","code_generation","intermediate","devops","formal",66
+"Design network architecture for fault tolerance - this is urgent!","command","intermediate","devops","urgent",65
+"Is NoSQL a good idea for my startup? - this is urgent!","conversation","intermediate","database","urgent",54
+"How do I trace a bug in microservices? - this is urgent!","debugging","advanced","embedded-systems","urgent",56
+"Why does deadlocks occur? (advanced/expert level)","code_generation","advanced","architecture","expert",49
+"Is SQL a good idea for my team? (technical details please)","conversation","intermediate","database","technical",58
+"What are the trade-offs between horizontal scaling and normalization for optimization? (technical details please)","analysis","advanced","testing","technical",113
+"What metrics should I monitor to track scalability? (advanced/expert level)","analysis","intermediate","database","expert",75
+"When should I use message queues?","query","beginner","performance","standard",33
+"Ugh, i'm experiencing resource exhaustion. How can I optimize????","analysis","intermediate","testing","frustrated",65
+"Generate mock data - please explain for a beginner","creative","beginner","mobile-development","beginner-friendly",50
+"Ugh, thanks for the help with the implementation???","conversation","beginner","web-development","frustrated",51
+"I'm not sure, but generate mock data for performance testing","creative","beginner","blockchain","confused",60
+"Do you have experience with machine learning?","conversation","intermediate","frontend","standard",45
+"Just wondering, what tools can I use to debug distributed systems??","debugging","intermediate","api-design","curious",67
+"I'm not sure, but why is my authentication not working?","debugging","beginner","data-science","confused",55
+"I'm getting a 404 error. How do I fix it?. Can you explain in detail with examples?","debugging","beginner","frontend","detailed",83
+"What's wrong with my async code?","debugging","intermediate","api-design","standard",32
+"What does latency mean? - this is urgent!","query","beginner","architecture","urgent",41
+"How do I improve reliability while maintaining security?","query","advanced","fullstack","standard",56
+"How do I scale a REST API? - this is urgent!","query","intermediate","embedded-systems","urgent",44
+"Ugh, i'm experiencing high memory usage. How can I optimize????","analysis","intermediate","machine-learning","frustrated",63
+"I'm experiencing poor throughput. How can I optimize? - please explain for a beginner","analysis","intermediate","machine-learning","beginner-friendly",85
+"That makes sense. Now, what about performance considerations?","conversation","intermediate","architecture","standard",61
+"hey, create a messaging system that guarantees eventual consistency","command","advanced","machine-learning","casual",67
+"Create an analogy for distributed systems (technical details please)","creative","intermediate","data-science","technical",68
+"How do I troubleshoot slow database queries?. Can you explain in detail with examples?","query","intermediate","mobile-development","detailed",86
+"I would like to know: What tools can I use to debug performance bottlenecks?","debugging","intermediate","api-design","formal",76
+"I'm not sure, but how do I scale my application to handle more users?","analysis","advanced","architecture","confused",69
+"If I add an index, then will costs go down?. Can you explain in detail with examples?","code_generation","intermediate","performance","detailed",85
+"I'm experiencing slow queries. What could be the cause? (advanced/expert level)","debugging","intermediate","machine-learning","expert",79
+"How do I optimize CPU utilization? - please explain for a beginner","analysis","intermediate","devops","beginner-friendly",66
+"That makes sense. Now, what about testing strategies? - this is urgent!","conversation","intermediate","security","urgent",71
+"Configure ESLint for security","command","beginner","web-development","concise",29
+"Just wondering, why does deadlocks occur??","code_generation","advanced","mobile-development","curious",42
+"I would like to know: What are the trade-offs between REST and GraphQL and waterfall and agile?","query","intermediate","devops","formal",95
+"Ugh, what tools can help me monitor resources????","analysis","intermediate","blockchain","frustrated",49
+"Can you prove this approach is optimal? (advanced/expert level)","code_generation","advanced","mobile-development","expert",63
+"Tell me about continuous integration - please explain for a beginner","query","beginner","gamedev","beginner-friendly",68
+"I'm not sure, but tell me about agile methodology","query","beginner","system-design","confused",49
+"Ugh, how do I scale my application to handle more data????","analysis","advanced","embedded-systems","frustrated",58
+"hey, propose a solution for reducing API latency","creative","intermediate","devops","casual",48
+"Just wondering, design a REST API for project management?","creative","intermediate","devops","curious",57
+"What is the logic behind leader election?","code_generation","advanced","api-design","standard",41
+"I would like to know: If I add an index, then will throughput increase?","code_generation","intermediate","database","formal",71
+"hey, what strategies can I use to improve cache hit rate?","analysis","intermediate","testing","casual",57
+"I'm working on a bug fix and need advice","conversation","beginner","data-science","standard",40
+"Write an introduction about machine learning - this is urgent!","creative","beginner","performance","urgent",62
+"Give me a code example for connecting to a database (technical details please)","command","beginner","web-development","technical",78
+"My performance test is failing. How do I fix it?. Can you explain in detail with examples?","debugging","intermediate","testing","detailed",90
+"How can I reduce memory usage in my API?","analysis","intermediate","security","standard",40
+"I would like to know: What caching strategy should I use for database queries?","analysis","intermediate","backend","formal",78
+"I would like to know: Design a microservice for e-commerce","creative","intermediate","embedded-systems","formal",58
+"What tools can help me monitor resources? (advanced/expert level)","analysis","intermediate","gamedev","expert",65
+"What do you think about serverless? - please explain for a beginner","conversation","intermediate","backend","beginner-friendly",67
+"I'm working on a bug fix and need advice (advanced/expert level)","conversation","beginner","architecture","expert",64
+"Why am I getting AuthError when calling the API? - this is urgent!","debugging","beginner","testing","urgent",66
+"How can I improve the efficiency of my code?","analysis","intermediate","web-development","standard",44
+"Generate a tutorial combining TypeScript and MongoDB. Can you explain in detail with examples?","creative","intermediate","architecture","detailed",94
+"How can I reduce network traffic in my database? - please explain for a beginner","analysis","intermediate","performance","beginner-friendly",80
+"Have you seen this issue before?","conversation","intermediate","web-development","concise",32
+"I'm not sure, but write a SQL query","command","beginner","mobile-development","confused",35
+"Optimize frontend rendering for resource usage (technical details please)","command","intermediate","monitoring","technical",73
+"Build a message queue from scratch (advanced/expert level)","command","advanced","web-development","expert",58
+"Can you prove this algorithm is correct? (technical details please)","code_generation","advanced","data-science","technical",67
+"I'm not sure, but how do I implement circuit breaker in a real-time system?","query","advanced","mobile-development","confused",75
+"Come up with a name for my app (technical details please)","creative","beginner","data-science","technical",57
+"If I add an index, then will throughput increase?","code_generation","intermediate","fullstack","concise",49
+"How do I scale my application to handle more requests?. Can you explain in detail with examples?","analysis","advanced","blockchain","detailed",96
+"Ugh, implement secure multi-party computation for privacy-preserving analytics???","command","advanced","web-development","frustrated",81
+"Why is my file upload not working?","debugging","beginner","fullstack","standard",34
+"Generate a tutorial combining React and Python (technical details please)","creative","intermediate","cloud","technical",73
+"I'm not sure, but optimize storage systems for PACELC constraints","command","advanced","system-design","confused",65
+"Why am I getting ReferenceError when making requests? - this is urgent!","debugging","beginner","backend","urgent",71
+"What would you do in my situation with scaling challenges? (technical details please)","conversation","intermediate","frontend","technical",85
+"I would like to know: How do I improve throughput for limited resources?","query","advanced","embedded-systems","formal",72
+"hey, given network timeouts and retries, what can we conclude?","code_generation","advanced","frontend","casual",62
+"Design consensus protocol for high latency networks","command","advanced","frontend","standard",51
+"Create a story for teaching React (technical details please)","creative","beginner","system-design","technical",60
+"Ugh, what are the theoretical limits of load balancing algorithms????","query","advanced","performance","frustrated",69
+"I would like to know: What research has been done on load balancing algorithms?","query","advanced","monitoring","formal",79
+"Design a system for managers (advanced/expert level)","creative","intermediate","embedded-systems","expert",52
+"Just wondering, come up with a name for my API?","creative","beginner","fullstack","curious",47
+"hey, migrate authentication system from SQL to GraphQL","command","intermediate","machine-learning","casual",54
+"Write a service that handles errors gracefully - please explain for a beginner","command","intermediate","web-development","beginner-friendly",78
+"Why does deadlocks occur?","code_generation","advanced","backend","standard",25
+"hey, how does partition tolerance relate to performance?","code_generation","intermediate","gamedev","casual",56
+"I would like to know: Write a guide about serverless computing","creative","beginner","data-science","formal",62
+"Is serverless a good idea for my startup?","conversation","intermediate","machine-learning","concise",41
+"What metrics should I monitor to track efficiency?","analysis","intermediate","frontend","concise",50
+"Migrate API from REST to microservices (advanced/expert level)","command","intermediate","blockchain","expert",62
+"Create an analogy for containers","creative","intermediate","cloud","concise",32
+"I'm not sure, but debug the deadlock in database queries","command","intermediate","web-development","confused",56
+"I'm not sure, but given slow queries and high load, what can we conclude?","code_generation","advanced","backend","confused",73
+"I would like to know: What assumptions underlie horizontal scaling?","code_generation","advanced","cloud","formal",67
+"Ugh, what assumptions underlie eventual consistency????","code_generation","advanced","embedded-systems","frustrated",55
+"I'm not sure, but write a class that handles edge cases","command","intermediate","system-design","confused",55
+"Ugh, is SQL is always better than NoSQL true or false? Explain.???","code_generation","intermediate","cloud","frustrated",66
+"How can I apply queueing theory to caching strategies?","query","advanced","mobile-development","standard",54
+"I would like to know: Create a component that logs events","creative","intermediate","mobile-development","formal",57
+"I'm not sure, but i'm seeing high CPU usage in my logs. What does it mean?","debugging","intermediate","cloud","confused",74
+"What's wrong with my Promise chain? (advanced/expert level)","debugging","intermediate","cloud","expert",59
+"I'm not sure, but investigate the issue in my UI component","command","beginner","architecture","confused",58
+"I would like to know: Why does memory leaks occur?","code_generation","advanced","monitoring","formal",50
+"Just wondering, is microservices are always superior true or false? Explain.?","code_generation","intermediate","cloud","curious",77
+"Just wondering, propose a solution for scaling a database?","creative","intermediate","fullstack","curious",58
+"I would like to know: Prove correctness about concurrent algorithm","command","advanced","data-science","formal",66
+"My database is timing out. Help!","debugging","intermediate","cloud","standard",32
+"Why does network partitions occur?","code_generation","advanced","devops","concise",34
+"What are the implications of  Brewer's conjecture? - this is urgent!","code_generation","advanced","devops","urgent",68
+"Do you have experience with machine learning? (advanced/expert level)","conversation","intermediate","fullstack","expert",69
+"Brainstorm ideas for a data pipeline (technical details please)","creative","intermediate","architecture","technical",63
+"How do I optimize queries for low latency? (advanced/expert level)","analysis","advanced","performance","expert",66
+"How does Docker compare to PostgreSQL?","query","intermediate","performance","standard",38
+"I'm seeing out of memory in my logs. What does it mean? (advanced/expert level)","debugging","intermediate","blockchain","expert",79
+"What is the logic behind leader election?","code_generation","advanced","mobile-development","standard",41
+"I'm not sure I understand distributed transactions. Can you explain differently? - this is urgent!","conversation","advanced","blockchain","urgent",98
+"Just wondering, how do I trace a bug in distributed systems??","debugging","advanced","embedded-systems","curious",61
+"Design communication protocol for  Byzantine fault tolerance. Can you explain in detail with examples?","command","advanced","blockchain","detailed",102
+"Design replication protocol for high latency networks","command","advanced","security","standard",53
+"hey, write documentation that includes examples","creative","intermediate","architecture","casual",47
+"hey, configure Webpack for monitoring","command","beginner","monitoring","casual",37
+"That makes sense. Now, what about performance considerations?","conversation","intermediate","security","concise",61
+"I would like to know: What do you think about microservices?","conversation","intermediate","embedded-systems","formal",60
+"I'm not sure, but what strategies can I use to improve throughput?","analysis","intermediate","blockchain","confused",66
+"Ugh, what is the logical sequence for debugging distributed systems????","code_generation","advanced","cloud","frustrated",71
+"Just wondering, how does availability relate to system design??","code_generation","intermediate","gamedev","curious",63
+"I would like to know: What would you do in my situation with performance issues?","conversation","intermediate","embedded-systems","formal",80
+"How do I optimize frontend rendering?","analysis","intermediate","system-design","concise",37
+"Ugh, if I implement caching, then will latency decrease????","code_generation","intermediate","cloud","frustrated",59
+"Generate sample data for documentation - this is urgent!","creative","beginner","cloud","urgent",56
+"I'm not sure, but what tools can I use to debug concurrency bugs?","debugging","intermediate","data-science","confused",65
+"I would like to know: What design pattern should I use for managing application state?","query","intermediate","frontend","formal",86
+"How do I investigate performance degradation in production? - please explain for a beginner","debugging","advanced","web-development","beginner-friendly",91
+"Just wondering, that makes sense. Now, what about testing strategies??","conversation","intermediate","gamedev","curious",70
+"Just wondering, what assumptions underlie eventual consistency??","code_generation","advanced","system-design","curious",64
+"Just wondering, fix the error in my API call?","command","beginner","data-science","curious",45
+"What is the state of the art in automated theorem proving?","query","advanced","blockchain","concise",58
+"Ugh, how do I trace a race condition in concurrent code????","debugging","advanced","embedded-systems","frustrated",59
+"Generate a guide combining React and Node.js","creative","intermediate","frontend","concise",44
+"Just wondering, do you have experience with machine learning??","conversation","intermediate","web-development","curious",62
+"I would like to know: That makes sense. Now, what about security implications?","conversation","intermediate","machine-learning","formal",78
+"I'm seeing out of memory in my logs. What does it mean? - please explain for a beginner","debugging","intermediate","api-design","beginner-friendly",87
+"What are the trade-offs between caching and computation for optimization?. Can you explain in detail with examples?","analysis","advanced","data-science","detailed",115
+"Ugh, what strategies can I use to improve query performance????","analysis","intermediate","blockchain","frustrated",63
+"How do I investigate failures in production? (advanced/expert level)","debugging","advanced","data-science","expert",68
+"Is microservices are always superior true or false? Explain. (advanced/expert level)","code_generation","intermediate","gamedev","expert",84
+"I'm not sure, but how do I work around this memory leak?","debugging","intermediate","web-development","confused",56
+"I'm not sure, but if I use a load balancer, then will latency decrease?","code_generation","intermediate","frontend","confused",71
+"Create a component that authenticates users. Can you explain in detail with examples?","creative","intermediate","testing","detailed",85
+"I'm not sure, but create a article for explaining microservices","creative","beginner","system-design","confused",63
+"Ugh, given high latency and low throughput, what can we conclude????","code_generation","advanced","frontend","frustrated",68
+"How do I investigate performance degradation in cloud? - please explain for a beginner","debugging","advanced","gamedev","beginner-friendly",86
+"I'm not sure, but design communication protocol for  Byzantine fault tolerance","command","advanced","system-design","confused",78
+"Ugh, is microservices a good idea for our use case????","conversation","intermediate","gamedev","frustrated",54
+"I'm not sure, but design a caching system that scales to global deployment","command","advanced","fullstack","confused",74
+"Generate schema - this is urgent!","command","beginner","web-development","urgent",33
+"Just wondering, what is database??","query","beginner","gamedev","curious",34
+"Write a blog post that targets beginners (advanced/expert level)","creative","intermediate","mobile-development","expert",64
+"Why does deadlocks occur? - please explain for a beginner","code_generation","advanced","mobile-development","beginner-friendly",57
+"Is microservices are always superior true or false? Explain. - this is urgent!","code_generation","intermediate","devops","urgent",78
+"I would like to know: What is the logic behind consensus algorithms?","code_generation","advanced","testing","formal",68
+"Generate a guide combining React and Node.js (advanced/expert level)","creative","intermediate","backend","expert",68
+"hey, that makes sense. Now, what about performance considerations?","conversation","intermediate","database","casual",66
+"What are the implications of linearizability? - this is urgent!","code_generation","advanced","devops","urgent",63
+"Ugh, propose a solution for reducing API latency???","creative","intermediate","api-design","frustrated",51
+"hey, help me choose a database","command","beginner","gamedev","casual",30
+"Ugh, implement throttling to ensure security???","command","intermediate","devops","frustrated",47
+"Have you seen this problem before? (advanced/expert level)","conversation","intermediate","testing","expert",58
+"Ugh, how do I troubleshoot this memory leak????","debugging","intermediate","blockchain","frustrated",47
+"I'm experiencing high memory usage. How can I optimize? - please explain for a beginner","analysis","intermediate","monitoring","beginner-friendly",87
+"Debug the deadlock in distributed system - please explain for a beginner","command","intermediate","gamedev","beginner-friendly",72
+"Design data architecture for scalability - this is urgent!","command","intermediate","fullstack","urgent",58
+"Ugh, why is my file upload not working????","debugging","beginner","data-science","frustrated",42
+"I disagree with that approach. Here's why...","conversation","advanced","database","concise",44
+"I'm experiencing resource exhaustion. How can I optimize?","analysis","intermediate","backend","concise",57
+"Just wondering, build a simple database from scratch?","command","advanced","blockchain","curious",53
+"Given high latency and low throughput, what can we conclude?","code_generation","advanced","api-design","concise",60
+"I'm not sure, but how do I trace a bug in microservices?","debugging","advanced","performance","confused",56
+"I'm not sure, but create an analogy for APIs","creative","intermediate","data-science","confused",44
+"Generate schema - please explain for a beginner","command","beginner","frontend","beginner-friendly",47
+"hey, what's your opinion on agile methodologies?","conversation","intermediate","api-design","casual",48
+"Ugh, brainstorm ideas for a data pipeline???","creative","intermediate","performance","frustrated",44
+"Help me choose a database","command","beginner","web-development","concise",25
+"What metrics should I monitor to track resource utilization? (advanced/expert level)","analysis","intermediate","database","expert",84
+"Debug this service","debugging","intermediate","machine-learning","standard",18
+"If I shard the database, then will costs go down? (advanced/expert level)","code_generation","intermediate","machine-learning","expert",73
+"Why does memory leaks occur? - please explain for a beginner","code_generation","advanced","performance","beginner-friendly",60
+"hey, how can I reduce memory usage in Python?","query","intermediate","system-design","casual",45
+"hey, write a handler that handles errors gracefully","command","intermediate","architecture","casual",51
+"How do I optimize database queries?. Can you explain in detail with examples?","analysis","intermediate","fullstack","detailed",77
+"What metrics should I track for user engagement?","query","intermediate","security","concise",48
+"What is the logical sequence for implementing CI/CD? (technical details please)","code_generation","advanced","backend","technical",79
+"Write a analogy explaining cryptography (technical details please)","creative","advanced","web-development","technical",66
+"I'm working on a migration and need advice","conversation","beginner","fullstack","standard",42
+"Generate a tutorial combining Kubernetes and PostgreSQL - please explain for a beginner","creative","intermediate","fullstack","beginner-friendly",87
+"How do I investigate failures in production?","debugging","advanced","backend","standard",44
+"I would like to know: How can I reduce operational costs while maintaining user experience?","analysis","advanced","api-design","formal",91
+"Ugh, write a middleware that handles edge cases???","command","intermediate","devops","frustrated",50
+"hey, given network timeouts and retries, what can we conclude?","code_generation","advanced","testing","casual",62
+"Have you seen this issue before?. Can you explain in detail with examples?","conversation","intermediate","database","detailed",74
+"I'm not sure, but my performance test is failing. How do I fix it?","debugging","intermediate","database","confused",66
+"Do you have experience with real-time systems?","conversation","intermediate","cloud","concise",46
+"Thanks for the help with debugging - please explain for a beginner","conversation","beginner","machine-learning","beginner-friendly",66
+"How can I reduce infrastructure costs while maintaining performance? (advanced/expert level)","analysis","advanced","backend","expert",92
+"Write documentation that is engaging (technical details please)","creative","intermediate","frontend","technical",63
+"Why is my API call not working?. Can you explain in detail with examples?","debugging","beginner","architecture","detailed",73
+"Just wondering, what metrics should I monitor to track efficiency??","analysis","intermediate","blockchain","curious",67
+"I'm not sure, but have you seen this error before?","conversation","intermediate","embedded-systems","confused",50
+"Can you prove this system is consistent? - please explain for a beginner","code_generation","advanced","mobile-development","beginner-friendly",72
+"Is monolith a good idea for our use case?. Can you explain in detail with examples?","conversation","intermediate","fullstack","detailed",83
+"hey, create a service that logs events","creative","intermediate","system-design","casual",38
+"Thanks for the help with the explanation (technical details please)","conversation","beginner","api-design","technical",67
+"I would like to know: What do you think about serverless?","conversation","intermediate","blockchain","formal",57
+"Build a replication strategy for distributed consistency (advanced/expert level)","command","advanced","database","expert",80
+"hey, write a middleware that handles timeouts","command","intermediate","architecture","casual",45
+"Generate code examples (technical details please)","creative","beginner","monitoring","technical",49
+"Hi, can you help me with coding?","conversation","beginner","testing","standard",32
+"How do I scale microservices?","query","intermediate","frontend","concise",29
+"hey, why does network partitions occur?","code_generation","advanced","machine-learning","casual",39
+"How do I optimize database queries? (technical details please)","analysis","intermediate","frontend","technical",62
+"I'm not sure, but how does WebSockets work?","query","beginner","web-development","confused",43
+"How does GraphQL compare to REST? (advanced/expert level)","query","intermediate","security","expert",57
+"That makes sense. Now, what about security implications? - this is urgent!","conversation","intermediate","machine-learning","urgent",74
+"Ugh, what is the state of the art in serverless computing????","query","advanced","api-design","frustrated",61
+"I would like to know: Given slow queries and high load, what can we conclude?","code_generation","advanced","frontend","formal",77
+"Write documentation that is engaging (advanced/expert level)","creative","intermediate","embedded-systems","expert",60
+"Create a example for introducing Docker (advanced/expert level)","creative","beginner","testing","expert",63
+"I disagree with that architecture. Here's why... - please explain for a beginner","conversation","advanced","database","beginner-friendly",80
+"What would you do in my situation with scaling challenges?","conversation","intermediate","security","standard",58
+"Write an introduction about blockchain","creative","beginner","cloud","standard",38
+"Propose a solution for handling large datasets","creative","intermediate","fullstack","concise",46
+"I would like to know: Implement a dynamic programming solution with optimal complexity","command","advanced","data-science","formal",86
+"Brainstorm ideas for a web application","creative","intermediate","testing","concise",38
+"I'm experiencing slow queries. What could be the cause? - please explain for a beginner","debugging","intermediate","fullstack","beginner-friendly",87
+"Can you prove this design is sound? (advanced/expert level)","code_generation","advanced","web-development","expert",59
+"Ugh, what is the logic behind vector clocks????","code_generation","advanced","fullstack","frustrated",47
+"Invent a data structure for processing events","creative","advanced","api-design","concise",45
+"Invent a protocol for processing events. Can you explain in detail with examples?","creative","advanced","blockchain","detailed",81
+"I would like to know: What is the logical sequence for designing APIs?","code_generation","advanced","embedded-systems","formal",70
+"How can I reduce CPU usage in my database? - please explain for a beginner","analysis","intermediate","fullstack","beginner-friendly",74
+"Is REST is obsolete true or false? Explain. - this is urgent!","code_generation","intermediate","system-design","urgent",61
+"Ugh, my e2e test is failing. How do I fix it????","debugging","intermediate","performance","frustrated",48
+"I'm not sure, but have you seen this pattern before?","conversation","intermediate","monitoring","confused",52
+"Given high latency and low throughput, what can we conclude? (advanced/expert level)","code_generation","advanced","machine-learning","expert",84
+"What assumptions underlie horizontal scaling? (technical details please)","code_generation","advanced","mobile-development","technical",72
+"Generate an article combining React and Python","creative","intermediate","blockchain","concise",46
+"Just wondering, what are the best practices for frontend optimization??","analysis","intermediate","fullstack","curious",71
+"I disagree with that approach. Here's why... (technical details please)","conversation","advanced","performance","technical",71
+"Ugh, i've been trying to optimize this query but I'm stuck???","conversation","intermediate","backend","frustrated",61
+"Write an overview about Kubernetes. Can you explain in detail with examples?","creative","beginner","database","detailed",76
+"Ugh, configure PostgreSQL for performance???","command","beginner","mobile-development","frustrated",44
+"I'm experiencing slow queries. What could be the cause? - please explain for a beginner","debugging","intermediate","database","beginner-friendly",87
+"I would like to know: What is the logical sequence for implementing CI/CD?","code_generation","advanced","database","formal",74
+"Implement a greedy algorithm with O(n log n) complexity. Can you explain in detail with examples?","command","advanced","gamedev","detailed",97
+"Ugh, how can I reduce latency in my database????","analysis","intermediate","devops","frustrated",48
+"Do you have experience with distributed systems? - this is urgent!","conversation","intermediate","mobile-development","urgent",66
+"Ugh, do you have experience with distributed systems????","conversation","intermediate","machine-learning","frustrated",56
+"Create a story for introducing Docker. Can you explain in detail with examples?","creative","beginner","data-science","detailed",79
+"My queue is hanging. Help! - please explain for a beginner","debugging","intermediate","fullstack","beginner-friendly",58
+"Design a API for administrators (advanced/expert level)","creative","intermediate","mobile-development","expert",55
+"Have you seen this pattern before? (advanced/expert level)","conversation","intermediate","gamedev","expert",58
+"I'm not sure, but what tools can help me monitor resources?","analysis","intermediate","monitoring","confused",59
+"What assumptions underlie horizontal scaling? (advanced/expert level)","code_generation","advanced","frontend","expert",69
+"Just wondering, how do I optimize queries for high throughput??","analysis","advanced","blockchain","curious",63
+"What metrics should I monitor to track scalability? - this is urgent!","analysis","intermediate","database","urgent",69
+"hey, how does consistency relate to reliability?","code_generation","intermediate","performance","casual",48
+"Write a Python script to read a file - this is urgent!","command","beginner","frontend","urgent",54
+"Just wondering, help me optimize my code?","command","beginner","backend","curious",41
+"How can I improve the efficiency of my architecture? - this is urgent!","analysis","intermediate","fullstack","urgent",70
+"Why am I getting ReferenceError when authenticating?","debugging","beginner","architecture","standard",52
+"I'm getting a connection error. How do I fix it?. Can you explain in detail with examples?","debugging","beginner","database","detailed",90
+"I'm not sure, but what metrics should I track for database health?","query","intermediate","web-development","confused",66
+"What are the trade-offs between denormalization and computation for optimization? - please explain for a beginner","analysis","advanced","gamedev","beginner-friendly",113
+"I'm seeing out of memory in my logs. What does it mean?. Can you explain in detail with examples?","debugging","intermediate","cloud","detailed",97
+"I would like to know: Implement a dynamic programming solution with optimal complexity","command","advanced","machine-learning","formal",86
+"Build a replication strategy for high availability (technical details please)","command","advanced","database","technical",77
+"I'm not sure, but what are the best practices for API optimization?","analysis","intermediate","gamedev","confused",67
+"Write a metaphor explaining cryptography - please explain for a beginner","creative","advanced","architecture","beginner-friendly",72
+"Write a blog post that targets beginners (technical details please)","creative","intermediate","architecture","technical",67
+"How do I investigate performance degradation in staging? (advanced/expert level)","debugging","advanced","gamedev","expert",80
+"Just wondering, teach me Docker fundamentals?","command","beginner","fullstack","curious",45
+"What is the logic behind leader election? (advanced/expert level)","code_generation","advanced","backend","expert",65
+"Write a handler that handles edge cases (technical details please)","command","intermediate","data-science","technical",66
+"hey, why does deadlocks occur?","code_generation","advanced","performance","casual",30
+"I would like to know: What tools can help me monitor resources?","analysis","intermediate","blockchain","formal",63
+"Is NoSQL a good idea for our use case? - this is urgent!","conversation","intermediate","embedded-systems","urgent",56
+"hey, what metrics should I track for resource utilization?","query","intermediate","mobile-development","casual",58
+"What tools can help me monitor resources?. Can you explain in detail with examples?","analysis","intermediate","monitoring","detailed",83
+"Write documentation that targets beginners. Can you explain in detail with examples?","creative","intermediate","devops","detailed",84
+"What does horizontal scaling mean? - please explain for a beginner","query","beginner","cloud","beginner-friendly",66
+"How does throughput relate to reliability? - please explain for a beginner","code_generation","intermediate","cloud","beginner-friendly",74
+"I'm getting a 500 error. How do I fix it? (technical details please)","debugging","beginner","architecture","technical",68
+"Why does race conditions occur? - this is urgent!","code_generation","advanced","monitoring","urgent",49
+"How do I scale a web application?","query","intermediate","system-design","concise",33
+"Just wondering, when should I use NoSQL databases??","query","beginner","database","curious",51
+"hey, set up a development environment","command","beginner","backend","casual",37
+"How can I reduce operational costs while maintaining reliability? - this is urgent!","analysis","advanced","machine-learning","urgent",83
+"I'm not sure, but how can I improve the scalability of my architecture?","analysis","intermediate","backend","confused",71
+"How do I scale a system while maintaining security?. Can you explain in detail with examples?","query","advanced","web-development","detailed",93
+"Implement throttling to ensure stability. Can you explain in detail with examples?","command","intermediate","security","detailed",82
+"Give me a code example for authentication","command","beginner","performance","concise",41
+"Come up with a name for my function - this is urgent!","creative","beginner","machine-learning","urgent",53
+"I'm not sure, but implement notifications using GraphQL subscriptions","command","intermediate","database","confused",69
+"Ugh, when should I use NoSQL databases????","query","beginner","security","frustrated",42
+"Build a web server from scratch - please explain for a beginner","command","advanced","testing","beginner-friendly",63
+"I'm not sure, but what are the theoretical limits of vertical scaling?","query","advanced","frontend","confused",70
+"I'm not sure, but how do I handle network partitions in a multi-region deployment?","query","advanced","mobile-development","confused",82
+"How do I work around this race condition?. Can you explain in detail with examples?","debugging","intermediate","cloud","detailed",83
+"Design a architecture for analysts - please explain for a beginner","creative","intermediate","security","beginner-friendly",66
+"hey, generate mock data","command","beginner","architecture","casual",23
+"Implement zero-knowledge proofs for database queries","command","advanced","devops","standard",52
+"I'm not sure I understand vector clocks. Can you explain differently?. Can you explain in detail with examples?","conversation","advanced","gamedev","detailed",111
+"What's wrong with my async code?. Can you explain in detail with examples?","debugging","intermediate","mobile-development","detailed",74
+"I'm not sure, but what tools can I use to debug distributed systems?","debugging","intermediate","blockchain","confused",68
+"Ugh, explain blockchain in simple terms???","query","beginner","gamedev","frustrated",42
+"I'm experiencing slow queries. How can I optimize? (advanced/expert level)","analysis","intermediate","gamedev","expert",74
+"Just wondering, what are the implications of  Brewer's conjecture??","code_generation","advanced","performance","curious",67
+"Generate an article combining TypeScript and PostgreSQL (technical details please)","creative","intermediate","api-design","technical",82
+"What tools can I use to debug distributed systems? (advanced/expert level)","debugging","intermediate","system-design","expert",74
+"hey, how can I reduce latency in my API?","analysis","intermediate","data-science","casual",40
+"hey, given high latency and low throughput, what can we conclude?","code_generation","advanced","testing","casual",65
+"Ugh, what are the best practices for database optimization????","analysis","intermediate","database","frustrated",62
+"Ugh, why is my authentication not working????","debugging","beginner","blockchain","frustrated",45
+"Design a database schema for content management (technical details please)","creative","intermediate","monitoring","technical",74
+"Ugh, what is the logical sequence for debugging distributed systems????","code_generation","advanced","mobile-development","frustrated",71
+"Show me how to create a React app. Can you explain in detail with examples?","command","beginner","web-development","detailed",75
+"I'm not sure I understand distributed transactions. Can you explain differently?","conversation","advanced","testing","standard",80
+"Ugh, what's wrong with my async code????","debugging","intermediate","data-science","frustrated",40
+"What are the main features of Angular?. Can you explain in detail with examples?","query","beginner","testing","detailed",80
+"How do I handle leader election in a distributed system?","query","advanced","machine-learning","standard",56
+"Ugh, how do I optimize frontend rendering????","analysis","intermediate","fullstack","frustrated",45
+"I'm experiencing slow API responses. How can I optimize? - this is urgent!","analysis","intermediate","performance","urgent",74
+"hey, create a database that guarantees causal consistency","command","advanced","web-development","casual",57
+"hey, what are the trade-offs between horizontal scaling and normalization for optimization?","analysis","advanced","mobile-development","casual",91
+"Design a REST API for project management","creative","intermediate","system-design","concise",40
+"I'm not sure, but how do I improve throughput for limited resources?","query","advanced","architecture","confused",68
+"Just wondering, how do I diagnose this timeout??","debugging","intermediate","system-design","curious",48
+"What research has been done on database indexing strategies?","query","advanced","database","standard",60
+"How do I diagnose this timeout?","debugging","intermediate","fullstack","standard",31
+"Restructure the data pipeline to reduce complexity - this is urgent!","command","intermediate","security","urgent",68
+"Help me set up my environment (technical details please)","command","beginner","monitoring","technical",56
+"Can you clarify what you mean by circuit breaker? - this is urgent!","conversation","intermediate","data-science","urgent",67
+"hey, why am I getting AuthError when connecting to the database?","debugging","beginner","monitoring","casual",64
+"Explain caching in simple terms (advanced/expert level)","query","beginner","architecture","expert",55
+"Teach me how to use Git - please explain for a beginner","command","beginner","gamedev","beginner-friendly",55
+"How do I investigate memory leaks in development? - please explain for a beginner","debugging","advanced","blockchain","beginner-friendly",81
+"Just wondering, i'm not sure I understand vector clocks. Can you explain differently??","conversation","advanced","devops","curious",86
+"I'm working on a new feature and need advice","conversation","beginner","blockchain","concise",44
+"hey, i disagree with that design choice. Here's why...","conversation","advanced","security","casual",54
+"How can I reduce cloud costs while maintaining user experience?","analysis","advanced","database","standard",63
+"Ugh, how do I investigate memory leaks in distributed systems????","debugging","advanced","testing","frustrated",65
+"hey, thanks for the help with the code review","conversation","beginner","machine-learning","casual",45
+"Just wondering, design consensus protocol for asynchronous systems?","command","advanced","security","curious",67
+"I'm not sure I understand vector clocks. Can you explain differently? - please explain for a beginner","conversation","advanced","web-development","beginner-friendly",101
+"Given high latency and low throughput, what can we conclude? (technical details please)","code_generation","advanced","backend","technical",87
+"I would like to know: How can I reduce network traffic in my infrastructure?","analysis","intermediate","monitoring","formal",76
+"Given high latency and low throughput, what can we conclude?","code_generation","advanced","security","concise",60
+"I would like to know: Hi, can you help me with debugging?","conversation","beginner","database","formal",57
+"Explain orchestration in simple terms - please explain for a beginner","query","beginner","frontend","beginner-friendly",69
+"Write an article that covers advanced topics. Can you explain in detail with examples?","creative","intermediate","backend","detailed",86
+"Just wondering, what is the complexity of BFS and how can I optimize it??","query","advanced","performance","curious",73
+"Ugh, what caching strategy should I use for static content????","analysis","intermediate","gamedev","frustrated",62
+"How do I design the system for limited memory? - this is urgent!","analysis","advanced","system-design","urgent",64
+"Tell me about test-driven development (technical details please)","query","beginner","blockchain","technical",64
+"Just wondering, given memory leaks and CPU spikes, what can we conclude??","code_generation","advanced","cloud","curious",73
+"Build a consensus protocol for eventual consistency - please explain for a beginner","command","advanced","fullstack","beginner-friendly",83
+"Show me how to run tests - this is urgent!","command","beginner","security","urgent",42
+"What tools can help me profile code?","analysis","intermediate","architecture","concise",36
+"How do I scale a system while maintaining performance? (advanced/expert level)","query","advanced","security","expert",78
+"What are the trade-offs between REST and GraphQL and waterfall and agile? (technical details please)","query","intermediate","system-design","technical",100
+"Just wondering, how can I reduce latency in my API??","analysis","intermediate","mobile-development","curious",52
+"What's wrong with my SQL query? - this is urgent!","debugging","intermediate","architecture","urgent",49
+"Ugh, generate an article combining Kubernetes and MongoDB???","creative","intermediate","gamedev","frustrated",60
+"How do I allocate resources for low latency?. Can you explain in detail with examples?","analysis","advanced","testing","detailed",86
+"How do I handle distributed locking in a multi-region deployment?","query","advanced","security","concise",65
+"I would like to know: That's interesting! Tell me more about that architecture","conversation","beginner","fullstack","formal",78
+"What metrics should I track for application monitoring? - please explain for a beginner","query","intermediate","api-design","beginner-friendly",87
+"Why use GraphQL?","query","beginner","blockchain","standard",16
+"I'm not sure, but help me understand this error","command","beginner","mobile-development","confused",47
+"Generate test scenarios - please explain for a beginner","creative","beginner","fullstack","beginner-friendly",55
+"hey, optimize the database schema to reduce complexity","command","intermediate","devops","casual",54
+"Debug this API endpoint","debugging","intermediate","blockchain","standard",23
+"What metrics should I monitor to track performance?","analysis","intermediate","performance","concise",51
+"Set up CI/CD pipeline - this is urgent!","command","beginner","web-development","urgent",39
+"Investigate the crash in my UI component (technical details please)","command","beginner","devops","technical",67
+"I would like to know: How do I handle distributed locking in a distributed system?","query","advanced","devops","formal",82
+"Design a REST API for project management - this is urgent!","creative","intermediate","fullstack","urgent",58
+"I'm experiencing high memory usage. How can I optimize?","analysis","intermediate","fullstack","standard",55
+"Ugh, my microservice is timing out. Help!???","debugging","intermediate","monitoring","frustrated",44
+"Just wondering, can you clarify what you mean by eventual consistency??","conversation","intermediate","embedded-systems","curious",71
+"I disagree with that design choice. Here's why... - this is urgent!","conversation","advanced","performance","urgent",67
+"I'm not sure, but what does ACID mean?","query","beginner","testing","confused",38
+"Just wondering, do you have experience with high-frequency trading??","conversation","intermediate","frontend","curious",68
+"I'm not sure, but that makes sense. Now, what about security implications?","conversation","intermediate","backend","confused",74
+"Design a REST API for e-commerce","creative","intermediate","testing","concise",32
+"hey, that makes sense. Now, what about testing strategies?","conversation","intermediate","frontend","casual",58
+"Propose a solution for scaling a database (advanced/expert level)","creative","intermediate","cloud","expert",65
+"I would like to know: I'm seeing timeout errors in my logs. What does it mean?","debugging","intermediate","mobile-development","formal",78
+"hey, write a example explaining cryptography","creative","advanced","fullstack","casual",44
+"How do I scale my microservices to handle higher concurrency?","analysis","advanced","machine-learning","concise",61
+"How do I fix this performance issue?. Can you explain in detail with examples?","debugging","intermediate","api-design","detailed",78
+"I would like to know: I'm getting a connection error. How do I fix it?","debugging","beginner","frontend","formal",70
+"How do I investigate scaling problems in staging? - this is urgent!","debugging","advanced","database","urgent",67
+"What is microservices?","query","beginner","api-design","concise",22
+"Why does split-brain scenarios occur?","code_generation","advanced","embedded-systems","standard",37
+"I'm working on a new feature and need advice","conversation","beginner","monitoring","standard",44
+"What's wrong with my error handling? - please explain for a beginner","debugging","intermediate","fullstack","beginner-friendly",68
+"hey, my microservice is running slowly. Help!","debugging","intermediate","security","casual",45
+"Migrate the application from on-premise to microservices","command","intermediate","architecture","concise",56
+"hey, how does throughput relate to user experience?","code_generation","intermediate","gamedev","casual",51
+"How can I reduce cost in my API?. Can you explain in detail with examples?","analysis","intermediate","fullstack","detailed",74
+"hey, given network timeouts and retries, what can we conclude?","code_generation","advanced","architecture","casual",62
+"What research has been done on distributed consensus algorithms? - please explain for a beginner","query","advanced","system-design","beginner-friendly",96
+"How do I implement CQRS in a serverless application?","query","advanced","mobile-development","standard",52
+"Propose a solution for scaling a database - this is urgent!","creative","intermediate","data-science","urgent",59
+"Generate API documentation (technical details please)","creative","beginner","performance","technical",53
+"I'm not sure, but how do I maximize cache hit rate for low latency requirements?","query","advanced","blockchain","confused",80
+"I'm getting a timeout error. How do I fix it? (advanced/expert level)","debugging","beginner","embedded-systems","expert",69
+"How do I reason about network protocols formally?","query","advanced","api-design","standard",49
+"How can I reduce operational costs while maintaining availability?","analysis","advanced","embedded-systems","concise",66
+"hey, what metrics should I monitor to track scalability?","analysis","intermediate","data-science","casual",56
+"I would like to know: How do I optimize frontend rendering?","analysis","intermediate","data-science","formal",59
+"Why use Kubernetes?. Can you explain in detail with examples?","query","beginner","testing","detailed",61
+"How do I allocate resources for cost constraints?. Can you explain in detail with examples?","analysis","advanced","monitoring","detailed",91
+"If I implement caching, then will costs go down? (advanced/expert level)","code_generation","intermediate","data-science","expert",72
+"I would like to know: What are common pitfalls when working with Go channels?","query","intermediate","devops","formal",77
+"That's interesting! Tell me more about that pattern (technical details please)","conversation","beginner","gamedev","technical",78
+"How do I scale my API to handle more users?","analysis","advanced","data-science","concise",43
+"hey, how can I apply queueing theory to system design?","query","advanced","machine-learning","casual",54
+"Build a consensus protocol for network partitions - this is urgent!","command","advanced","machine-learning","urgent",67
+"How do I implement bulkhead pattern in a microservices architecture? (technical details please)","query","advanced","blockchain","technical",95
+"Just wondering, i'm experiencing high memory usage. How can I optimize??","analysis","intermediate","embedded-systems","curious",72
+"Teach me SQL basics (technical details please)","command","beginner","database","technical",46
+"Have you seen this problem before? (advanced/expert level)","conversation","intermediate","devops","expert",58
+"What are the mathematical foundations of compression algorithms?","query","advanced","devops","concise",64
+"I'm seeing connection refused in my logs. What does it mean? (advanced/expert level)","debugging","intermediate","api-design","expert",84
+"How do I scale microservices?","query","intermediate","testing","standard",29
+"What are the best practices for code optimization? - this is urgent!","analysis","intermediate","api-design","urgent",68
+"Give me a code example for file upload","command","beginner","machine-learning","standard",38
+"I would like to know: What metrics should I monitor to track efficiency?","analysis","intermediate","monitoring","formal",72
+"Given network timeouts and retries, what can we conclude?. Can you explain in detail with examples?","code_generation","advanced","blockchain","detailed",99
+"I would like to know: I'm getting a 404 error. How do I fix it?","debugging","beginner","backend","formal",63
+"I would like to know: Design a microservice for social media","creative","intermediate","api-design","formal",60
+"I would like to know: Create a stream processing system using dataflow programming","command","advanced","cloud","formal",82
+"How does consistency relate to reliability?","code_generation","intermediate","mobile-development","standard",43
+"Write an article that targets beginners (advanced/expert level)","creative","intermediate","monitoring","expert",63
+"I'm not sure, but hi, can you help me with API design?","conversation","beginner","web-development","confused",54
+"I'm not sure, but can you prove this approach is optimal?","code_generation","advanced","embedded-systems","confused",57
+"I'm experiencing poor throughput. How can I optimize?","analysis","intermediate","mobile-development","concise",53
+"Write a example explaining quantum computing - this is urgent!","creative","advanced","machine-learning","urgent",62
+"I'm not sure, but how can I apply queueing theory to load balancing?","query","advanced","gamedev","confused",68
+"What research has been done on distributed consensus algorithms?","query","advanced","security","standard",64
+"Generate mock data (advanced/expert level)","command","beginner","machine-learning","expert",42
+"hey, what research has been done on database indexing strategies?","query","advanced","api-design","casual",65
+"Ugh, what's your opinion on remote work????","conversation","intermediate","machine-learning","frustrated",43
+"I'm seeing connection refused in my logs. What does it mean? - please explain for a beginner","debugging","intermediate","monitoring","beginner-friendly",92
+"Just wondering, write a example explaining neural networks?","creative","advanced","embedded-systems","curious",59
+"I would like to know: Optimize computation algorithms for latency requirements","command","advanced","frontend","formal",78
+"I would like to know: What caching strategy should I use for static content?","analysis","intermediate","backend","formal",76
+"hey, give me a code example for implementing a REST API","command","beginner","fullstack","casual",55
+"hey, how can I reduce latency in my application?","analysis","intermediate","fullstack","casual",48
+"I would like to know: Why does network partitions occur?","code_generation","advanced","gamedev","formal",56
+"Set up load balancing with automatic failover (advanced/expert level)","command","intermediate","security","expert",69
+"What are the implications of serializability?. Can you explain in detail with examples?","code_generation","advanced","frontend","detailed",87
+"What's your opinion on agile methodologies?","conversation","intermediate","machine-learning","concise",43
+"I'm not sure, but can you prove this system is consistent?","code_generation","advanced","api-design","confused",58
+"What would you do in my situation with performance issues? - this is urgent!","conversation","intermediate","security","urgent",76
+"Just wondering, debug this class?","debugging","intermediate","data-science","curious",33
+"hey, what is the logical sequence for debugging distributed systems?","code_generation","advanced","performance","casual",68
+"I would like to know: What is Git?","query","beginner","security","formal",34
+"hey, what metrics should I monitor to track scalability?","analysis","intermediate","testing","casual",56
+"How do I optimize API performance?","analysis","intermediate","mobile-development","standard",34
+"Debug the race condition in async code - please explain for a beginner","command","intermediate","machine-learning","beginner-friendly",70
+"Ugh, what is the logic behind distributed locking????","code_generation","advanced","testing","frustrated",53
+"Write a class that handles edge cases","command","intermediate","monitoring","concise",37
+"Just wondering, what are the trade-offs between monolith and microservices and static and dynamic typing??","query","intermediate","monitoring","curious",106
+"I'm seeing timeout errors in my logs. What does it mean? - please explain for a beginner","debugging","intermediate","database","beginner-friendly",88
+"Debug this function","debugging","intermediate","backend","standard",19
+"That makes sense. Now, what about testing strategies?. Can you explain in detail with examples?","conversation","intermediate","backend","detailed",95
+"How do I trace a deadlock in async code? (advanced/expert level)","debugging","advanced","security","expert",64
+"Debug the concurrency issue in distributed system - please explain for a beginner","command","intermediate","data-science","beginner-friendly",81
+"I've been trying to reduce latency but I keep getting errors","conversation","intermediate","fullstack","concise",60
+"hey, design a database schema for project management","creative","intermediate","web-development","casual",52
+"Why does split-brain scenarios occur? (advanced/expert level)","code_generation","advanced","system-design","expert",61
+"I've been trying to scale the system but it's complicated","conversation","intermediate","blockchain","standard",57
+"Just wondering, what is the logic behind gossip protocols??","code_generation","advanced","api-design","curious",59
+"Ugh, generate a tutorial combining TypeScript and Redis???","creative","intermediate","security","frustrated",58
+"Create a middleware that logs events","creative","intermediate","testing","concise",36
+"How do I optimize CPU utilization?","analysis","intermediate","embedded-systems","concise",34
+"Ugh, what are the theoretical limits of consensus protocols????","query","advanced","database","frustrated",63
+"hey, how do I investigate connection issues in production?","debugging","advanced","web-development","casual",58
+"hey, what are the trade-offs between horizontal scaling and vertical scaling for optimization?","analysis","advanced","cloud","casual",94
+"I would like to know: Generate API documentation","creative","beginner","blockchain","formal",48
+"What is the logical sequence for implementing CI/CD? - this is urgent!","code_generation","advanced","frontend","urgent",70
+"Just wondering, write an overview about blockchain?","creative","beginner","web-development","curious",51
+"Is monoliths can't scale true or false? Explain.. Can you explain in detail with examples?","code_generation","intermediate","data-science","detailed",90
+"Ugh, what are the best practices for database optimization????","analysis","intermediate","devops","frustrated",62
+"How can I apply graph theory to caching strategies? - please explain for a beginner","query","advanced","architecture","beginner-friendly",83
+"How can I improve the reliability of my database schema? (advanced/expert level)","analysis","intermediate","monitoring","expert",80
+"Is microservices a good idea for our use case?","conversation","intermediate","devops","concise",46
+"How do I design the system for cost constraints? - this is urgent!","analysis","advanced","gamedev","urgent",66
+"How do I troubleshoot high CPU usage? - this is urgent!","query","intermediate","testing","urgent",55
+"I'm not sure, but given network timeouts and retries, what can we conclude?","code_generation","advanced","architecture","confused",75
+"Optimize memory usage for cost - please explain for a beginner","command","intermediate","cloud","beginner-friendly",62
+"Just wondering, generate mock data?","creative","beginner","data-science","curious",35
+"What caching strategy should I use for database queries?. Can you explain in detail with examples?","analysis","intermediate","system-design","detailed",98
+"How do I resolve this timeout? (technical details please)","debugging","intermediate","gamedev","technical",57
+"What caching strategy should I use for API responses?. Can you explain in detail with examples?","analysis","intermediate","database","detailed",95
+"Just wondering, what's wrong with my error handling??","debugging","intermediate","data-science","curious",53
+"I'm not sure, but given high latency and low throughput, what can we conclude?","code_generation","advanced","blockchain","confused",78
+"I would like to know: Implement rate limiting to ensure security","command","intermediate","gamedev","formal",64
+"Is serverless a good idea for this project? (advanced/expert level)","conversation","intermediate","backend","expert",67
+"What is the logical sequence for designing APIs?","code_generation","advanced","frontend","concise",48
+"What are common pitfalls when working with Rust ownership? - this is urgent!","query","intermediate","fullstack","urgent",76
+"hey, i'm working on a refactoring and need advice","conversation","beginner","architecture","casual",49
+"I would like to know: Optimize computation algorithms for resource constraints","command","advanced","embedded-systems","formal",78
+"What tools can I use to debug concurrency bugs? (advanced/expert level)","debugging","intermediate","gamedev","expert",71
+"Ugh, how do I implement event sourcing in a microservices architecture????","query","advanced","fullstack","frustrated",74
+"Just wondering, what is the logical sequence for debugging distributed systems??","code_generation","advanced","machine-learning","curious",80
+"How can I apply queueing theory to network optimization? - please explain for a beginner","query","advanced","blockchain","beginner-friendly",88
+"Create a database that guarantees causal consistency","command","advanced","architecture","concise",52
+"I'm seeing connection refused in my logs. What does it mean? (technical details please)","debugging","intermediate","database","technical",87
+"I'm not sure, but i've been trying to optimize this query but it's not working","conversation","intermediate","monitoring","confused",78
+"hey, what strategies can I use to improve query performance?","analysis","intermediate","web-development","casual",60
+"What tools can help me profile code? (technical details please)","analysis","intermediate","database","technical",63
+"What is the logic behind leader election? (technical details please)","code_generation","advanced","database","technical",68
+"Ugh, is REST is obsolete true or false? Explain.???","code_generation","intermediate","backend","frustrated",51
+"Ugh, why does deadlocks occur????","code_generation","advanced","web-development","frustrated",33
+"What tools can help me reduce costs?","analysis","intermediate","gamedev","standard",36
+"Help me choose a database (technical details please)","command","beginner","architecture","technical",52
+"Come up with a name for my service (technical details please)","creative","beginner","backend","technical",61
+"How do I implement circuit breaker in a distributed system?","query","advanced","monitoring","standard",59
+"I would like to know: That's interesting! Tell me more about that technology","conversation","beginner","blockchain","formal",76
+"I'm not sure, but write a blog post that is easy to understand","creative","intermediate","frontend","confused",62
+"Invent a protocol for handling real-time data","creative","advanced","testing","concise",45
+"Just wondering, what are the best practices for frontend optimization??","analysis","intermediate","monitoring","curious",71
+"Just wondering, design a system for administrators?","creative","intermediate","blockchain","curious",51
+"Given slow queries and high load, what can we conclude? (technical details please)","code_generation","advanced","fullstack","technical",82
+"Hi, can you help me with system design?. Can you explain in detail with examples?","conversation","beginner","security","detailed",81
+"hey, refactor the authentication system to increase scalability","command","intermediate","system-design","casual",63
+"I would like to know: Design a database schema for content management","creative","intermediate","fullstack","formal",69
+"Ugh, prove deadlock freedom about locking mechanism???","command","advanced","database","frustrated",54
+"What metrics should I monitor to track efficiency? (technical details please)","analysis","intermediate","devops","technical",77
+"What is the logic behind gossip protocols?","code_generation","advanced","security","concise",42
+"Can you clarify what you mean by eventual consistency? (technical details please)","conversation","intermediate","api-design","technical",81
+"How do I handle distributed transactions in a distributed system?","query","advanced","system-design","standard",65
+"Create a architecture pattern for handling errors - this is urgent!","command","intermediate","testing","urgent",67
+"How do I investigate performance degradation in staging? - this is urgent!","debugging","advanced","gamedev","urgent",74
+"I'm not sure, but can you prove this system is consistent?","code_generation","advanced","web-development","confused",58
+"Is NoSQL a good idea for my team?","conversation","intermediate","frontend","standard",33
+"Just wondering, what tools can help me optimize performance??","analysis","intermediate","gamedev","curious",61
+"Do you have experience with distributed systems? - please explain for a beginner","conversation","intermediate","testing","beginner-friendly",80
+"I'm not sure, but how does throughput relate to scalability?","code_generation","intermediate","web-development","confused",60
+"I'm not sure, but what is the state of the art in serverless computing?","query","advanced","testing","confused",71
+"Propose a solution for improving code quality - please explain for a beginner","creative","intermediate","architecture","beginner-friendly",77
+"Why am I getting AuthError when calling the API? (technical details please)","debugging","beginner","fullstack","technical",75
+"Ugh, how do I scale my application to handle higher concurrency????","analysis","advanced","database","frustrated",67
+"hey, how do I investigate performance degradation in distributed systems?","debugging","advanced","cloud","casual",73
+"Have you seen this behavior before?","conversation","intermediate","web-development","standard",35
+"I'm not sure I understand CRDTs. Can you explain differently? (technical details please)","conversation","advanced","testing","technical",88
+"I'm experiencing CPU spikes. What could be the cause? - please explain for a beginner","debugging","intermediate","testing","beginner-friendly",85
+"hey, what is the best way to handle state in Vue?","query","intermediate","monitoring","casual",49
+"I would like to know: Give me a code example for implementing a REST API","command","beginner","system-design","formal",72
+"Have you seen this error before? - please explain for a beginner","conversation","intermediate","monitoring","beginner-friendly",64
+"hey, what is the best way to secure an API?","query","intermediate","mobile-development","casual",43
+"I would like to know: How do I scale my database to handle more requests?","analysis","advanced","embedded-systems","formal",73
+"Ugh, implement secure multi-party computation for cloud storage???","command","advanced","database","frustrated",66
+"I'm not sure, but make a new database table","command","beginner","backend","confused",43
+"hey, if I replicate data, then will costs go down?","code_generation","intermediate","system-design","casual",50
+"Why is my file upload not working? (advanced/expert level)","debugging","beginner","embedded-systems","expert",58
+"Why use PostgreSQL instead of MongoDB?","query","beginner","security","standard",38
+"I would like to know: Generate a tutorial combining GraphQL and PostgreSQL","creative","intermediate","database","formal",74
+"How does Docker compare to MobX? - this is urgent!","query","intermediate","backend","urgent",50
+"Just wondering, how do I improve reliability while maintaining performance??","query","advanced","data-science","curious",76
+"I'm not sure, but debug this module","debugging","intermediate","web-development","confused",35
+"Generate an example combining Kubernetes and MongoDB","creative","intermediate","performance","concise",52
+"I've been trying to implement caching but it's not working - please explain for a beginner","conversation","intermediate","machine-learning","beginner-friendly",90
+"I'm not sure, but write an introduction about TypeScript","creative","beginner","web-development","confused",56
+"How can I reduce infrastructure costs while maintaining user experience? (advanced/expert level)","analysis","advanced","api-design","expert",96
+"Hi, can you help me with architecture? - this is urgent!","conversation","beginner","mobile-development","urgent",56
+"That makes sense. Now, what about the implementation details? (technical details please)","conversation","intermediate","performance","technical",88
+"I'm not sure I understand consensus algorithms. Can you explain differently? (advanced/expert level)","conversation","advanced","fullstack","expert",100
+"Hi, can you help me with database design?","conversation","beginner","api-design","concise",41
+"How do I deploy to production with React? (advanced/expert level)","query","intermediate","testing","expert",65
+"I would like to know: How do I optimize frontend rendering?","analysis","intermediate","database","formal",59
+"How do I work around this memory leak? (advanced/expert level)","debugging","intermediate","devops","expert",62
+"Ugh, what is the state of the art in formal verification????","query","advanced","fullstack","frustrated",60
+"How do I minimize memory usage for high availability? (advanced/expert level)","query","advanced","mobile-development","expert",77
+"What are common pitfalls when working with Rust ownership? - this is urgent!","query","intermediate","system-design","urgent",76
+"What do you think about microservices? - this is urgent!","conversation","intermediate","cloud","urgent",56
+"Just wondering, how does Redux compare to Docker Swarm??","query","intermediate","testing","curious",56
+"Is serverless a good idea for my team?","conversation","intermediate","security","concise",38
+"Show me how to install Node.js (technical details please)","command","beginner","devops","technical",57
+"Just wondering, have you seen this problem before??","conversation","intermediate","system-design","curious",51
+"I'm not sure, but how do I scale my microservices to handle more requests?","analysis","advanced","architecture","confused",74
+"hey, i'm not sure I understand distributed transactions. Can you explain differently?","conversation","advanced","api-design","casual",85
+"I'm not sure, but how does consistency relate to reliability?","code_generation","intermediate","performance","confused",61
+"Do you have experience with blockchain?. Can you explain in detail with examples?","conversation","intermediate","machine-learning","detailed",81
+"Is monoliths can't scale true or false? Explain. - this is urgent!","code_generation","intermediate","embedded-systems","urgent",66
+"What's wrong with my Promise chain? (advanced/expert level)","debugging","intermediate","monitoring","expert",59
+"Thanks for the help with the implementation","conversation","beginner","machine-learning","concise",43
+"I'm not sure, but is microservices are always superior true or false? Explain.","code_generation","intermediate","mobile-development","confused",78
+"Is SQL a good idea for this project? - this is urgent!","conversation","intermediate","api-design","urgent",54
+"Invent a algorithm for handling real-time data (advanced/expert level)","creative","advanced","api-design","expert",70
+"Is microservices are always superior true or false? Explain.. Can you explain in detail with examples?","code_generation","intermediate","database","detailed",102
+"Write a parable explaining cryptography","creative","advanced","blockchain","concise",39
+"I'm not sure, but what's wrong with my error handling?","debugging","intermediate","fullstack","confused",54
+"I'm not sure, but hi, can you help me with architecture?","conversation","beginner","blockchain","confused",56
+"Set up CI/CD pipeline","command","beginner","machine-learning","concise",21
+"I'm not sure, but what research has been done on load balancing algorithms?","query","advanced","data-science","confused",75
+"What are the benefits of serverless architecture? (advanced/expert level)","query","beginner","architecture","expert",73
+"Ugh, how can I reduce infrastructure costs while maintaining performance????","analysis","advanced","security","frustrated",76
+"Can you prove this system is consistent?","code_generation","advanced","performance","concise",40
+"Ugh, why is my API call not working????","debugging","beginner","gamedev","frustrated",39
+"Write a middleware that handles failures - this is urgent!","command","intermediate","testing","urgent",58
+"What are the benefits of GraphQL APIs? - please explain for a beginner","query","beginner","api-design","beginner-friendly",70
+"I would like to know: How do I investigate connection issues in cloud?","debugging","advanced","embedded-systems","formal",70
+"Implement user authentication using Server-Sent Events","command","intermediate","backend","concise",54
+"hey, i've been trying to reduce latency but it's slow","conversation","intermediate","fullstack","casual",53
+"hey, what does latency mean?","query","beginner","cloud","casual",28
+"How does latency relate to system design?","code_generation","intermediate","cloud","concise",41
+"What do you think about microservices? - please explain for a beginner","conversation","intermediate","backend","beginner-friendly",70
+"I would like to know: That's interesting! Tell me more about that technology","conversation","beginner","embedded-systems","formal",76
+"If I implement caching, then will latency decrease? - this is urgent!","code_generation","intermediate","monitoring","urgent",69
+"I'm experiencing intermittent failures. What could be the cause?. Can you explain in detail with examples?","debugging","intermediate","performance","detailed",106
+"When should I use load balancer?","query","beginner","embedded-systems","concise",32
+"Come up with a name for my startup (advanced/expert level)","creative","beginner","cloud","expert",58
+"That's interesting! Tell me more about that technology (advanced/expert level)","conversation","beginner","testing","expert",78
+"Is monolith a good idea for my team?. Can you explain in detail with examples?","conversation","intermediate","database","detailed",78
+"How do I optimize database queries? (advanced/expert level)","analysis","intermediate","api-design","expert",59
+"I would like to know: How do I work around this deadlock?","debugging","intermediate","security","formal",57
+"Create a messaging system that guarantees strong consistency. Can you explain in detail with examples?","command","advanced","data-science","detailed",102
+"Design a API for analysts (advanced/expert level)","creative","intermediate","architecture","expert",49
+"I'm not sure, but how do I work around this performance issue?","debugging","intermediate","gamedev","confused",62
+"I'm working on an optimization and need advice (advanced/expert level)","conversation","beginner","gamedev","expert",70
+"Migrate database from monolith to microservices. Can you explain in detail with examples?","command","intermediate","api-design","detailed",89
+"Ugh, my integration test is failing. How do I fix it????","debugging","intermediate","performance","frustrated",56
+"Why am I getting TypeError when authenticating?","debugging","beginner","blockchain","standard",47
+"Why am I getting ValidationError when making requests? - this is urgent!","debugging","beginner","backend","urgent",72
+"What does eventual consistency mean? (technical details please)","query","beginner","machine-learning","technical",63
+"I disagree with using microservices. Here's why... - this is urgent!","conversation","advanced","devops","urgent",68
+"Tell me about DevOps - please explain for a beginner","query","beginner","frontend","beginner-friendly",52
+"Create a protocol for processing events","command","intermediate","architecture","concise",39
+"Design security architecture for low latency","command","intermediate","frontend","standard",44
+"What tools can help me monitor resources?","analysis","intermediate","mobile-development","standard",41
+"Write a summary about Kubernetes","creative","beginner","fullstack","concise",32
+"Design a microservice for project management","creative","intermediate","fullstack","concise",44
+"Debug this function","debugging","intermediate","embedded-systems","concise",19
+"Brainstorm ideas for a developer tool - please explain for a beginner","creative","intermediate","architecture","beginner-friendly",69
+"My e2e test is failing. How do I fix it?","debugging","intermediate","architecture","concise",40
+"Debug this module - please explain for a beginner","debugging","intermediate","testing","beginner-friendly",49
+"How do I troubleshoot network timeout errors? - please explain for a beginner","query","intermediate","mobile-development","beginner-friendly",77
+"How do I optimize queries for high throughput? (technical details please)","analysis","advanced","system-design","technical",73
+"Create a documentation for introducing Docker - please explain for a beginner","creative","beginner","security","beginner-friendly",77
+"What assumptions underlie vertical scaling?. Can you explain in detail with examples?","code_generation","advanced","machine-learning","detailed",85
+"What are the mathematical foundations of compression algorithms?. Can you explain in detail with examples?","query","advanced","security","detailed",106
+"How do I scale a REST API?. Can you explain in detail with examples?","query","intermediate","gamedev","detailed",68
+"How do I maximize cache hit rate for high availability? - please explain for a beginner","query","advanced","database","beginner-friendly",87
+"How can I apply control theory to system design?","query","advanced","security","concise",48
+"I would like to know: What is the complexity of binary search and how can I optimize it?","query","advanced","fullstack","formal",88
+"Why does network partitions occur? - this is urgent!","code_generation","advanced","gamedev","urgent",52
+"What tools can help me optimize performance?","analysis","intermediate","architecture","standard",44
+"How do I troubleshoot this deadlock?","debugging","intermediate","embedded-systems","concise",36
+"hey, create an event-driven system using reactive programming","command","advanced","frontend","casual",61
+"Write an article that includes examples. Can you explain in detail with examples?","creative","intermediate","devops","detailed",81
+"I would like to know: Given high latency and low throughput, what can we conclude?","code_generation","advanced","fullstack","formal",82
+"Design data architecture for low latency","command","intermediate","system-design","concise",40
+"Just wondering, why does network partitions occur??","code_generation","advanced","machine-learning","curious",51
+"Ugh, what are common pitfalls when working with Go channels????","query","intermediate","web-development","frustrated",63
+"I would like to know: I'm seeing high CPU usage in my logs. What does it mean?","debugging","intermediate","system-design","formal",78
+"Debug this service - please explain for a beginner","debugging","intermediate","data-science","beginner-friendly",50
+"I'm not sure, but how do I investigate performance degradation in development?","debugging","advanced","fullstack","confused",78
+"I would like to know: What is the logical sequence for designing APIs?","code_generation","advanced","testing","formal",70
+"Write a blog post that covers advanced topics (technical details please)","creative","intermediate","frontend","technical",72
+"hey, design a data model for administrators","creative","intermediate","gamedev","casual",43
+"How does consistency relate to user experience? - this is urgent!","code_generation","intermediate","data-science","urgent",65
+"Explain cryptography in simple terms (advanced/expert level)","query","beginner","architecture","expert",60
+"How do I optimize storage while maintaining consistency? (advanced/expert level)","query","advanced","devops","expert",80
+"Just wondering, if I replicate data, then will costs go down??","code_generation","intermediate","security","curious",62
+"I would like to know: Write an overview about serverless computing","creative","beginner","architecture","formal",66
+"What is CI/CD? - please explain for a beginner","query","beginner","data-science","beginner-friendly",46
+"I would like to know: Why is my file upload not working?","debugging","beginner","performance","formal",56
+"Ugh, what are the trade-offs between caching and normalization for optimization????","analysis","advanced","security","frustrated",83
+"Generate mock data (advanced/expert level)","creative","beginner","security","expert",42
+"hey, how do I troubleshoot slow database queries?","query","intermediate","machine-learning","casual",49
+"Just wondering, can you prove this design is sound??","code_generation","advanced","monitoring","curious",52
+"Why is my webhook not working?. Can you explain in detail with examples?","debugging","beginner","monitoring","detailed",72
+"Ugh, how do I troubleshoot high CPU usage????","query","intermediate","web-development","frustrated",45
+"Set up load balancing with high availability (technical details please)","command","intermediate","system-design","technical",71
+"Can you clarify what you mean by saga pattern?","conversation","intermediate","fullstack","concise",46
+"What is the logic behind consensus algorithms?","code_generation","advanced","database","standard",46
+"Ugh, design a API for analysts???","creative","intermediate","architecture","frustrated",33
+"What is the difference between Git and SVN and Docker and VM? (advanced/expert level)","query","beginner","database","expert",85
+"How can I reduce memory usage in my application?","analysis","intermediate","machine-learning","standard",48
+"Create a guide for teaching React","creative","beginner","api-design","concise",33
+"I would like to know: My queue is crashing. Help!","debugging","intermediate","performance","formal",49
+"How can I reduce cost in my application? (advanced/expert level)","analysis","intermediate","performance","expert",64
+"What's your opinion on testing strategies? (technical details please)","conversation","intermediate","mobile-development","technical",69
+"hey, what does ACID mean?","query","beginner","blockchain","casual",25
+"Ugh, design a user interface for developers???","creative","intermediate","embedded-systems","frustrated",46
+"Why does deadlocks occur?","code_generation","advanced","cloud","concise",25
+"What metrics should I monitor to track scalability? (technical details please)","analysis","intermediate","backend","technical",78
+"Just wondering, generate code examples?","creative","beginner","frontend","curious",39
+"I would like to know: What are the benefits of monolithic architecture?","query","beginner","fullstack","formal",71
+"Do you have experience with machine learning?. Can you explain in detail with examples?","conversation","intermediate","devops","detailed",87
+"hey, create a service that handles errors gracefully","creative","intermediate","gamedev","casual",52
+"Debug the race condition in production environment - please explain for a beginner","command","intermediate","api-design","beginner-friendly",82
+"What are the benefits of containerization? - please explain for a beginner","query","beginner","machine-learning","beginner-friendly",74
+"How do I scale my application to handle more users?","analysis","advanced","api-design","standard",51
+"Write a example explaining quantum computing - please explain for a beginner","creative","advanced","architecture","beginner-friendly",76
+"Just wondering, create a guide for describing REST APIs?","creative","beginner","cloud","curious",56
+"How do I allocate resources for limited memory?","analysis","advanced","frontend","standard",47
+"hey, how do I optimize frontend rendering?","analysis","intermediate","data-science","casual",42
+"Just wondering, what would you do in my situation with legacy code??","conversation","intermediate","backend","curious",68
+"hey, i'm working on a refactoring and need advice","conversation","beginner","mobile-development","casual",49
+"Debug this database query","debugging","intermediate","mobile-development","concise",25
+"I'm not sure, but write a story explaining distributed consensus","creative","advanced","fullstack","confused",64
+"Ugh, given slow queries and high load, what can we conclude????","code_generation","advanced","gamedev","frustrated",63
+"hey, tell me about continuous integration","query","beginner","monitoring","casual",41
+"Ugh, what metrics should I track for user engagement????","query","intermediate","architecture","frustrated",56
+"Design a architecture for social media","creative","intermediate","data-science","standard",38
+"What tools can help me profile code? - this is urgent!","analysis","intermediate","cloud","urgent",54
+"Write a metaphor explaining neural networks (technical details please)","creative","advanced","machine-learning","technical",70
+"Just wondering, how does availability relate to scalability??","code_generation","intermediate","api-design","curious",61
+"What metrics should I monitor to track scalability? - this is urgent!","analysis","intermediate","frontend","urgent",69
+"I would like to know: How do I reduce API latency for strict consistency requirements?","query","advanced","data-science","formal",86
+"Just wondering, generate a tutorial combining TypeScript and MongoDB?","creative","intermediate","api-design","curious",69
+"Ugh, design network architecture for fault tolerance???","command","intermediate","backend","frustrated",55
+"Migrate infrastructure from REST to microservices","command","intermediate","embedded-systems","standard",49
+"Just wondering, tell me about continuous deployment?","query","beginner","database","curious",52
+"Generate test scenarios (advanced/expert level)","creative","beginner","testing","expert",47
+"I'm not sure, but write a blog post that targets beginners","creative","intermediate","frontend","confused",58
+"I would like to know: I've been trying to implement caching but I'm stuck","conversation","intermediate","testing","formal",73
+"Design a database schema for content management (advanced/expert level)","creative","intermediate","frontend","expert",71
+"I would like to know: What are the theoretical limits of horizontal scaling?","query","advanced","machine-learning","formal",76
+"I'm getting a timeout error. How do I fix it? - this is urgent!","debugging","beginner","backend","urgent",63
+"How can I reduce infrastructure costs while maintaining availability?. Can you explain in detail with examples?","analysis","advanced","security","detailed",111
+"What is the logical sequence for migrating to microservices? (technical details please)","code_generation","advanced","backend","technical",87
+"Brainstorm ideas for a microservice (technical details please)","creative","intermediate","blockchain","technical",62
+"hey, what strategies can I use to improve response time?","analysis","intermediate","backend","casual",56
+"Why am I getting TypeError when making requests? (advanced/expert level)","debugging","beginner","data-science","expert",72
+"Why am I getting TypeError when calling the API?","debugging","beginner","architecture","standard",48
+"I would like to know: How do I handle data replication in a distributed system?","query","advanced","frontend","formal",79
+"Come up with a name for my variable (technical details please)","creative","beginner","frontend","technical",62
+"How can I apply queueing theory to resource allocation?","query","advanced","monitoring","standard",55
+"Just wondering, generate a tutorial combining React and MongoDB?","creative","intermediate","testing","curious",64
+"hey, write a story explaining complexity theory","creative","advanced","gamedev","casual",47
+"Just wondering, debug the performance problem in production environment?","command","intermediate","monitoring","curious",72
+"Create a architecture pattern for processing events (technical details please)","command","intermediate","frontend","technical",78
+"Ugh, can you prove this system is consistent????","code_generation","advanced","api-design","frustrated",48
+"How do I optimize memory usage? - this is urgent!","analysis","intermediate","machine-learning","urgent",49
+"What caching strategy should I use for computed results? (advanced/expert level)","analysis","intermediate","gamedev","expert",80
+"I'm not sure, but refactor the data pipeline to increase scalability","command","intermediate","cloud","confused",68
+"Ugh, what is the logical sequence for designing APIs????","code_generation","advanced","security","frustrated",56
+"Thanks for the help with the explanation (advanced/expert level)","conversation","beginner","system-design","expert",64
+"Just wondering, what are the main features of Flask??","query","beginner","machine-learning","curious",53
+"How can I reduce latency in my application?","analysis","intermediate","testing","standard",43
+"Implement a dynamic programming solution with optimal complexity. Can you explain in detail with examples?","command","advanced","machine-learning","detailed",106
+"Prove termination about locking mechanism (technical details please)","command","advanced","devops","technical",68
+"Why does memory leaks occur? - this is urgent!","code_generation","advanced","blockchain","urgent",46
+"Just wondering, how do I diagnose this memory leak??","debugging","intermediate","blockchain","curious",52
+"I would like to know: Optimize frontend rendering for throughput","command","intermediate","machine-learning","formal",64
+"Debug this module (advanced/expert level)","debugging","intermediate","machine-learning","expert",41
+"Ugh, invent a protocol for handling real-time data???","creative","advanced","monitoring","frustrated",53
+"Design system architecture for high throughput - please explain for a beginner","command","intermediate","mobile-development","beginner-friendly",78
+"Just wondering, my application is timing out. Help!?","debugging","intermediate","frontend","curious",52
+"Ugh, if I shard the database, then will latency decrease????","code_generation","intermediate","backend","frustrated",60
+"Design a distributed database that scales to millions of users","command","advanced","gamedev","concise",62
+"Just wondering, what's wrong with my error handling??","debugging","intermediate","frontend","curious",53
+"Propose a solution for improving code quality (technical details please)","creative","intermediate","blockchain","technical",72
+"I'm not sure, but how do I optimize memory usage?","analysis","intermediate","embedded-systems","confused",49
+"How can I reduce operational costs while maintaining reliability? - please explain for a beginner","analysis","advanced","system-design","beginner-friendly",97
+"What are the best practices for code optimization? - please explain for a beginner","analysis","intermediate","database","beginner-friendly",82
+"I'm getting a 500 error. How do I fix it? - this is urgent!","debugging","beginner","gamedev","urgent",59
+"hey, have you seen this problem before?","conversation","intermediate","embedded-systems","casual",39
+"hey, implement a sorting algorithm with O(n log n) complexity","command","advanced","architecture","casual",61
+"Create a messaging system that guarantees linearizability","command","advanced","system-design","concise",57
+"Optimize database queries for latency - please explain for a beginner","command","intermediate","embedded-systems","beginner-friendly",69
+"Is microservices a good idea for my team? (technical details please)","conversation","intermediate","api-design","technical",68
+"Create a stream processing system using reactive programming (technical details please)","command","advanced","fullstack","technical",87
+"Why does split-brain scenarios occur?","code_generation","advanced","system-design","concise",37
+"Just wondering, design a API gateway that scales to high availability?","command","advanced","backend","curious",70
+"What does vertical scaling mean?","query","beginner","security","concise",32
+"Just wondering, how do I investigate performance degradation in staging??","debugging","advanced","monitoring","curious",73
+"Give me a code example for authentication (advanced/expert level)","command","beginner","data-science","expert",65
+"Write a function that handles timeouts (advanced/expert level)","command","intermediate","blockchain","expert",62
+"How can I improve the reliability of my algorithms? - please explain for a beginner","analysis","intermediate","monitoring","beginner-friendly",83
+"Why is my file upload not working?","debugging","beginner","performance","concise",34
+"I would like to know: What research has been done on CAP theorem implications?","query","advanced","blockchain","formal",78
+"How can I reduce infrastructure costs while maintaining performance?. Can you explain in detail with examples?","analysis","advanced","monitoring","detailed",110
+"How do I optimize frontend rendering?","analysis","intermediate","security","concise",37
+"Implement throttling to ensure security","command","intermediate","security","concise",39
+"How does availability relate to reliability? (advanced/expert level)","code_generation","intermediate","api-design","expert",68
+"Invent a data structure for optimizing queries - this is urgent!","creative","advanced","testing","urgent",64
+"What is the logic behind vector clocks? - this is urgent!","code_generation","advanced","system-design","urgent",57
+"hey, i'm seeing timeout errors in my logs. What does it mean?","debugging","intermediate","architecture","casual",61
+"Just wondering, what are the mathematical foundations of hash functions??","query","advanced","monitoring","curious",73
+"What are the implications of  Brewer's conjecture? - please explain for a beginner","code_generation","advanced","cloud","beginner-friendly",82
+"I'm not sure, but how do I scale my database to handle more users?","analysis","advanced","database","confused",66
+"I'm experiencing slow API responses. How can I optimize? - this is urgent!","analysis","intermediate","mobile-development","urgent",74
+"What design pattern should I use for managing application state? (advanced/expert level)","query","intermediate","fullstack","expert",88
+"Ugh, how does throughput relate to user experience????","code_generation","intermediate","cloud","frustrated",54
+"Generate mock data for demo purposes","creative","beginner","blockchain","concise",36
+"I would like to know: What is the logical sequence for designing APIs?","code_generation","advanced","backend","formal",70
+"Ugh, that's interesting! Tell me more about that technology???","conversation","beginner","testing","frustrated",62
+"Design a database schema for project management - please explain for a beginner","creative","intermediate","machine-learning","beginner-friendly",79
+"Ugh, how do I investigate memory leaks in development????","debugging","advanced","machine-learning","frustrated",57
+"Brainstorm ideas for a developer tool (technical details please)","creative","intermediate","system-design","technical",64
+"What tools can help me improve scalability?. Can you explain in detail with examples?","analysis","intermediate","blockchain","detailed",85
+"Why use Kubernetes? - this is urgent!","query","beginner","web-development","urgent",37
+"Set up database replication with low latency - please explain for a beginner","command","intermediate","database","beginner-friendly",76
+"I would like to know: Prove termination about distributed protocol","command","advanced","architecture","formal",66
+"Ugh, write a tutorial that is engaging???","creative","intermediate","cloud","frustrated",41
+"Generate example scenarios for API testing - this is urgent!","creative","beginner","blockchain","urgent",60
+"What tools can I use to debug network issues? (technical details please)","debugging","intermediate","architecture","technical",72
+"Just wondering, given high latency and low throughput, what can we conclude??","code_generation","advanced","embedded-systems","curious",77
+"Just wondering, if I add an index, then will latency decrease??","code_generation","intermediate","testing","curious",63
+"Come up with a name for my function - this is urgent!","creative","beginner","database","urgent",53
+"Just wondering, how can I apply control theory to system design??","query","advanced","mobile-development","curious",65
+"Just wondering, how do I troubleshoot slow database queries??","query","intermediate","performance","curious",61
+"Can you clarify what you mean by CAP theorem?","conversation","intermediate","monitoring","standard",45
+"hey, how do I configure caching for cost constraints?","analysis","advanced","performance","casual",53
+"Ugh, can you clarify what you mean by horizontal scaling????","conversation","intermediate","testing","frustrated",60
+"Set up load balancing with low latency. Can you explain in detail with examples?","command","intermediate","performance","detailed",80
+"What does CAP theorem mean? (technical details please)","query","beginner","embedded-systems","technical",54
+"I'm not sure, but how do I investigate failures in production?","debugging","advanced","data-science","confused",62
+"What tools can I use to debug concurrency bugs? - please explain for a beginner","debugging","intermediate","mobile-development","beginner-friendly",79
+"Ugh, what's wrong with my error handling????","debugging","intermediate","frontend","frustrated",44
+"I would like to know: What is the difference between TCP and UDP and monolith and microservices?","query","beginner","backend","formal",96
+"Ugh, design a API for managers???","creative","intermediate","devops","frustrated",33
+"Just wondering, i'm seeing timeout errors in my logs. What does it mean??","debugging","intermediate","blockchain","curious",73
+"What's wrong with my error handling? - this is urgent!","debugging","intermediate","mobile-development","urgent",54
+"hey, is REST is obsolete true or false? Explain.","code_generation","intermediate","devops","casual",48
+"Hi, can you help me with database design? (technical details please)","conversation","beginner","monitoring","technical",68
+"Optimize CPU utilization for cost - this is urgent!","command","intermediate","data-science","urgent",51
+"Just wondering, why am I getting AuthError when authenticating??","debugging","beginner","monitoring","curious",64
+"Ugh, teach me Python fundamentals???","command","beginner","testing","frustrated",36
+"I'm working on an optimization and need advice","conversation","beginner","mobile-development","standard",46
+"hey, write a example explaining quantum computing","creative","advanced","monitoring","casual",49
+"I'm experiencing high memory usage. What could be the cause? - please explain for a beginner","debugging","intermediate","web-development","beginner-friendly",92
+"If I shard the database, then will performance improve? (technical details please)","code_generation","intermediate","embedded-systems","technical",82
+"If I shard the database, then will latency decrease?","code_generation","intermediate","testing","concise",52
+"I'm not sure, but show me how to run tests","command","beginner","database","confused",42
+"Invent a algorithm for handling real-time data - this is urgent!","creative","advanced","fullstack","urgent",64
+"Can you clarify what you mean by CAP theorem?","conversation","intermediate","embedded-systems","standard",45
+"Why does split-brain scenarios occur?","code_generation","advanced","web-development","standard",37
+"Optimize CPU utilization for user experience","command","intermediate","web-development","standard",44
+"How do I troubleshoot this memory leak?","debugging","intermediate","database","concise",39
+"Migrate API from on-premise to cloud (technical details please)","command","intermediate","machine-learning","technical",63
+"How do I optimize queries for high availability?. Can you explain in detail with examples?","analysis","advanced","devops","detailed",90
+"Debug this service. Can you explain in detail with examples?","debugging","intermediate","fullstack","detailed",60
+"What tools can I use to debug performance bottlenecks? (advanced/expert level)","debugging","intermediate","testing","expert",78
+"I'm not sure, but my microservice is returning errors. Help!","debugging","intermediate","web-development","confused",60
+"Ugh, how do I trace a performance issue in microservices????","debugging","advanced","blockchain","frustrated",60
+"I'm not sure, but what are the trade-offs between denormalization and computation for optimization?","analysis","advanced","architecture","confused",99
+"What is CI/CD? - please explain for a beginner","query","beginner","data-science","beginner-friendly",46
+"I'm not sure, but create an analogy for microservices","creative","intermediate","machine-learning","confused",53
+"Just wondering, what strategies can I use to improve response time??","analysis","intermediate","data-science","curious",68
+"I would like to know: How can I apply information theory to load balancing?","query","advanced","api-design","formal",75
+"Give me a code example for file upload","command","beginner","machine-learning","concise",38
+"hey, if I replicate data, then will latency decrease?","code_generation","intermediate","cloud","casual",53
+"Teach me SQL basics - this is urgent!","command","beginner","gamedev","urgent",37
+"How do I implement CQRS in a microservices architecture? (advanced/expert level)","query","advanced","web-development","expert",80
+"I'm not sure, but generate mock data for API testing","creative","beginner","web-development","confused",52
+"Ugh, thanks for the help with the implementation???","conversation","beginner","monitoring","frustrated",51
+"Is serverless a good idea for our use case?","conversation","intermediate","mobile-development","standard",43
+"What assumptions underlie vertical scaling? - this is urgent!","code_generation","advanced","devops","urgent",61
+"What are the main features of Nuxt.js?","query","beginner","web-development","concise",38
+"How can I reduce infrastructure costs while maintaining availability? (technical details please)","analysis","advanced","cloud","technical",96
+"How can I reduce CPU usage in my API? (technical details please)","analysis","intermediate","system-design","technical",64
+"I'm not sure, but how does throughput relate to user experience?","code_generation","intermediate","api-design","confused",64
+"My load test is failing. How do I fix it?","debugging","intermediate","web-development","standard",41
+"I'm not sure, but is SQL a good idea for my team?","conversation","intermediate","security","confused",49
+"If I replicate data, then will throughput increase?","code_generation","intermediate","cloud","concise",51
+"How can I reduce infrastructure costs while maintaining reliability? - please explain for a beginner","analysis","advanced","frontend","beginner-friendly",100
+"How do I scale a web application?","query","intermediate","backend","concise",33
+"How can I improve the reliability of my algorithms?","analysis","intermediate","fullstack","standard",51
+"hey, what are the best practices for database optimization?","analysis","intermediate","devops","casual",59
+"Propose a solution for securing an application. Can you explain in detail with examples?","creative","intermediate","blockchain","detailed",88
+"How do I troubleshoot network timeout errors?","query","intermediate","gamedev","standard",45
+"Propose a solution for reducing API latency - this is urgent!","creative","intermediate","backend","urgent",61
+"What's wrong with my SQL query? (technical details please)","debugging","intermediate","mobile-development","technical",58
+"My load test is failing. How do I fix it? (technical details please)","debugging","intermediate","architecture","technical",68
+"Design a workflow for managers. Can you explain in detail with examples?","creative","intermediate","mobile-development","detailed",72
+"Just wondering, what is the logical sequence for debugging distributed systems??","code_generation","advanced","fullstack","curious",80
+"I'm not sure, but brainstorm ideas for a web application","creative","intermediate","cloud","confused",56
+"How do I work around this timeout? (technical details please)","debugging","intermediate","api-design","technical",61
+"Design a REST API for e-commerce","creative","intermediate","database","concise",32
+"I've been trying to refactor this code but it's slow - this is urgent!","conversation","intermediate","monitoring","urgent",70
+"I'm experiencing CPU spikes. What could be the cause? (advanced/expert level)","debugging","intermediate","blockchain","expert",77
+"Write a function to sort an array - please explain for a beginner","command","beginner","api-design","beginner-friendly",65
+"Invent a design pattern for managing distributed state (technical details please)","creative","advanced","fullstack","technical",81
+"Write a module that handles timeouts - this is urgent!","command","intermediate","machine-learning","urgent",54
+"Ugh, do you have experience with high-frequency trading????","conversation","intermediate","api-design","frustrated",59
+"When should I use NoSQL databases?","query","beginner","testing","standard",34
+"What are the benefits of REST APIs? (advanced/expert level)","query","beginner","blockchain","expert",59
+"hey, create a messaging system that guarantees eventual consistency","command","advanced","performance","casual",67
+"My database is running slowly. Help! (technical details please)","debugging","intermediate","frontend","technical",63
+"I would like to know: What metrics should I monitor to track efficiency?","analysis","intermediate","embedded-systems","formal",72
+"How do I fix this deadlock?","debugging","intermediate","embedded-systems","concise",27
+"What do you think about serverless? - please explain for a beginner","conversation","intermediate","web-development","beginner-friendly",67
+"How do I configure caching with Rails?","query","intermediate","testing","concise",38
+"Ugh, given network timeouts and retries, what can we conclude????","code_generation","advanced","fullstack","frustrated",65
+"What assumptions underlie strong consistency?. Can you explain in detail with examples?","code_generation","advanced","cloud","detailed",87
+"What do you think about GraphQL? (technical details please)","conversation","intermediate","fullstack","technical",59
+"That's interesting! Tell me more about that approach - please explain for a beginner","conversation","beginner","embedded-systems","beginner-friendly",84
+"Just wondering, is REST is obsolete true or false? Explain.?","code_generation","intermediate","architecture","curious",60
+"Just wondering, what are the trade-offs between caching and vertical scaling for optimization??","analysis","advanced","fullstack","curious",95
+"I'm not sure I understand consensus algorithms. Can you explain differently?","conversation","advanced","frontend","concise",76
+"What are common pitfalls when working with React hooks?","query","intermediate","cloud","standard",55
+"What do you think about microservices?","conversation","intermediate","architecture","standard",38
+"hey, generate test data for demo purposes","creative","beginner","data-science","casual",41
+"Have you seen this behavior before?. Can you explain in detail with examples?","conversation","intermediate","embedded-systems","detailed",77
+"What would you do in my situation with scaling challenges?. Can you explain in detail with examples?","conversation","intermediate","blockchain","detailed",100
+"Just wondering, create an analogy for microservices?","creative","intermediate","testing","curious",52
+"If I implement caching, then will performance improve? (advanced/expert level)","code_generation","intermediate","gamedev","expert",78
+"How can I reduce CPU usage in my infrastructure? - please explain for a beginner","analysis","intermediate","performance","beginner-friendly",80
+"How do I optimize CPU utilization?","analysis","intermediate","monitoring","standard",34
+"I'm working on an optimization and need advice","conversation","beginner","mobile-development","standard",46
+"hey, why use Docker?","query","beginner","architecture","casual",20
+"How can I improve performance in Python? (technical details please)","query","intermediate","fullstack","technical",67
+"Build a load balancer from scratch","command","advanced","architecture","concise",34
+"Just wondering, how do I troubleshoot high CPU usage??","query","intermediate","embedded-systems","curious",54
+"Ugh, design a workflow for managers???","creative","intermediate","backend","frustrated",38
+"Ugh, how can I apply queueing theory to resource allocation????","query","advanced","data-science","frustrated",63
+"What's your opinion on code reviews? - please explain for a beginner","conversation","intermediate","embedded-systems","beginner-friendly",68
+"hey, design a architecture for e-commerce","creative","intermediate","frontend","casual",41
+"Teach me Python fundamentals","command","beginner","backend","standard",28
+"What are the best practices for database optimization?","analysis","intermediate","database","concise",54
+"Debug the memory leak in async code. Can you explain in detail with examples?","command","intermediate","fullstack","detailed",77
+"hey, how does latency relate to performance?","code_generation","intermediate","database","casual",44
+"hey, i'm experiencing slow API responses. How can I optimize?","analysis","intermediate","gamedev","casual",61
+"Just wondering, write a new database table?","command","beginner","security","curious",43
+"Just wondering, how does throughput relate to performance??","code_generation","intermediate","monitoring","curious",59
+"I'm working on an optimization and need advice","conversation","beginner","testing","concise",46
+"Is SQL is always better than NoSQL true or false? Explain. - please explain for a beginner","code_generation","intermediate","backend","beginner-friendly",90
+"Do you have experience with high-frequency trading? (technical details please)","conversation","intermediate","backend","technical",78

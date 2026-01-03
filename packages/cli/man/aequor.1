@@ -1,0 +1,264 @@
+.\"
+.\" Copyright (c) 2025 Aequor Project
+.\" All rights reserved.
+.\"
+.\" Redistribution and use in source and binary forms, with or without
+.\" modification, are permitted provided that the following conditions are met:
+.\"
+.\" 1. Redistributions of source code must retain the above copyright notice,
+.\"    this list of conditions and the following disclaimer.
+.\"
+.\" 2. Redistributions in binary form must reproduce the above copyright notice,
+.\"    this list of conditions and the following disclaimer in the documentation
+.\"    and/or other materials provided with the distribution.
+.\"
+.\" THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
+.\" AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
+.\" IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
+.\" ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT OWNER OR CONTRIBUTORS BE
+.\" LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR
+.\" CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF
+.\" SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS
+.\" INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN
+.\" CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE)
+.\" ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
+.\" POSSIBILITY OF SUCH DAMAGE.
+.\"
+.Dd December 29, 2025
+.Dt AEQUOR 1
+.Os
+.Sh NAME
+.Nm aequor
+.Nd Aequor Cognitive Orchestration Platform CLI
+.Sh SYNOPSIS
+.Nm aequor
+.Op Fl -help | Fl -version
+.Ar command
+.Op Ar args
+.Sh DESCRIPTION
+The
+.Nm aequor
+command provides access to the Aequor Cognitive Orchestration Platform,
+a universal AI orchestration system that treats AI requests as constraint
+satisfaction problems.
+.Pp
+Aequor provides privacy-preserving intent encoding, semantic caching,
+continuous learning through shadow logging, and intelligent routing between
+local and cloud models.
+.Sh OPTIONS
+.Bl -tag -width indent
+.It Fl h , Fl -help
+Display help for the CLI or a specific command.
+.It Fl v , Fl -version
+Display the version number.
+.El
+.Sh COMMANDS
+.Bl -tag -width indent
+.It Cm query Op Ar query
+Execute a query with intelligent routing.
+Options:
+.Bl -tag -width "-t, --trace"
+.It Fl t , Fl -trace
+Show routing trace.
+.It Fl b , Fl -backend Ar backend
+Force backend (local/cloud/auto).
+.It Fl m , Fl -model Ar model
+Use specific model.
+.It Fl f , Fl -format Ar format
+Output format (text/json).
+.It Fl -no-cache
+Bypass cache.
+.El
+.It Cm chat
+Start interactive chat session.
+Options:
+.Bl -tag -width "-b, --backend <backend>"
+.It Fl b , Fl -backend Ar backend
+Force backend (local/cloud/auto).
+.It Fl m , Fl -model Ar model
+Use specific model.
+.It Fl -no-cache
+Bypass cache.
+.It Fl -history Ar file
+Load chat history.
+.El
+.It Cm status
+Show system status.
+Options:
+.Bl -tag -width "-c, --components"
+.It Fl c , Fl -components
+Show component status.
+.It Fl m , Fl -metrics
+Show performance metrics.
+.It Fl v , Fl -verbose
+Verbose output.
+.El
+.It Cm privacy
+Analyze query privacy and classification.
+Options:
+.Bl -tag -width "-e, --encode"
+.It Fl e , Fl -encode
+Generate intent vector.
+.It Fl -epsilon Ar value
+Privacy parameter for encoding (default: 1.0).
+.It Fl d , Fl -detailed
+Show detailed analysis.
+.It Fl c , Fl -classify
+Show classification.
+.It Fl f , Fl -format Ar format
+Output format (text/json).
+.El
+.It Cm cache
+Manage semantic cache.
+Subcommands:
+.Bl -tag -width "stats"
+.It Cm stats
+Show cache statistics.
+.It Cm clear
+Clear cache.
+.It Cm warm
+Warm cache with common queries.
+.It Cm invalidate Ar pattern
+Invalidate cache entries by pattern.
+.El
+.It Cm cartridge
+Manage knowledge cartridges.
+Subcommands:
+.Bl -tag -width "list"
+.It Cm list
+List installed cartridges.
+.It Cm install Ar source
+Install a cartridge from file or URL.
+.It Cm load Ar name
+Load (enable) a cartridge.
+.It Cm unload Ar name
+Unload (disable) a cartridge.
+.It Cm create Ar name
+Create a new cartridge.
+.El
+.It Cm training
+Training and adapter management.
+Subcommands:
+.Bl -tag -width "shadow"
+.It Cm shadow
+Show shadow logging status.
+.It Cm train
+Export training data for ORPO.
+.It Cm deploy Ar adapter
+Deploy trained adapter.
+.It Cm rollback
+Rollback to previous adapter version.
+.It Cm ab-test Ar adapterA Ar adapterB
+Run A/B test between adapters.
+.El
+.It Cm system
+System information and management.
+Subcommands:
+.Bl -tag -width "info"
+.It Cm info
+Show system information.
+.It Cm health
+Check system health.
+.It Cm metrics
+Show performance metrics.
+.El
+.It Cm config
+Manage configuration.
+Options:
+.Bl -tag -width "--list"
+.It Fl -list
+List all configuration.
+.It Fl -get Ar key
+Get configuration value.
+.It Fl -set Ar key Ar value
+Set configuration value.
+.It Fl -reset
+Reset to defaults.
+.El
+.It Cm models
+List available models.
+Options:
+.Bl -tag -width "-b, --backend"
+.It Fl b , Fl -backend Ar backend
+Filter by backend (local/cloud).
+.It Fl d , Fl -detailed
+Show detailed information.
+.El
+.It Cm cost
+Show cost analysis.
+Options:
+.Bl -tag -width "-p, --period"
+.It Fl p , Fl -period Ar period
+Time period (today/week/month/all).
+.It Fl b , Fl -by-backend
+Break down by backend.
+.El
+.It Cm test
+Run tests.
+Options:
+.Bl -tag -width "-u, --unit"
+.It Fl u , Fl -unit
+Run unit tests only.
+.It Fl i , Fl -integration
+Run integration tests only.
+.It Fl -coverage
+Show coverage report.
+.El
+.El
+.Sh EXAMPLES
+.Bd -literal -offset indent
+# Simple query
+$ aequor query "What is the capital of France?"
+
+# Interactive chat
+$ aequor chat
+
+# Check status
+$ aequor status
+
+# Analyze privacy
+$ aequor privacy "My email is test@example.com"
+
+# Cache management
+$ aequor cache stats
+$ aequor cache clear
+
+# List cartridges
+$ aequor cartridge list
+
+# System health
+$ aequor system health
+.Ed
+.Sh CONFIGURATION
+Configuration is stored in platform-specific locations:
+.Pp
+.Bl -tag -width "Linux" -compact
+.It Li Linux
+~/.config/aequor/config.json
+.It Li macOS
+~/Library/Application Support/Aequor/config.json
+.It Li Windows
+%APPDATA%\\Aequor\\config.json
+.El
+.Sh ENVIRONMENT
+.Bl -tag -width "AEQUOR_BACKEND_CLOUD_API_KEY"
+.It Ev AEQUOR_CACHE_ENABLED
+Enable/disable caching.
+.It Ev AEQUOR_PRIVACY_EPSILON
+Privacy parameter for intent encoding.
+.It Ev AEQUOR_BACKEND_CLOUD_API_KEY
+OpenAI API key.
+.It Ev AEQUOR_BACKEND_CLOUD_BASE_URL
+Custom base URL for cloud API.
+.It Ev AEQUOR_LOGGING_LEVEL
+Log level (debug/info/warn/error).
+.El
+.Sh EXIT STATUS
+.Ex -std
+.Sh SEE ALSO
+The full documentation for Aequor is available at:
+https://github.com/aequor/platform
+.Sh AUTHORS
+.An Aequor Project
+.Sh BUGS
+Report bugs at: https://github.com/aequor/platform/issues

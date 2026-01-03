@@ -1,0 +1,124 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Offline-Capable App</title>
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif; }
+    #offline-indicator {
+      position: fixed;
+      top: 20px;
+      right: 20px;
+      padding: 10px 20px;
+      border-radius: 8px;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      transition: all 0.3s;
+    }
+    #offline-indicator.online {
+      background: #d4edda;
+      color: #155724;
+    }
+    #offline-indicator.offline {
+      background: #f8d7da;
+      color: #721c24;
+    }
+    .status-dot {
+      width: 10px;
+      height: 10px;
+      border-radius: 50%;
+    }
+    .online .status-dot { background: #28a745; }
+    .offline .status-dot { background: #dc3545; }
+    main {
+      max-width: 800px;
+      margin: 100px auto;
+      padding: 20px;
+    }
+    h1 { margin-bottom: 20px; }
+    .card {
+      background: #f8f9fa;
+      padding: 20px;
+      border-radius: 8px;
+      margin-bottom: 20px;
+    }
+    .hidden { display: none; }
+  </style>
+</head>
+<body>
+  <div id="offline-indicator" class="hidden">
+    <span class="status-dot"></span>
+    <span class="status-text">Offline</span>
+  </div>
+
+  <main>
+    <h1>Offline-Capable Application</h1>
+    <div class="card">
+      <h2>Status</h2>
+      <p id="status">Loading...</p>
+      <p id="sync-status"></p>
+    </div>
+    <div class="card">
+      <h2>Test Offline Mode</h2>
+      <ol>
+        <li>Open DevTools (F12)</li>
+        <li>Go to Network tab</li>
+        <li>Check "Offline" box</li>
+        <li>Click the button below</li>
+      </ol>
+      <button id="test-btn" style="padding: 10px 20px; margin-top: 10px;">
+        Test (Works Offline!)
+      </button>
+    </div>
+  </main>
+
+  <script>
+    // Network status detection
+    const indicator = document.getElementById('offline-indicator');
+    const statusText = document.querySelector('#offline-indicator .status-text');
+    const statusP = document.getElementById('status');
+    const syncStatusP = document.getElementById('sync-status');
+    const testBtn = document.getElementById('test-btn');
+
+    function updateOnlineStatus() {
+      const isOnline = navigator.onLine;
+      indicator.classList.remove('hidden', 'online', 'offline');
+      indicator.classList.add(isOnline ? 'online' : 'offline');
+      statusText.textContent = isOnline ? 'Online' : 'Offline';
+      statusP.textContent = `Current status: ${isOnline ? 'Online' : 'Offline'}`;
+    }
+
+    window.addEventListener('online', () => {
+      updateOnlineStatus();
+      syncStatusP.textContent = 'Connection restored. Syncing...';
+      setTimeout(() => {
+        syncStatusP.textContent = 'Sync complete!';
+      }, 1000);
+    });
+
+    window.addEventListener('offline', () => {
+      updateOnlineStatus();
+      syncStatusP.textContent = 'Connection lost. Working offline...';
+    });
+
+    testBtn.addEventListener('click', () => {
+      alert('This button works even when offline! All assets are cached.');
+    });
+
+    // Register service worker
+    if ('serviceWorker' in navigator) {
+      navigator.serviceWorker.register('/sw.js').then((reg) => {
+        console.log('Service Worker registered:', reg);
+      }).catch((err) => {
+        console.error('Service Worker registration failed:', err);
+      });
+    }
+
+    // Initial status
+    updateOnlineStatus();
+  </script>
+</body>
+</html>

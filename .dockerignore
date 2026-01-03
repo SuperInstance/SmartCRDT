@@ -1,0 +1,113 @@
+# Docker ignore file for Aequor Cognitive Orchestration Platform
+# Excludes unnecessary files from Docker build context
+
+# Dependencies
+node_modules/
+**/node_modules/
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+pnpm-debug.log*
+package-lock.json
+
+# Build output
+dist/
+build/
+*.tsbuildinfo
+
+# Git
+.git/
+.gitignore
+.gitattributes
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+.DS_Store
+
+# Environment files
+.env
+.env.*
+!.env.example
+
+# Logs
+logs/
+**/logs/
+*.log
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+lerna-debug.log*
+
+# Testing
+coverage/
+.nyc_output/
+*.test.js.snap
+**/*.test.ts
+**/*.test.js
+**/*.spec.ts
+**/*.spec.js
+test/
+tests/
+__tests__/
+
+# Documentation (keep README)
+*.md
+!README.md
+docs/
+
+# Misc
+*.bak
+*.tmp
+*.temp
+.cache/
+
+# Data directories
+data/
+cache/
+cartridges/
+tmp/
+temp/
+
+# Docker
+docker/
+*.dockerfile
+Dockerfile*
+docker-compose*.yml
+.dockerignore
+
+# CI/CD
+.github/
+.gitlab-ci.yml
+.travis.yml
+azure-pipelines.yml
+
+# Archives
+archive/
+oldprojects/
+*.zip
+*.tar.gz
+*.rar
+
+# Research and notes
+research/
+tutorials/
+dialog*.md
+kimiresponse*.md
+test*.md
+ANALYSIS_*.md
+STATUS.md
+*.ini
+
+# Monitoring
+monitoring/
+prometheus/
+grafana/
+
+# Keep essential files
+!package.json
+!tsconfig.json
+!tsconfig.base.json

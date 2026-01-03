@@ -1,0 +1,257 @@
+# Docker Compose for ChromaDB Vector Database
+# Enhanced configuration with persistent storage, monitoring, and security
+#
+# Usage:
+#   docker-compose -f docker-compose.chromadb.yml up -d
+#   docker-compose -f docker-compose.chromadb.yml down
+
+version: '3.9'
+
+services:
+  # ========================================================================
+  # ChromaDB Vector Database - Enhanced Configuration
+  # ========================================================================
+  chromadb:
+    image: chromadb/chroma:latest
+    container_name: lsi-chromadb
+    restart: unless-stopped
+
+    # Port configuration
+    ports:
+      - "${CHROMA_PORT:-8000}:8000"
+
+    # Environment variables
+    environment:
+      # Disable anonymized telemetry
+      - ANONYMIZED_TELEMETRY=False
+
+      # Server configuration
+      - CHROMA_SERVER_HOST=0.0.0.0
+      - CHROMA_SERVER_HTTP_PORT=8000
+
+      # Enable CORS for web access (optional)
+      - CHROMA_SERVER_CORS_ENABLED=True
+      - CHROMA_SERVER_CORS_ALLOW_ORIGINS=*
+
+      # Auth configuration (optional, recommended for production)
+      # - CHROMA_SERVER_AUTH_CREDENTIALS_FILE=/chroma/auth.toml
+      # - CHROMA_SERVER_AUTH_PROVIDER=chromadb.auth.token.TokenAuthServerProvider
+      # - CHROMA_SERVER_AUTH_CREDENTIALS=${CHROMA_TOKEN:-}
+
+      # Logging
+      - CHROMA_LOG_LEVEL=INFO
+
+    # Persistent storage volumes
+    volumes:
+      # Main data storage
+      - chroma_data:/chroma/chroma
+
+      # Optional: Custom configuration
+      # - ./config/chromadb:/chroma/config
+
+      # Optional: Authentication file
+      # - ./config/chromadb/auth.toml:/chroma/auth.toml:ro
+
+    # Networks
+    networks:
+      - lsi-network
+
+    # Health check
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8000/api/v1/heartbeat"]
+      interval: 30s
+      timeout: 10s
+      retries: 5
+      start_period: 40s
+
+    # Resource limits
+    deploy:
+      resources:
+        limits:
+          cpus: '2'
+          memory: 4G
+        reservations:
+          cpus: '0.5'
+          memory: 512M
+
+    # Logging configuration
+    logging:
+      driver: "json-file"
+      options:
+        max-size: "10m"
+        max-file: "3"
+
+  # ========================================================================
+  # ChromaDB Web UI (Optional)
+  # ========================================================================
+  chromadb-ui:
+    image: chromadb/chroma:latest
+    container_name: lsi-chromadb-ui
+    restart: unless-stopped
+    profiles:
+      - ui  # Only start with: docker-compose --profile ui up
+
+    environment:
+      - CHROMA_SERVER_HOST=${CHROMA_HOST:-chromadb}
+      - CHROMA_SERVER_PORT=${CHROMA_PORT:-8000}
+
+    command: >
+      sh -c "
+        echo 'ChromaDB Web UI is not available in the official image yet.' &&
+        echo 'Access ChromaDB directly via HTTP API at http://localhost:${CHROMA_PORT:-8000}' &&
+        sleep infinity
+      "
+
+    networks:
+      - lsi-network
+
+    depends_on:
+      chromadb:
+        condition: service_healthy
+
+  # ========================================================================
+  # PostgreSQL for Metadata (Optional - Enhanced Setup)
+  # ========================================================================
+  postgres-metadata:
+    image: postgres:15-alpine
+    container_name: lsi-postgres-metadata
+    restart: unless-stopped
+    profiles:
+      - postgres  # Only start with: docker-compose --profile postgres up
+
+    environment:
+      - POSTGRES_USER=${POSTGRES_USER:-chroma}
+      - POSTGRES_PASSWORD=${POSTGRES_PASSWORD:-chroma_pass}
+      - POSTGRES_DB=${POSTGRES_DB:-chroma_metadata}
+
+    ports:
+      - "${POSTGRES_PORT:-5432}:5432"
+
+    volumes:
+      - postgres_metadata_data:/var/lib/postgresql/data
+
+    networks:
+      - lsi-network
+
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER:-chroma}"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  # ========================================================================
+  # Redis for Caching (Optional - Enhanced Setup)
+  # ========================================================================
+  redis-cache:
+    image: redis:7-alpine
+    container_name: lsi-redis-cache
+    restart: unless-stopped
+    profiles:
+      - redis  # Only start with: docker-compose --profile redis up
+
+    command: redis-server --appendonly yes --requirepass ${REDIS_PASSWORD:-redis_pass}
+
+    ports:
+      - "${REDIS_PORT:-6379}:6379"
+
+    volumes:
+      - redis_cache_data:/data
+
+    networks:
+      - lsi-network
+
+    healthcheck:
+      test: ["CMD", "redis-cli", "--raw", "incr", "ping"]
+      interval: 10s
+      timeout: 3s
+      retries: 5
+
+  # ========================================================================
+  # Prometheus for Metrics (Optional - Monitoring)
+  # ========================================================================
+  prometheus:
+    image: prom/prometheus:latest
+    container_name: lsi-prometheus
+    restart: unless-stopped
+    profiles:
+      - monitoring  # Only start with: docker-compose --profile monitoring up
+
+    command:
+      - '--config.file=/etc/prometheus/prometheus.yml'
+      - '--storage.tsdb.path=/prometheus'
+      - '--web.console.libraries=/usr/share/prometheus/console_libraries'
+      - '--web.console.templates=/usr/share/prometheus/consoles'
+
+    ports:
+      - "${PROMETHEUS_PORT:-9090}:9090"
+
+    volumes:
+      - ./config/prometheus/prometheus.yml:/etc/prometheus/prometheus.yml:ro
+      - prometheus_data:/prometheus
+
+    networks:
+      - lsi-network
+
+    depends_on:
+      chromadb:
+        condition: service_healthy
+
+  # ========================================================================
+  # Grafana for Visualization (Optional - Monitoring)
+  # ========================================================================
+  grafana:
+    image: grafana/grafana:latest
+    container_name: lsi-grafana
+    restart: unless-stopped
+    profiles:
+      - monitoring  # Only start with: docker-compose --profile monitoring up
+
+    environment:
+      - GF_SECURITY_ADMIN_USER=${GRAFANA_ADMIN_USER:-admin}
+      - GF_SECURITY_ADMIN_PASSWORD=${GRAFANA_ADMIN_PASSWORD:-admin}
+      - GF_INSTALL_PLUGINS=
+
+    ports:
+      - "${GRAFANA_PORT:-3000}:3000"
+
+    volumes:
+      - grafana_data:/var/lib/grafana
+      - ./config/grafana/provisioning:/etc/grafana/provisioning:ro
+
+    networks:
+      - lsi-network
+
+    depends_on:
+      - prometheus
+
+networks:
+  lsi-network:
+    driver: bridge
+    ipam:
+      config:
+        - subnet: 172.20.0.0/16
+
+volumes:
+  # ChromaDB persistent data
+  chroma_data:
+    driver: local
+    driver_opts:
+      type: none
+      o: bind
+      device: ${CHROMA_DATA_PATH:-./data/chromadb}
+
+  # PostgreSQL metadata storage
+  postgres_metadata_data:
+    driver: local
+
+  # Redis cache storage
+  redis_cache_data:
+    driver: local
+
+  # Prometheus metrics storage
+  prometheus_data:
+    driver: local
+
+  # Grafana dashboards storage
+  grafana_data:
+    driver: local

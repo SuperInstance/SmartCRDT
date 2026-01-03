@@ -1,0 +1,563 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>VL-JEPA: Show, Don't Tell - Upload Goal UI, Get Code</title>
+  <style>
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, sans-serif;
+      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+      min-height: 100vh;
+      padding: 20px;
+    }
+
+    .container {
+      max-width: 1400px;
+      margin: 0 auto;
+    }
+
+    header {
+      text-align: center;
+      color: white;
+      margin-bottom: 40px;
+    }
+
+    h1 {
+      font-size: 3rem;
+      margin-bottom: 10px;
+      text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.2);
+    }
+
+    .subtitle {
+      font-size: 1.2rem;
+      opacity: 0.9;
+    }
+
+    .main-panel {
+      background: white;
+      border-radius: 20px;
+      padding: 30px;
+      box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+    }
+
+    .split-view {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 30px;
+      margin-bottom: 30px;
+    }
+
+    .panel {
+      border: 2px dashed #e2e8f0;
+      border-radius: 15px;
+      padding: 20px;
+      text-align: center;
+      transition: all 0.3s ease;
+    }
+
+    .panel:hover {
+      border-color: #667eea;
+      background: #f8fafc;
+    }
+
+    .panel h2 {
+      color: #4a5568;
+      margin-bottom: 15px;
+      font-size: 1.5rem;
+    }
+
+    .preview-area {
+      width: 100%;
+      height: 300px;
+      background: #f7fafc;
+      border-radius: 10px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      margin-bottom: 15px;
+      overflow: hidden;
+    }
+
+    .preview-area img {
+      max-width: 100%;
+      max-height: 100%;
+      object-fit: contain;
+    }
+
+    .preview-placeholder {
+      color: #a0aec0;
+      font-size: 1rem;
+    }
+
+    .upload-btn {
+      background: #667eea;
+      color: white;
+      border: none;
+      padding: 12px 24px;
+      border-radius: 8px;
+      cursor: pointer;
+      font-size: 1rem;
+      transition: all 0.3s ease;
+    }
+
+    .upload-btn:hover {
+      background: #5568d3;
+      transform: translateY(-2px);
+      box-shadow: 0 4px 12px rgba(102, 126, 234, 0.4);
+    }
+
+    .capture-btn {
+      background: #48bb78;
+      margin-top: 10px;
+    }
+
+    .capture-btn:hover {
+      background: #38a169;
+    }
+
+    .actions {
+      text-align: center;
+      margin-bottom: 30px;
+    }
+
+    .generate-btn {
+      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+      color: white;
+      border: none;
+      padding: 18px 48px;
+      border-radius: 12px;
+      cursor: pointer;
+      font-size: 1.2rem;
+      font-weight: 600;
+      transition: all 0.3s ease;
+      box-shadow: 0 4px 15px rgba(102, 126, 234, 0.4);
+    }
+
+    .generate-btn:hover {
+      transform: translateY(-3px);
+      box-shadow: 0 8px 25px rgba(102, 126, 234, 0.5);
+    }
+
+    .generate-btn:disabled {
+      opacity: 0.5;
+      cursor: not-allowed;
+      transform: none;
+    }
+
+    .output-section {
+      background: #f7fafc;
+      border-radius: 15px;
+      padding: 25px;
+    }
+
+    .output-section h2 {
+      color: #4a5568;
+      margin-bottom: 20px;
+      font-size: 1.5rem;
+    }
+
+    .metrics {
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      gap: 15px;
+      margin-bottom: 20px;
+    }
+
+    .metric-card {
+      background: white;
+      padding: 15px;
+      border-radius: 10px;
+      text-align: center;
+      box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+    }
+
+    .metric-value {
+      font-size: 2rem;
+      font-weight: 700;
+      color: #667eea;
+      margin-bottom: 5px;
+    }
+
+    .metric-label {
+      font-size: 0.875rem;
+      color: #718096;
+    }
+
+    .suggested-changes {
+      background: white;
+      border-radius: 10px;
+      padding: 20px;
+    }
+
+    .change-item {
+      display: flex;
+      align-items: flex-start;
+      padding: 15px;
+      border-bottom: 1px solid #e2e8f0;
+      transition: background 0.2s ease;
+    }
+
+    .change-item:last-child {
+      border-bottom: none;
+    }
+
+    .change-item:hover {
+      background: #f7fafc;
+    }
+
+    .change-icon {
+      width: 40px;
+      height: 40px;
+      background: #667eea;
+      color: white;
+      border-radius: 10px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      margin-right: 15px;
+      font-weight: 700;
+      flex-shrink: 0;
+    }
+
+    .change-content {
+      flex: 1;
+    }
+
+    .change-type {
+      font-weight: 600;
+      color: #4a5568;
+      margin-bottom: 5px;
+    }
+
+    .change-target {
+      color: #718096;
+      font-family: 'Courier New', monospace;
+      font-size: 0.9rem;
+    }
+
+    .change-confidence {
+      background: #c6f6d5;
+      color: #22543d;
+      padding: 4px 8px;
+      border-radius: 6px;
+      font-size: 0.8rem;
+      font-weight: 600;
+    }
+
+    .loading {
+      display: none;
+      text-align: center;
+      padding: 40px;
+    }
+
+    .loading.active {
+      display: block;
+    }
+
+    .spinner {
+      width: 50px;
+      height: 50px;
+      border: 4px solid #e2e8f0;
+      border-top-color: #667eea;
+      border-radius: 50%;
+      animation: spin 1s linear infinite;
+      margin: 0 auto 20px;
+    }
+
+    @keyframes spin {
+      to { transform: rotate(360deg); }
+    }
+
+    .status-badge {
+      display: inline-block;
+      padding: 6px 12px;
+      border-radius: 20px;
+      font-size: 0.875rem;
+      font-weight: 600;
+      margin-bottom: 15px;
+    }
+
+    .status-ready {
+      background: #c6f6d5;
+      color: #22543d;
+    }
+
+    .status-processing {
+      background: #feebc8;
+      color: #7c2d12;
+    }
+
+    .status-complete {
+      background: #90cdf4;
+      color: #1a365d;
+    }
+
+    input[type="file"] {
+      display: none;
+    }
+
+    @media (max-width: 768px) {
+      .split-view {
+        grid-template-columns: 1fr;
+      }
+
+      .metrics {
+        grid-template-columns: repeat(2, 1fr);
+      }
+
+      h1 {
+        font-size: 2rem;
+      }
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <header>
+      <h1>🎨 VL-JEPA: Show, Don't Tell</h1>
+      <p class="subtitle">Upload a goal UI image, get the code to achieve it</p>
+      <p class="subtitle" style="margin-top: 10px;">Powered by Meta AI's VL-JEPA architecture</p>
+    </header>
+
+    <div class="main-panel">
+      <div class="split-view">
+        <!-- Current UI -->
+        <div class="panel">
+          <h2>Current UI</h2>
+          <div class="preview-area" id="current-preview">
+            <span class="preview-placeholder">Capture or upload current state</span>
+          </div>
+          <button class="upload-btn capture-btn" onclick="captureCurrentUI()">
+            📷 Capture Screen
+          </button>
+          <input type="file" id="current-upload" accept="image/*" onchange="uploadCurrentUI(event)">
+        </div>
+
+        <!-- Goal UI -->
+        <div class="panel">
+          <h2>Goal UI</h2>
+          <div class="preview-area" id="goal-preview">
+            <span class="preview-placeholder">Upload your goal image</span>
+          </div>
+          <button class="upload-btn" onclick="document.getElementById('goal-upload').click()">
+            📁 Upload Goal Image
+          </button>
+          <input type="file" id="goal-upload" accept="image/*" onchange="uploadGoalUI(event)">
+        </div>
+      </div>
+
+      <!-- Generate Button -->
+      <div class="actions">
+        <button class="generate-btn" id="generate-btn" onclick="generateCode()" disabled>
+          ✨ Generate Code
+        </button>
+      </div>
+
+      <!-- Loading -->
+      <div class="loading" id="loading">
+        <div class="spinner"></div>
+        <p>VL-JEPA is analyzing your images...</p>
+        <p style="font-size: 0.9rem; color: #718096; margin-top: 10px;">
+          Encoding vision • Calculating delta • Generating A2UI
+        </p>
+      </div>
+
+      <!-- Output -->
+      <div class="output-section" id="output" style="display: none;">
+        <span class="status-badge status-complete" id="status-badge">✓ Analysis Complete</span>
+        <h2>Suggested Changes</h2>
+
+        <!-- Metrics -->
+        <div class="metrics">
+          <div class="metric-card">
+            <div class="metric-value" id="confidence-metric">0%</div>
+            <div class="metric-label">Confidence</div>
+          </div>
+          <div class="metric-card">
+            <div class="metric-value" id="similarity-metric">0%</div>
+            <div class="metric-label">Similarity</div>
+          </div>
+          <div class="metric-card">
+            <div class="metric-value" id="actions-metric">0</div>
+            <div class="metric-label">Actions</div>
+          </div>
+          <div class="metric-card">
+            <div class="metric-value" id="time-metric">0ms</div>
+            <div class="metric-label">Processing Time</div>
+          </div>
+        </div>
+
+        <!-- Suggested Changes -->
+        <div class="suggested-changes" id="changes-list">
+          <!-- Populated by JavaScript -->
+        </div>
+
+        <!-- Apply Button -->
+        <div style="text-align: center; margin-top: 20px;">
+          <button class="upload-btn" onclick="applyChanges()" style="font-size: 1.1rem; padding: 15px 30px;">
+            ✓ Apply All Changes
+          </button>
+        </div>
+      </div>
+    </div>
+
+    <!-- Info -->
+    <div style="text-align: center; margin-top: 30px; color: white;">
+      <p style="opacity: 0.9;">
+        <strong>VL-JEPA</strong> processes visual embeddings, not pixels •
+        <strong>2.85x faster</strong> than traditional VLMs •
+        <strong>On-device</strong> for privacy
+      </p>
+    </div>
+  </div>
+
+  <script>
+    let currentUIImage = null;
+    let goalUIImage = null;
+
+    function captureCurrentUI() {
+      // Simulate screen capture
+      const preview = document.getElementById('current-preview');
+      preview.innerHTML = '<div class="spinner"></div>';
+
+      setTimeout(() => {
+        // In a real implementation, this would use html2canvas or Screen Capture API
+        preview.innerHTML = `
+          <div style="text-align: center; padding: 20px;">
+            <div style="font-size: 3rem; margin-bottom: 10px;">🖼️</div>
+            <div style="color: #4a5568;">Current UI Captured</div>
+            <div style="color: #718096; font-size: 0.9rem; margin-top: 5px;">
+              ${window.location.href}
+            </div>
+          </div>
+        `;
+        currentUIImage = 'captured';
+        checkReady();
+      }, 500);
+    }
+
+    function uploadCurrentUI(event) {
+      const file = event.target.files[0];
+      if (file) {
+        const reader = new FileReader();
+        reader.onload = (e) => {
+          const preview = document.getElementById('current-preview');
+          preview.innerHTML = `<img src="${e.target.result}" alt="Current UI">`;
+          currentUIImage = e.target.result;
+          checkReady();
+        };
+        reader.readAsDataURL(file);
+      }
+    }
+
+    function uploadGoalUI(event) {
+      const file = event.target.files[0];
+      if (file) {
+        const reader = new FileReader();
+        reader.onload = (e) => {
+          const preview = document.getElementById('goal-preview');
+          preview.innerHTML = `<img src="${e.target.result}" alt="Goal UI">`;
+          goalUIImage = e.target.result;
+          checkReady();
+        };
+        reader.readAsDataURL(file);
+      }
+    }
+
+    function checkReady() {
+      const btn = document.getElementById('generate-btn');
+      if (currentUIImage && goalUIImage) {
+        btn.disabled = false;
+      }
+    }
+
+    async function generateCode() {
+      const loading = document.getElementById('loading');
+      const output = document.getElementById('output');
+      const btn = document.getElementById('generate-btn');
+
+      // Show loading
+      loading.classList.add('active');
+      btn.disabled = true;
+      output.style.display = 'none';
+
+      // Simulate VL-JEPA processing
+      await new Promise(resolve => setTimeout(resolve, 2000));
+
+      // Generate mock results
+      const results = {
+        confidence: 0.92,
+        similarity: 0.78,
+        time: 87,
+        actions: [
+          {
+            type: 'MODIFY',
+            target: '.button',
+            confidence: 0.95,
+            reasoning: 'Change button background to gradient'
+          },
+          {
+            type: 'MODIFY',
+            target: '.header',
+            confidence: 0.88,
+            reasoning: 'Add shadow and increase padding'
+          },
+          {
+            type: 'CREATE',
+            target: '.card',
+            confidence: 0.91,
+            reasoning: 'Add new card component with border radius'
+          },
+          {
+            type: 'MODIFY',
+            target: 'body',
+            confidence: 0.94,
+            reasoning: 'Update background to modern gradient'
+          }
+        ]
+      };
+
+      // Hide loading, show output
+      loading.classList.remove('active');
+      output.style.display = 'block';
+      btn.disabled = false;
+
+      // Update metrics
+      document.getElementById('confidence-metric').textContent =
+        Math.round(results.confidence * 100) + '%';
+      document.getElementById('similarity-metric').textContent =
+        Math.round(results.similarity * 100) + '%';
+      document.getElementById('actions-metric').textContent =
+        results.actions.length;
+      document.getElementById('time-metric').textContent =
+        results.time + 'ms';
+
+      // Populate changes list
+      const changesList = document.getElementById('changes-list');
+      changesList.innerHTML = results.actions.map((action, index) => `
+        <div class="change-item">
+          <div class="change-icon">${index + 1}</div>
+          <div class="change-content">
+            <div class="change-type">${action.type} ${action.target}</div>
+            <div class="change-target">${action.reasoning}</div>
+          </div>
+          <div class="change-confidence">
+            ${Math.round(action.confidence * 100)}%
+          </div>
+        </div>
+      `).join('');
+    }
+
+    function applyChanges() {
+      alert('Changes applied! ✓\n\nIn a real implementation, this would:\n1. Apply CSS changes\n2. Add/remove DOM elements\n3. Update component properties\n4. Refresh the preview');
+    }
+  </script>
+</body>
+</html>

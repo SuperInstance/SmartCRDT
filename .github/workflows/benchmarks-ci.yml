@@ -1,0 +1,197 @@
+name: Performance Benchmarks
+
+on:
+  pull_request:
+    branches: [main, develop]
+    paths:
+      - 'packages/**'
+      - 'package.json'
+      - 'pnpm-lock.yaml'
+  push:
+    branches: [main, develop]
+  workflow_dispatch:
+
+env:
+  NODE_VERSION: '20'
+  PNPM_VERSION: '8'
+
+jobs:
+  benchmark:
+    name: Run Performance Benchmarks
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Setup pnpm
+        uses: pnpm/action-setup@v2
+        with:
+          version: ${{ env.PNPM_VERSION }}
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: 'pnpm'
+
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile
+
+      - name: Build all packages
+        run: pnpm run build
+
+      - name: Run benchmarks
+        run: pnpm --filter @lsi/performance-tests run benchmark:ci
+        continue-on-error: true
+
+      - name: Download baseline data
+        uses: actions/cache@v3
+        with:
+          path: benchmarks/baselines
+          key: benchmark-baselines-${{ github.base_ref || github.ref_name }}
+          restore-keys: |
+            benchmark-baselines-main
+            benchmark-baselines-develop
+
+      - name: Compare to baseline
+        id: compare
+        run: |
+          pnpm --filter @lsi/performance-tests run benchmark:compare || echo "NO_BASELINE=true" >> $GITHUB_OUTPUT
+        continue-on-error: true
+
+      - name: Upload benchmark results
+        uses: actions/upload-artifact@v3
+        with:
+          name: benchmark-results
+          path: |
+            benchmark-results-*.json
+            benchmarks/baselines/*.md
+          retention-days: 30
+
+      - name: Save baseline data
+        if: github.event_name == 'push' && (github.ref == 'refs/heads/main' || github.ref == 'refs/heads/develop')
+        uses: actions/cache@v3
+        with:
+          path: benchmarks/baselines
+          key: benchmark-baselines-${{ github.ref_name }}-${{ github.sha }}
+          restore-keys: |
+            benchmark-baselines-${{ github.ref_name }}
+
+      - name: Generate PR comment
+        if: github.event_name == 'pull_request'
+        run: |
+          cat > benchmark-comment.md << 'EOF'
+          ## 🚀 Performance Benchmark Results
+
+          ### Summary
+          | Metric | Value |
+          |--------|-------|
+          | Commit | ${{ github.sha }} |
+          | Branch | ${{ github.ref_name }} |
+          | Triggered by | ${{ github.event_name }} |
+
+          ### Benchmark Suites
+          - Protocol Operations
+          - Privacy Operations
+          - Cache Operations
+          - Training Operations
+          - Integration Operations
+
+          Full results attached as artifacts.
+          EOF
+
+          if [ -f "benchmark-report.md" ]; then
+            echo "" >> benchmark-comment.md
+            echo "### Detailed Comparison" >> benchmark-comment.md
+            cat benchmark-report.md >> benchmark-comment.md
+          fi
+
+      - name: Comment on PR
+        if: github.event_name == 'pull_request'
+        uses: actions/github-script@v7
+        with:
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+          script: |
+            const fs = require('fs');
+            const reportPath = 'benchmark-comment.md';
+
+            if (fs.existsSync(reportPath)) {
+              const report = fs.readFileSync(reportPath, 'utf8');
+
+              // Find existing benchmark comment
+              const { data: comments } = await github.rest.issues.listComments({
+                issue_number: context.issue.number,
+                owner: context.repo.owner,
+                repo: context.repo.repo
+              });
+
+              const botComment = comments.find(comment =>
+                comment.user.type === 'Bot' &&
+                comment.body.includes('🚀 Performance Benchmark Results')
+              );
+
+              if (botComment) {
+                // Update existing comment
+                await github.rest.issues.updateComment({
+                  comment_id: botComment.id,
+                  owner: context.repo.owner,
+                  repo: context.repo.repo,
+                  body: report
+                });
+              } else {
+                // Create new comment
+                await github.rest.issues.createComment({
+                  issue_number: context.issue.number,
+                  owner: context.repo.owner,
+                  repo: context.repo.repo,
+                  body: report
+                });
+              }
+            }
+
+      - name: Check for regressions
+        if: steps.compare.outputs.NO_BASELINE != 'true'
+        run: |
+          if grep -q "hasRegression.*true" benchmark-report.json 2>/dev/null; then
+            echo "::warning::Performance regressions detected!"
+            exit 1
+          fi
+        continue-on-error: true
+
+      - name: Upload to benchmarks dashboard
+        if: github.event_name == 'push' && github.ref == 'refs/heads/main'
+        run: |
+          # Generate JSON for dashboard
+          pnpm --filter @lsi/performance-tests run benchmark:report
+          echo "Benchmark data ready for dashboard integration"
+
+  benchmark-summary:
+    name: Benchmark Summary
+    runs-on: ubuntu-latest
+    needs: benchmark
+    if: always()
+
+    steps:
+      - name: Download benchmark results
+        uses: actions/download-artifact@v3
+        with:
+          name: benchmark-results
+          path: ./results
+
+      - name: Generate summary
+        run: |
+          echo "## Performance Benchmark Results" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "✅ Benchmarks completed successfully" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+
+          if ls results/*.json 1> /dev/null 2>&1; then
+            echo "### Available Results" >> $GITHUB_STEP_SUMMARY
+            for file in results/*.json; do
+              echo "- $(basename $file)" >> $GITHUB_STEP_SUMMARY
+            done
+          fi

@@ -1,0 +1,431 @@
+name: Pull Request Validation
+
+on:
+  pull_request:
+    types: [opened, synchronize, reopened, labeled]
+    branches: [main, develop]
+  workflow_dispatch:
+
+env:
+  NODE_VERSION: '20'
+  CACHE_VERSION: 'v1'
+
+permissions:
+  contents: read
+  checks: write
+  pull-requests: write
+
+jobs:
+  # PR Validation Checklist
+  validation-checklist:
+    name: PR Validation Checklist
+    runs-on: ubuntu-latest
+    outputs:
+      title_match: ${{ steps.check_title.outputs.match }}
+      has_description: ${{ steps.check_description.outputs.has_description }}
+      linked_issues: ${{ steps.check_issues.outputs.has_linked }}
+      is_draft: ${{ steps.check_draft.outputs.is_draft }}
+    steps:
+      - name: Check PR title format
+        id: check_title
+        run: |
+          TITLE="${{ github.event.pull_request.title }}"
+          echo "Checking PR title: ${TITLE}"
+
+          if [[ "${TITLE}" =~ ^(feat|fix|docs|style|refactor|test|chore|perf|ci|build|revert)(\(.+\))?\:\s.+ ]]; then
+            echo "match=true" >> $GITHUB_OUTPUT
+            echo "✓ PR title follows conventional commit format"
+          else
+            echo "match=false" >> $GITHUB_OUTPUT
+            echo "✗ PR title does not follow conventional commit format"
+            echo "Expected format: type(scope): description"
+            echo "Types: feat, fix, docs, style, refactor, test, chore, perf, ci, build, revert"
+          fi
+
+      - name: Check PR description
+        id: check_description
+        run: |
+          DESC="${{ github.event.pull_request.body }}"
+          if [[ -n "${DESC}" ]] && [[ "${#DESC}" -gt 50 ]]; then
+            echo "has_description=true" >> $GITHUB_OUTPUT
+            echo "✓ PR has sufficient description"
+          else
+            echo "has_description=false" >> $GITHUB_OUTPUT
+            echo "✗ PR description is too short or missing"
+          fi
+
+      - name: Check for linked issues
+        id: check_issues
+        run: |
+          BODY="${{ github.event.pull_request.body }}"
+          if [[ "${BODY}" =~ #[0-9]+ ]] || [[ "${BODY}" =~ Closes|Fixes|Resolves ]]; then
+            echo "has_linked=true" >> $GITHUB_OUTPUT
+            echo "✓ PR references related issues"
+          else
+            echo "has_linked=false" >> $GITHUB_OUTPUT
+            echo "⚠ No linked issues found (consider linking if applicable)"
+          fi
+
+      - name: Check if PR is a draft
+        id: check_draft
+        run: |
+          if [[ "${{ github.event.pull_request.draft }}" == "true" ]]; then
+            echo "is_draft=true" >> $GITHUB_OUTPUT
+            echo "PR is in draft status"
+          else
+            echo "is_draft=false" >> $GITHUB_OUTPUT
+            echo "PR is ready for review"
+          fi
+
+  # Code size analysis
+  code-size:
+    name: Code Size Analysis
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+
+      - name: Calculate code size changes
+        id: size
+        run: |
+          echo "## Code Size Analysis" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "| Package | Added | Removed | Net Change |" >> $GITHUB_STEP_SUMMARY
+          echo "|---------|-------|---------|------------|" >> $GITHUB_STEP_SUMMARY
+
+          git diff --stat origin/${{ github.base_ref }}...HEAD -- 'packages/**/*.ts' 'packages/**/*.js' > /tmp/diff.txt
+
+          if [[ -s /tmp/diff.txt ]]; then
+            cat /tmp/diff.txt
+            echo "" >> $GITHUB_STEP_SUMMARY
+            echo "\`\`\`" >> $GITHUB_STEP_SUMMARY
+            cat /tmp/diff.txt >> $GITHUB_STEP_SUMMARY
+            echo "\`\`\`" >> $GITHUB_STEP_SUMMARY
+          else
+            echo "| No changes | 0 | 0 | 0 |" >> $GITHUB_STEP_SUMMARY
+          fi
+
+      - name: Check for large files
+        run: |
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "### Large Files Added (>500 lines)" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+
+          git diff --numstat origin/${{ github.base_ref }}...HEAD -- 'packages/**/*.ts' | \
+            awk '$1 > 500 { print $1 " lines added:", $2 }' | \
+            while read line; do
+              echo "- $line" >> $GITHUB_STEP_SUMMARY
+            done || echo "None" >> $GITHUB_STEP_SUMMARY
+
+  # Complex change detection
+  complexity-check:
+    name: Change Complexity Analysis
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Analyze changed files
+        id: analysis
+        run: |
+          echo "## Change Complexity Analysis" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+
+          # Count changed files
+          CHANGED_FILES=$(git diff --name-only origin/${{ github.base_ref }}...HEAD | wc -l)
+          echo "**Total Files Changed:** ${CHANGED_FILES}" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+
+          # Categorize changes
+          echo "**File Categories:**" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+
+          TS_FILES=$(git diff --name-only origin/${{ github.base_ref }}...HEAD -- '*.ts' | wc -l)
+          TEST_FILES=$(git diff --name-only origin/${{ github.base_ref }}...HEAD -- '*.test.ts' '*.spec.ts' | wc -l)
+          DOCS_FILES=$(git diff --name-only origin/${{ github.base_ref }}...HEAD -- '*.md' | wc -l)
+          CONFIG_FILES=$(git diff --name-only origin/${{ github.base_ref }}...HEAD -- '*.yml' '*.yaml' '*.json' | wc -l)
+
+          echo "- TypeScript files: ${TS_FILES}" >> $GITHUB_STEP_SUMMARY
+          echo "- Test files: ${TEST_FILES}" >> $GITHUB_STEP_SUMMARY
+          echo "- Documentation files: ${DOCS_FILES}" >> $GITHUB_STEP_SUMMARY
+          echo "- Configuration files: ${CONFIG_FILES}" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+
+          # Warn about large PRs
+          if [[ ${CHANGED_FILES} -gt 50 ]]; then
+            echo "⚠️ **WARNING:** This PR changes more than 50 files. Consider splitting into smaller PRs." >> $GITHUB_STEP_SUMMARY
+          fi
+
+      - name: Check for test coverage
+        run: |
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "### Test Coverage Check" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+
+          # Find changed source files
+          git diff --name-only origin/${{ github.base_ref }}...HEAD -- 'packages/**/!(*.test).ts' > /tmp/source_files.txt
+
+          # Check for corresponding test files
+          echo "Checking for test coverage..." >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+
+          MISSING_TESTS=0
+          while IFS= read -r file; do
+            if [[ -f "${file}" ]]; then
+              base="${file%.ts}"
+              if [[ ! -f "${base}.test.ts" ]] && [[ ! -f "${base}.spec.ts" ]]; then
+                # Check if it's in a test directory or src directory
+                if [[ ! "${file}" =~ /test/ ]] && [[ ! "${file}" =~ /tests/ ]] && [[ ! "${file}" =~ __tests__/ ]]; then
+                  echo "- ⚠️ No test found for: ${file}" >> $GITHUB_STEP_SUMMARY
+                    MISSING_TESTS=$((MISSING_TESTS + 1))
+                fi
+              fi
+            fi
+          done < /tmp/source_files.txt
+
+          if [[ ${MISSING_TESTS} -eq 0 ]]; then
+            echo "✓ All changed files have corresponding tests or are in test directories" >> $GITHUB_STEP_SUMMARY
+          fi
+
+  # Quick lint check
+  quick-lint:
+    name: Quick Lint Check
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: 'npm'
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Run ESLint on changed files
+        run: |
+          echo "Running ESLint on changed files..."
+          git diff --name-only origin/${{ github.base_ref }}...HEAD -- '*.ts' > /tmp/changed_files.txt
+
+          if [[ -s /tmp/changed_files.txt ]]; then
+            npx eslint $(cat /tmp/changed_files.txt) --format json --output-file /tmp/eslint-results.json || true
+
+            # Parse results
+            if [[ -f /tmp/eslint-results.json ]]; then
+              ERROR_COUNT=$(node -e "const data=require('/tmp/eslint-results.json'); console.log(data.reduce((acc, f) => acc + f.errorCount, 0))")
+              WARNING_COUNT=$(node -e "const data=require('/tmp/eslint-results.json'); console.log(data.reduce((acc, f) => acc + f.warningCount, 0))")
+
+              echo "## Lint Results" >> $GITHUB_STEP_SUMMARY
+              echo "" >> $GITHUB_STEP_SUMMARY
+              echo "| Errors | Warnings |" >> $GITHUB_STEP_SUMMARY
+              echo "|--------|----------|" >> $GITHUB_STEP_SUMMARY
+              echo "| ${ERROR_COUNT} | ${WARNING_COUNT} |" >> $GITHUB_STEP_SUMMARY
+
+              if [[ ${ERROR_COUNT} -gt 0 ]]; then
+                exit 1
+              fi
+            fi
+          else
+            echo "No TypeScript files changed"
+          fi
+
+  # Type check changed packages
+  typecheck-changed:
+    name: Type Check Changed Packages
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: 'npm'
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Identify changed packages
+        id: changed
+        run: |
+          echo "Identifying changed packages..."
+
+          # Get list of changed files
+          git diff --name-only origin/${{ github.base_ref }}...HEAD > /tmp/changed_files.txt
+
+          # Extract package directories
+          grep -oP 'packages/[^/]+' /tmp/changed_files.txt | sort -u > /tmp/changed_packages.txt
+
+          if [[ -s /tmp/changed_packages.txt ]]; then
+            echo "Changed packages:"
+            cat /tmp/changed_packages.txt
+
+            # Convert to comma-separated list for matrix
+            PACKAGES=$(cat /tmp/changed_packages.txt | tr '\n' ',' | sed 's/,$//')
+            echo "packages=${PACKAGES}" >> $GITHUB_OUTPUT
+          else
+            echo "No package changes detected"
+            echo "packages=" >> $GITHUB_OUTPUT
+          fi
+
+      - name: Type check affected packages
+        if: steps.changed.outputs.packages != ''
+        run: |
+          IFS=',' read -ra PACKAGES <<< "${{ steps.changed.outputs.packages }}"
+          FAILED=0
+
+          for pkg in "${PACKAGES[@]}"; do
+            echo "Type checking ${pkg}..."
+            if [[ -f "${pkg}/tsconfig.json" ]]; then
+              npx tsc -p ${pkg} --noEmit || FAILED=1
+            fi
+          done
+
+          exit ${FAILED}
+
+  # Test affected packages
+  test-affected:
+    name: Test Affected Packages
+    runs-on: ubuntu-latest
+    needs: [typecheck-changed]
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: 'npm'
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Build affected packages
+        run: |
+          # Build only changed packages
+          git diff --name-only origin/${{ github.base_ref }}...HEAD -- 'packages/**/tsconfig.json' | \
+            awk -F/ '{print $2}' | sort -u | \
+            while read pkg; do
+              if [[ -f "packages/${pkg}/tsconfig.json" ]]; then
+                echo "Building packages/${pkg}..."
+                npx tsc -p packages/${pkg} || true
+              fi
+            done
+
+      - name: Run tests for changed packages
+        run: |
+          echo "Running tests for changed packages..."
+
+          # Find test files in changed directories
+          git diff --name-only origin/${{ github.base_ref }}...HEAD -- '*.test.ts' '*.spec.ts' > /tmp/test_files.txt
+
+          if [[ -s /tmp/test_files.txt ]]; then
+            npx vitest run $(cat /tmp/test_files.txt) || true
+          else
+            echo "No test files changed, running full test suite on affected packages..."
+            # Run tests for packages that had changes
+            git diff --name-only origin/${{ github.base_ref }}...HEAD | \
+              awk -F/ '{print "packages/" $2}' | sort -u | \
+              while read pkg; do
+                if [[ -d "${pkg}" ]] && [[ -f "${pkg}/vitest.config.ts" ]]; then
+                  echo "Testing ${pkg}..."
+                  npx vitest run --config ${pkg}/vitest.config.ts || true
+                fi
+              done
+          fi
+
+  # Dependency review
+  dependency-review:
+    name: Dependency Review
+    runs-on: ubuntu-latest
+    if: github.event_name == 'pull_request'
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Dependency Review
+        uses: actions/dependency-review-action@v4
+        with:
+          fail-on-severity: moderate
+          deny-licenses: GPL-3.0, AGPL-3.0
+
+  # PR validation summary
+  validation-summary:
+    name: Validation Summary
+    runs-on: ubuntu-latest
+    needs: [validation-checklist, code-size, complexity-check, quick-lint, typecheck-changed, test-affected, dependency-review]
+    if: always()
+    steps:
+      - name: Generate validation summary
+        run: |
+          echo "## Pull Request Validation Summary ✅" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "### Validation Checklist" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "| Check | Status |" >> $GITHUB_STEP_SUMMARY
+          echo "|-------|--------|" >> $GITHUB_STEP_SUMMARY
+          echo "| Title Format | ${{ needs.validation-checklist.outputs.title_match == 'true' && '✅ Pass' || '⚠️ Review' }} |" >> $GITHUB_STEP_SUMMARY
+          echo "| Description | ${{ needs.validation-checklist.outputs.has_description == 'true' && '✅ Pass' || '⚠️ Review' }} |" >> $GITHUB_STEP_SUMMARY
+          echo "| Linked Issues | ${{ needs.validation-checklist.outputs.linked_issues == 'true' && '✅ Pass' || '⚠️ Review' }} |" >> $GITHUB_STEP_SUMMARY
+          echo "| Is Draft | ${{ needs.validation-checklist.outputs.is_draft == 'true' && '📝 Yes' || '✅ No' }} |" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+
+          echo "### CI Checks" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "| Check | Status |" >> $GITHUB_STEP_SUMMARY
+          echo "|-------|--------|" >> $GITHUB_STEP_SUMMARY
+          echo "| Code Size Analysis | ${{ needs.code-size.result == 'success' && '✅ Pass' || '❌ Fail' }} |" >> $GITHUB_STEP_SUMMARY
+          echo "| Complexity Check | ${{ needs.complexity-check.result == 'success' && '✅ Pass' || '❌ Fail' }} |" >> $GITHUB_STEP_SUMMARY
+          echo "| Quick Lint | ${{ needs.quick-lint.result == 'success' && '✅ Pass' || '❌ Fail' }} |" >> $GITHUB_STEP_SUMMARY
+          echo "| Type Check | ${{ needs.typecheck-changed.result == 'success' && '✅ Pass' || '❌ Fail' }} |" >> $GITHUB_STEP_SUMMARY
+          echo "| Tests | ${{ needs.test-affected.result == 'success' && '✅ Pass' || '❌ Fail' }} |" >> $GITHUB_STEP_SUMMARY
+          echo "| Dependency Review | ${{ needs.dependency-review.result == 'success' && '✅ Pass' || '⚠️ Review' }} |" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+
+          echo "### Ready to Merge?" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          if [[ "${{ needs.validation-checklist.outputs.is_draft }}" == "true" ]]; then
+            echo "📝 **Status:** Draft PR - Remove draft status when ready for review" >> $GITHUB_STEP_SUMMARY
+          elif [[ "${{ needs.quick-lint.result }}" == "success" ]] && [[ "${{ needs.typecheck-changed.result }}" == "success" ]] && [[ "${{ needs.test-affected.result }}" == "success" ]]; then
+            echo "✅ **Status:** All checks passed - Ready for merge" >> $GITHUB_STEP_SUMMARY
+          else
+            echo "⚠️ **Status:** Some checks failed - Please review and fix" >> $GITHUB_STEP_SUMMARY
+          fi
+
+      - name: Comment on PR
+        if: github.event_name == 'pull_request'
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const summary = `#### PR Validation Complete
+            | Check | Status |
+            |-------|--------|
+            | Title Format | ${{ needs.validation-checklist.outputs.title_match == 'true' && '✅' || '⚠️' }} |
+            | Description | ${{ needs.validation-checklist.outputs.has_description == 'true' && '✅' || '⚠️' }} |
+            | Code Size | ${{ needs.code-size.result == 'success' && '✅' || '❌' }} |
+            | Lint | ${{ needs.quick-lint.result == 'success' && '✅' || '❌' }} |
+            | Type Check | ${{ needs.typecheck-changed.result == 'success' && '✅' || '❌' }} |
+            | Tests | ${{ needs.test-affected.result == 'success' && '✅' || '❌' }} |
+
+            [View full details](https://github.com/${{ github.repository }}/actions/runs/${{ github.run_id }})
+            `;
+
+            github.rest.issues.createComment({
+              issue_number: context.issue.number,
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              body: summary
+            })

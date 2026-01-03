@@ -1,0 +1,237 @@
+#compdef aequor
+# Zsh completion for Aequor CLI
+# Install: cp _aequor ~/.zsh/completions/ (or /usr/share/zsh/vendor-completions/)
+
+_aequor() {
+    local -a commands
+    local context curcontext=$curcontext state line
+    typeset -A opt_args
+
+    # Main commands with descriptions
+    commands=(
+        'query:Execute a query with intelligent routing'
+        'chat:Start interactive chat session'
+        'status:Show system status'
+        'cache:Manage semantic cache'
+        'cartridge:Manage knowledge cartridges'
+        'training:Training and adapter management'
+        'system:System information and management'
+        'privacy:Privacy operations'
+        'config:Manage configuration'
+        'models:List available models'
+        'cost:Show cost analysis'
+        'test:Run tests'
+        'export:Export data'
+        'import:Import data'
+        'help:Show help'
+        'examples:Show usage examples'
+        'quickstart:Show quick start guide'
+        'version:Show version'
+    )
+
+    # Cache subcommands
+    cache_commands=(
+        'stats:Show cache statistics'
+        'clear:Clear cache'
+        'warm:Warm cache with common queries'
+        'invalidate:Invalidate cache entries by pattern'
+    )
+
+    # Cartridge subcommands
+    cartridge_commands=(
+        'list:List installed cartridges'
+        'install:Install a cartridge from file or URL'
+        'load:Load (enable) a cartridge'
+        'unload:Unload (disable) a cartridge'
+        'create:Create a new cartridge'
+        'export:Export cartridge to file'
+    )
+
+    # Training subcommands
+    training_commands=(
+        'shadow:Show shadow logging status'
+        'train:Export training data for ORPO'
+        'deploy:Deploy trained adapter'
+        'rollback:Rollback to previous adapter version'
+        'ab-test:Run A/B test between adapters'
+    )
+
+    # System subcommands
+    system_commands=(
+        'info:Show system information'
+        'health:Check system health'
+        'metrics:Show performance metrics'
+    )
+
+    # Privacy subcommands
+    privacy_commands=(
+        'classify:Classify query privacy level'
+        'redact:Redact PII from query'
+        'encode:Encode query as intent vector'
+        'audit:Show privacy audit log'
+    )
+
+    _arguments -C \
+        '(-h --help)'{-h,--help}'[Show help]' \
+        '(-v --version)'{-v,--version}'[Show version]' \
+        "1: :->command" \
+        "*::arg:->args"
+
+    case $state in
+        command)
+            _describe -t commands 'aequor commands' commands
+            ;;
+        args)
+            case $words[2] in
+                cache)
+                    _describe -t subcommands 'cache subcommands' cache_commands
+                    ;;
+                cartridge)
+                    _describe -t subcommands 'cartridge subcommands' cartridge_commands
+                    ;;
+                training)
+                    _describe -t subcommands 'training subcommands' training_commands
+                    ;;
+                system)
+                    _describe -t subcommands 'system subcommands' system_commands
+                    ;;
+                privacy)
+                    _describe -t subcommands 'privacy subcommands' privacy_commands
+                    ;;
+                query)
+                    _arguments \
+                        '(-t --trace)'{-t,--trace}'[Show routing trace]' \
+                        '(-b --backend)'{-b,--backend}'[Force backend]:backend:(local cloud auto)' \
+                        '(-m --model)'{-m,--model}'[Use specific model]:model:_aequor_models' \
+                        '(-f --format)'{-f,--format}'[Output format]:format:(text json)' \
+                        '(--no-cache)--no-cache[Bypass cache]' \
+                        '(-v --verbose)'{-v,--verbose}'[Verbose output]' \
+                        '(-h --help)'{-h,--help}'[Show help]'
+                    ;;
+                chat)
+                    _arguments \
+                        '(-b --backend)'{-b,--backend}'[Force backend]:backend:(local cloud auto)' \
+                        '(-m --model)'{-m,--model}'[Use specific model]:model:_aequor_models' \
+                        '(--no-cache)--no-cache[Bypass cache]' \
+                        '(--history)--history[Load chat history]:file:_files' \
+                        '(-h --help)'{-h,--help}'[Show help]'
+                    ;;
+                config)
+                    _arguments \
+                        '(--list)--list[List all configuration]' \
+                        '(--get)--get[Get configuration value]:key:_aequor_config_keys' \
+                        '(--set)--set[Set configuration value]:key:_aequor_config_keys:value' \
+                        '(--reset)--reset[Reset to defaults]' \
+                        '(--global)--global[Use global config]' \
+                        '(--local)--local[Use local config]' \
+                        '(-h --help)'{-h,--help}'[Show help]'
+                    ;;
+                models)
+                    _arguments \
+                        '(-b --backend)'{-b,--backend}'[Filter by backend]:backend:(local cloud)' \
+                        '(-d --detailed)'{-d,--detailed}'[Show detailed information]' \
+                        '(--local)--local[Show local models only]' \
+                        '(--cloud)--cloud[Show cloud models only]' \
+                        '(-h --help)'{-h,--help}'[Show help]'
+                    ;;
+                cost)
+                    _arguments \
+                        '(-p --period)'{-p,--period}'[Time period]:period:(today week month all)' \
+                        '(-b --by-backend)'{-b,--by-backend}'[Break down by backend]' \
+                        '(--breakdown)--breakdown[Show detailed breakdown]' \
+                        '(-h --help)'{-h,--help}'[Show help]'
+                    ;;
+                test)
+                    _arguments \
+                        '(-t --type)'{-t,--type}'[Test type]:type:(unit integration e2e performance)' \
+                        '(--coverage)--coverage[Show coverage report]' \
+                        '(--watch)--watch[Watch mode]' \
+                        '(-h --help)'{-h,--help}'[Show help]'
+                    ;;
+                export)
+                    _arguments \
+                        '(-o --output)'{-o,--output}'[Output file]:file:_files' \
+                        '(-f --format)'{-f,--format}'[Export format]:format:(json jsonl cartridge)' \
+                        '(-w --what)'{-w,--what}'[What to export]:what:(all knowledge cache history training)' \
+                        '(-c --compress)'{-c,--compress}'[Compress output]' \
+                        '(--validate)--validate[Validate before export]' \
+                        '(-h --help)'{-h,--help}'[Show help]'
+                    ;;
+                import)
+                    _arguments \
+                        '(-m --mode)'{-m,--mode}'[Import mode]:mode:(merge replace)' \
+                        '(-t --type)'{-t,--type}'[Import type]:type:(all knowledge cache history training)' \
+                        '(--validate)--validate[Validate before import]' \
+                        '(--dry-run)--dry-run[Preview without importing]' \
+                        '(-h --help)'{-h,--help}'[Show help]' \
+                        '*:file:_files'
+                    ;;
+                status)
+                    _arguments \
+                        '(-c --components)'{-c,--components}'[Show component status]' \
+                        '(-m --metrics)'{-m,--metrics}'[Show performance metrics]' \
+                        '(-v --verbose)'{-v,--verbose}'[Verbose output]' \
+                        '(-h --help)'{-h,--help}'[Show help]'
+                    ;;
+                help)
+                    _arguments \
+                        '*:command:_aequor_commands'
+                    ;;
+            esac
+            ;;
+    esac
+}
+
+_aequor_commands() {
+    local -a commands
+    commands=(
+        'query:Execute a query with intelligent routing'
+        'chat:Start interactive chat session'
+        'status:Show system status'
+        'cache:Manage semantic cache'
+        'cartridge:Manage knowledge cartridges'
+        'training:Training and adapter management'
+        'system:System information and management'
+        'privacy:Privacy operations'
+        'config:Manage configuration'
+        'models:List available models'
+        'cost:Show cost analysis'
+        'test:Run tests'
+        'export:Export data'
+        'import:Import data'
+        'help:Show help'
+        'examples:Show usage examples'
+        'quickstart:Show quick start guide'
+        'version:Show version'
+    )
+    _describe 'command' commands
+}
+
+_aequor_models() {
+    local -a models
+    # This would normally query the system for available models
+    models=(
+        'local:Local model (Ollama)'
+        'gpt-4:OpenAI GPT-4'
+        'gpt-3.5-turbo:OpenAI GPT-3.5 Turbo'
+    )
+    _describe 'model' models
+}
+
+_aequor_config_keys() {
+    local -a keys
+    keys=(
+        'cache.enabled:Enable caching'
+        'cache.size:Cache size in MB'
+        'cache.ttl:Cache TTL in seconds'
+        'privacy.epsilon:Privacy epsilon value'
+        'privacy.enabled:Enable privacy features'
+        'router.backend:Default router backend'
+        'router.threshold:Router complexity threshold'
+        'models.local:Local models configuration'
+        'models.cloud:Cloud models configuration'
+    )
+    _describe 'config key' keys
+}
+
+_aequor "$@"

@@ -1,0 +1,407 @@
+# Aequor Platform Alert Rules
+#
+# Comprehensive alerting rules for all Aequor services
+# Load this in prometheus.yml with:
+#   rule_files:
+#     - "alerts/aequor-alerts.yml"
+
+groups:
+  # System Availability Alerts
+  - name: aequor_system_alerts
+    interval: 30s
+    rules:
+      - alert: AequorServiceDown
+        expr: up{job=~"aequor-.*"} == 0
+        for: 1m
+        labels:
+          severity: critical
+          component: system
+          tier: "core"
+        annotations:
+          summary: "Aequor service instance {{ $labels.instance }} is down"
+          description: "The Aequor {{ $labels.component }} service on {{ $labels.instance }} has been down for more than 1 minute."
+          runbook_url: "https://docs.aequor.ai/runbooks/service-down"
+
+      - alert: AequorServiceNotReady
+        expr: aequor_cascade_active_requests == 0 and up{job="aequor-cascade"} == 1
+        for: 5m
+        labels:
+          severity: warning
+          component: system
+        annotations:
+          summary: "Aequor service {{ $labels.instance }} is not receiving traffic"
+          description: "The Aequor service on {{ $labels.instance }} is up but not receiving requests for 5 minutes."
+
+  # Cascade Router Alerts
+  - name: aequor_cascade_alerts
+    interval: 30s
+    rules:
+      - alert: HighErrorRate
+        expr: |
+          (
+            sum(rate(aequor_cascade_errors_total[5m])) by (backend)
+            /
+            sum(rate(aequor_cascade_requests_total[5m])) by (backend)
+          ) * 100 > 5
+        for: 5m
+        labels:
+          severity: warning
+          component: cascade_router
+        annotations:
+          summary: "High error rate for backend {{ $labels.backend }}"
+          description: "Error rate is {{ $value | humanize }}% for backend {{ $labels.backend }} over the last 5 minutes."
+          runbook_url: "https://docs.aequor.ai/runbooks/high-error-rate"
+
+      - alert: CriticalErrorRate
+        expr: |
+          (
+            sum(rate(aequor_cascade_errors_total[2m])) by (backend)
+            /
+            sum(rate(aequor_cascade_requests_total[2m])) by (backend)
+          ) * 100 > 20
+        for: 2m
+        labels:
+          severity: critical
+          component: cascade_router
+        annotations:
+          summary: "Critical error rate for backend {{ $labels.backend }}"
+          description: "Error rate is {{ $value | humanize }}% for backend {{ $labels.backend }} over the last 2 minutes."
+
+      - alert: HighLatency
+        expr: |
+          histogram_quantile(0.95,
+            sum(rate(aequor_cascade_request_duration_seconds_bucket[5m])) by (le, backend)
+          ) > 1
+        for: 5m
+        labels:
+          severity: warning
+          component: cascade_router
+        annotations:
+          summary: "High P95 latency for backend {{ $labels.backend }}"
+          description: "95th percentile latency is {{ $value | humanizeDuration }} for backend {{ $labels.backend }}."
+
+      - alert: CriticalLatency
+        expr: |
+          histogram_quantile(0.95,
+            sum(rate(aequor_cascade_request_duration_seconds_bucket[2m])) by (le, backend)
+          ) > 5
+        for: 2m
+        labels:
+          severity: critical
+          component: cascade_router
+        annotations:
+          summary: "Critical latency for backend {{ $labels.backend }}"
+          description: "95th percentile latency is {{ $value | humanizeDuration }} for backend {{ $labels.backend }}."
+
+      - alert: LowLocalRoutingRate
+        expr: |
+          (
+            sum(rate(aequor_cascade_requests_total{backend="local"}[5m]))
+            /
+            sum(rate(aequor_cascade_requests_total[5m]))
+          ) * 100 < 50
+        for: 15m
+        labels:
+          severity: info
+          component: cascade_router
+        annotations:
+          summary: "Local routing rate below 50%"
+          description: "Only {{ $value | humanize }}% of requests are being routed locally. Expected 80%+ for optimal cost savings."
+
+  # Cache Performance Alerts
+  - name: aequor_cache_alerts
+    interval: 30s
+    rules:
+      - alert: LowCacheHitRate
+        expr: avg(aequor_cache_hit_rate) by (cache_type) < 0.7
+        for: 10m
+        labels:
+          severity: warning
+          component: semantic_cache
+        annotations:
+          summary: "Low cache hit rate for {{ $labels.cache_type }}"
+          description: "Cache hit rate is {{ $value | humanizePercentage }} for {{ $labels.cache_type }} cache. Expected >70%."
+
+      - alert: CriticalCacheHitRate
+        expr: avg(aequor_cache_hit_rate) by (cache_type) < 0.5
+        for: 5m
+        labels:
+          severity: critical
+          component: semantic_cache
+        annotations:
+          summary: "Critical cache hit rate for {{ $labels.cache_type }}"
+          description: "Cache hit rate is {{ $value | humanizePercentage }} for {{ $labels.cache_type }} cache. Investigation required."
+
+      - alert: HighCacheEvictionRate
+        expr: sum(rate(aequor_cache_evictions_total[5m])) by (cache_type) > 100
+        for: 5m
+        labels:
+          severity: warning
+          component: semantic_cache
+        annotations:
+          summary: "High cache eviction rate for {{ $labels.cache_type }}"
+          description: "Cache is evicting {{ $value | humanize }} entries/sec. Consider increasing cache size."
+
+  # Privacy Alerts
+  - name: aequor_privacy_alerts
+    interval: 30s
+    rules:
+      - alert: HighEpsilonConsumption
+        expr: aequor_privacy_epsilon_budget < 1.0
+        for: 5m
+        labels:
+          severity: warning
+          component: privacy_suite
+        annotations:
+          summary: "Differential privacy epsilon budget running low"
+          description: "Epsilon budget is {{ $value }}. Consider adjusting privacy parameters or waiting for budget renewal."
+
+      - alert: ZeroEpsilonBudget
+        expr: aequor_privacy_epsilon_budget <= 0
+        for: 1m
+        labels:
+          severity: critical
+          component: privacy_suite
+        annotations:
+          summary: "Differential privacy epsilon budget exhausted"
+          description: "No epsilon budget remaining. Privacy queries will be blocked until renewal."
+
+      - alert: HighFalseNegativeRate
+        expr: |
+          (
+            sum(rate(aequor_privacy_queries_processed_total{privacy_level="secret"}[5m]))
+            -
+            sum(rate(aequor_privacy_redactions_total{classification="confidential"}[5m]))
+          ) /
+          sum(rate(aequor_privacy_queries_processed_total{privacy_level="secret"}[5m])) > 0.1
+        for: 10m
+        labels:
+          severity: warning
+          component: privacy_suite
+        annotations:
+          summary: "Potential privacy leak detected"
+          description: "False negative rate is {{ $value | humanizePercentage }}. Sensitive data may not be properly redacted."
+
+      - alert: PrivacyProcessingLatency
+        expr: |
+          histogram_quantile(0.95,
+            sum(rate(aequor_privacy_privacy_processing_seconds_bucket[5m])) by (le)
+          ) > 0.5
+        for: 5m
+        labels:
+          severity: warning
+          component: privacy_suite
+        annotations:
+          summary: "High privacy processing latency"
+          description: "P95 privacy processing latency is {{ $value | humanizeDuration }}. Consider optimizing privacy algorithms."
+
+  # Hardware Alerts
+  - name: aequor_hardware_alerts
+    interval: 30s
+    rules:
+      - alert: HighCPUUsage
+        expr: avg(aequor_hardware_cpu_utilization_percent) > 80
+        for: 5m
+        labels:
+          severity: warning
+          component: performance_optimizer
+        annotations:
+          summary: "High CPU usage on {{ $labels.instance }}"
+          description: "CPU usage is {{ $value | humanize }}% on {{ $labels.instance }}."
+
+      - alert: CriticalCPUUsage
+        expr: avg(aequor_hardware_cpu_utilization_percent) > 95
+        for: 2m
+        labels:
+          severity: critical
+          component: performance_optimizer
+        annotations:
+          summary: "Critical CPU usage on {{ $labels.instance }}"
+          description: "CPU usage is {{ $value | humanize }}% on {{ $labels.instance }}. Immediate action required."
+
+      - alert: HighGPUUsage
+        expr: avg(aequor_hardware_gpu_utilization_percent) > 95
+        for: 10m
+        labels:
+          severity: warning
+          component: performance_optimizer
+        annotations:
+          summary: "Sustained high GPU usage"
+          description: "GPU usage is {{ $value | humanize }}% for 10+ minutes. Consider load balancing."
+
+      - alert: HighTemperature
+        expr: avg(aequor_hardware_temperature_celsius) > 75
+        for: 5m
+        labels:
+          severity: warning
+          component: performance_optimizer
+        annotations:
+          summary: "High hardware temperature"
+          description: "Temperature is {{ $value | humanize }}°C. Thermal throttling may occur."
+
+      - alert: CriticalTemperature
+        expr: avg(aequor_hardware_temperature_celsius) > 85
+        for: 1m
+        labels:
+          severity: critical
+          component: performance_optimizer
+        annotations:
+          summary: "Critical hardware temperature"
+          description: "Temperature is {{ $value | humanize }}°C. System shutdown imminent."
+
+      - alert: ThermalThrottlingActive
+        expr: aequor_hardware_thermal_throttling == 1
+        for: 1m
+        labels:
+          severity: warning
+          component: performance_optimizer
+        annotations:
+          summary: "Thermal throttling active"
+          description: "System is thermal throttling. Performance is degraded."
+
+  # Security Alerts
+  - name: aequor_security_alerts
+    interval: 30s
+    rules:
+      - alert: HighSecurityEventRate
+        expr: sum(rate(aequor_security_security_events_total[5m])) by (severity) > 10
+        for: 5m
+        labels:
+          severity: warning
+          component: security_auditor
+        annotations:
+          summary: "High security event rate"
+          description: "{{ $value | humanize }} security events/sec for severity {{ $labels.severity }}."
+
+      - alert: CriticalSecurityEventRate
+        expr: sum(rate(aequor_security_security_events_total[2m])) by (severity, severity="critical") > 1
+        for: 1m
+        labels:
+          severity: critical
+          component: security_auditor
+        annotations:
+          summary: "Critical security events detected"
+          description: "{{ $value | humanize }} critical security events/sec. Immediate investigation required."
+
+      - alert: VulnerabilityDetected
+        expr: sum(increase(aequor_security_vulnerabilities_detected_total[1h])) by (severity) > 0
+        for: 1m
+        labels:
+          severity: warning
+          component: security_auditor
+        annotations:
+          summary: "{{ $value | humanize }} vulnerabilities detected in the last hour"
+          description: "Review and remediate vulnerabilities."
+
+      - alert: HighAuthFailureRate
+        expr: |
+          (
+            sum(rate(aequor_security_security_events_total{event_type="auth_failed"}[5m]))
+            /
+            sum(rate(aequor_security_security_events_total{event_type=~"auth_failed|auth_success"}[5m]))
+          ) * 100 > 10
+        for: 5m
+        labels:
+          severity: warning
+          component: security_auditor
+        annotations:
+          summary: "High authentication failure rate"
+          description: "{{ $value | humanizePercentage }} of authentication attempts are failing. Possible brute force attack."
+
+  # Business Metrics Alerts
+  - name: aequor_business_alerts
+    interval: 60s
+    rules:
+      - alert: HighCostRate
+        expr: sum(increase(aequor_business_cost_total[1h])) > 100
+        for: 5m
+        labels:
+          severity: warning
+          component: business
+        annotations:
+          summary: "High hourly cost: ${{ $value | humanize }}"
+          description: "Hourly cost is ${{ $value }}. Expected <$50."
+
+      - alert: UnusualCostSpike
+        expr: |
+          sum(increase(aequor_business_cost_total[5m]))
+          >
+          (avg_over_time(sum(increase(aequor_business_cost_total[5m]))[1h:5m]) * 3)
+        for: 5m
+        labels:
+          severity: warning
+          component: business
+        annotations:
+          summary: "Unusual cost spike detected"
+          description: "Cost is 3x higher than the hourly average."
+
+      - alert: LowActiveUsers
+        expr: aequor_business_active_users < 10
+        for: 30m
+        labels:
+          severity: info
+          component: business
+        annotations:
+          summary: "Low active user count"
+          description: "Only {{ $value | humanize }} active users in the last 30 minutes."
+
+      - alert: LowCostSavings
+        expr: |
+          (
+            sum(aequor_business_cost_savings_total)
+            /
+            sum(aequor_business_cost_total)
+          ) * 100 < 70
+        for: 1h
+        labels:
+          severity: warning
+          component: business
+        annotations:
+          summary: "Cost savings below target"
+          description: "Cost savings rate is {{ $value | humanizePercentage }}%. Target is 80%+."
+
+  # Training Alerts
+  - name: aequor_training_alerts
+    interval: 60s
+    rules:
+      - alert: TrainingStalled
+        expr: |
+          rate(aequor_training_training_epochs_total[15m]) == 0
+          and aequor_training_training_epochs_total > 0
+        for: 15m
+        labels:
+          severity: warning
+          component: lucid_dreamer
+        annotations:
+          summary: "Training stalled for {{ $labels.model_name }}"
+          description: "No training progress for 15 minutes."
+
+      - alert: HighTrainingLoss
+        expr: avg(aequor_training_training_loss) by (model_name) > 2.0
+        for: 10m
+        labels:
+          severity: warning
+          component: lucid_dreamer
+        annotations:
+          summary: "High training loss for {{ $labels.model_name }}"
+          description: "Training loss is {{ $value }}. Model may not be converging."
+
+      - alert: LowTrainingAccuracy
+        expr: avg(aequor_training_training_accuracy) by (model_name) < 0.6
+        for: 30m
+        labels:
+          severity: warning
+          component: lucid_dreamer
+        annotations:
+          summary: "Low training accuracy for {{ $labels.model_name }}"
+          description: "Training accuracy is {{ $value | humanizePercentage }}. Expected >70%."
+
+      - alert: LargeShadowLog
+        expr: aequor_training_shadow_log_size > 10*1024*1024*1024
+        for: 5m
+        labels:
+          severity: info
+          component: lucid_dreamer
+        annotations:
+          summary: "Shadow log size exceeds 10GB"
+          description: "Shadow log is {{ $value | humanize }}. Consider log rotation."

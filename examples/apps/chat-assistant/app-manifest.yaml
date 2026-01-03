@@ -1,0 +1,134 @@
+apiVersion: "v1"
+kind: "App"
+
+metadata:
+  name: chat-assistant
+  version: 1.0.0
+  description: AI chat assistant with semantic search and RAG capabilities
+  author: SuperInstance
+  license: Apache-2.0
+  tags: [ai, chat, assistant, rag]
+  keywords: [chat, assistant, ai, rag, semantic-search]
+  icon: https://aequor.dev/icons/chat-assistant.png
+
+category: ai-assistant
+
+components:
+  - name: cascade-router
+    version: ">=1.0.0"
+    required: true
+    configuration:
+      complexity_threshold: 0.7
+      cache_enabled: true
+      log_level: info
+
+  - name: semantic-cache
+    version: "^1.0.0"
+    required: true
+    configuration:
+      cache_size: "100MB"
+      similarity_threshold: 0.9
+      ttl_seconds: 3600
+
+  - name: openai-embeddings
+    version: "~1.0.0"
+    required: true
+    configuration:
+      model: "text-embedding-3-small"
+      dimensions: 1536
+      batch_size: 100
+
+  - name: rag-pipeline
+    version: ">=1.0.0"
+    required: true
+    configuration:
+      chunk_size: 512
+      chunk_overlap: 50
+      top_k: 5
+
+advanced_components:
+  - name: privacy-layer
+    version: ">=1.0.0"
+    description: Add ε-differential privacy for sensitive data protection
+    configuration:
+      epsilon: 1.0
+      enable_redaction: true
+      sensitivity_level: medium
+
+  - name: federated-learning
+    version: ">=1.0.0"
+    description: Enable federated learning for continuous model improvement
+    configuration:
+      participation_rate: 0.5
+      min_clients: 3
+      aggregation_strategy: fedavg
+
+  - name: intent-encoder
+    version: ">=1.0.0"
+    description: Encode queries as intent vectors for privacy-preserving cloud queries
+    configuration:
+      vector_size: 768
+      enable_dp: true
+      dp_epsilon: 0.5
+
+configuration:
+  environment: production
+  log_level: info
+  enable_metrics: true
+  enable_tracing: false
+
+environment_vars:
+  OPENAI_API_KEY: "${OPENAI_API_KEY}"
+  LOG_LEVEL: "info"
+  NODE_ENV: "production"
+
+networking:
+  host: "0.0.0.0"
+  port: 8080
+  expose:
+    - "8080/tcp"
+  tls_enabled: false
+
+storage:
+  data_path: "/var/lib/aequor/chat-assistant/data"
+  cache_path: "/var/lib/aequor/chat-assistant/cache"
+  persistence_enabled: true
+  backup_enabled: false
+
+scaling:
+  mode: standalone
+  instances: 1
+  cpu_limit: "2"
+  memory_limit: "4Gi"
+
+health_checks:
+  enabled: true
+  interval_seconds: 30
+  timeout_seconds: 5
+  failure_threshold: 3
+  endpoints:
+    - path: "/health"
+      method: "GET"
+      expected_status: 200
+
+telemetry:
+  enabled: false
+  sampled: 0.1
+
+startup:
+  entry_point: "src/index.ts"
+  dependencies:
+    - "npm install"
+    - "superinstance component pull cascade-router"
+  pre_start:
+    - "echo 'Starting chat-assistant...'"
+  post_start:
+    - "echo 'Chat-assistant started successfully'"
+  health_check:
+    endpoint: "/health"
+    method: "GET"
+    expected_status: 200
+    timeout: 5000
+    interval_seconds: 30
+    failure_threshold: 3
+  working_dir: "/opt/aequor/chat-assistant"

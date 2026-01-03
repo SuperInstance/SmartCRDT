@@ -1,0 +1,150 @@
+# AlertManager Configuration for Aequor
+#
+# Configures alert routing, receivers, and inhibition rules
+
+global:
+  resolve_timeout: 5m
+  smtp_smarthost: "localhost:587"
+  smtp_from: "alertmanager@aequor.ai"
+
+# Inhibition rules - prevent alert spam
+inhibit_rules:
+  # Inhibit warning if critical is firing
+  - source_match:
+      severity: "critical"
+    target_match:
+      severity: "warning"
+    equal: ["alertname", "instance"]
+
+  # Inhibit service down if node is down
+  - source_match:
+      alertname: "NodeDown"
+    target_match_re:
+      alertname: "ServiceDown.*"
+    equal: ["instance"]
+
+# Routing configuration
+route:
+  receiver: "default"
+  group_by: ["alertname", "cluster", "service"]
+  group_wait: 10s
+  group_interval: 10s
+  repeat_interval: 12h
+
+  # Child routes for specific routing
+  routes:
+    # Critical alerts go to PagerDuty
+    - match:
+        severity: critical
+      receiver: "pagerduty-critical"
+      continue: true
+
+    # Security alerts go to security channel
+    - match:
+        component: security_auditor
+      receiver: "security-team"
+      continue: true
+
+    # Business alerts go to business channel
+    - match:
+        component: business
+      receiver: "business-team"
+
+    # Training alerts go to ML team
+    - match:
+        component: lucid_dreamer
+      receiver: "ml-team"
+
+# Notification receivers
+receivers:
+  # Default receiver
+  - name: "default"
+    webhook_configs:
+      - url: "http://localhost:5000/alerts"
+        send_resolved: true
+
+  # PagerDuty for critical alerts
+  - name: "pagerduty-critical"
+    pagerduty_configs:
+      - service_key: "<PAGERDUTY_SERVICE_KEY>"
+        description: "{{ .GroupLabels.alertname }}: {{ .CommonAnnotations.summary }}"
+        severity: "{{ .GroupLabels.severity }}"
+        client: "Aequor"
+        client_url: "https://grafana.aequor.ai"
+        send_resolved: true
+
+  # Slack for warnings
+  - name: "slack-warnings"
+    slack_configs:
+      - api_url: "<SLACK_WEBHOOK_URL>"
+        channel: "#aequor-alerts"
+        title: "[{{ .Status | toUpper }}] {{ .GroupLabels.alertname }}"
+        text: |
+          *Summary:* {{ .CommonAnnotations.summary }}
+          *Description:* {{ .CommonAnnotations.description }}
+          *Severity:* {{ .GroupLabels.severity }}
+          *Runbook:* {{ .CommonAnnotations.runbook_url }}
+        send_resolved: true
+        color: "{{ if eq .Status \"firing\" }}danger{{ else }}good{{ end }}"
+        actions:
+          - type: button
+            text: "View in Grafana"
+            url: "{{ .ExternalURL }}"
+          - type: button
+            text: "Runbook"
+            url: "{{ .CommonAnnotations.runbook_url }}"
+
+  # Security team alerts
+  - name: "security-team"
+    slack_configs:
+      - api_url: "<SLACK_SECURITY_WEBHOOK_URL>"
+        channel: "#aequor-security"
+        title: "[SECURITY] {{ .GroupLabels.alertname }}"
+        text: |
+          *Summary:* {{ .CommonAnnotations.summary }}
+          *Description:* {{ .CommonAnnotations.description }}
+          *Severity:* {{ .GroupLabels.severity }}
+        send_resolved: true
+
+  # Business team alerts
+  - name: "business-team"
+    email_configs:
+      - to: "business@aequor.ai"
+        subject: "[Business Alert] {{ .GroupLabels.alertname }}"
+        body: |
+          Summary: {{ .CommonAnnotations.summary }}
+          Description: {{ .CommonAnnotations.description }}
+        send_resolved: true
+
+  # ML team alerts
+  - name: "ml-team"
+    slack_configs:
+      - api_url: "<SLACK_ML_WEBHOOK_URL>"
+        channel: "#aequor-ml"
+        title: "[Training] {{ .GroupLabels.alertname }}"
+        text: |
+          *Summary:* {{ .CommonAnnotations.summary }}
+          *Description:* {{ .CommonAnnotations.description }}
+          *Model:* {{ .GroupLabels.model_name }}
+        send_resolved: true
+
+# Time intervals for specific alert rules
+time_intervals:
+  - name: "business-hours"
+    time_intervals:
+      - times:
+          - start_time: "09:00"
+            end_time: "17:00"
+        weekdays: ["monday:friday"]
+
+  - name: "off-hours"
+    time_intervals:
+      - times:
+          - start_time: "17:00"
+            end_time: "09:00"
+        weekdays: ["monday:friday"]
+      - weekdays: ["saturday", "sunday"]
+
+# Templates for custom message formatting
+templates:
+  - "/etc/alertmanager/*.tmpl"

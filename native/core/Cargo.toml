@@ -1,0 +1,28 @@
+[package]
+name = "superinstance-native-core"
+version.workspace = true
+edition.workspace = true
+authors.workspace = true
+license.workspace = true
+repository.workspace = true
+rust-version.workspace = true
+
+description = "Core utilities and types for SuperInstance native modules"
+
+[dependencies]
+thiserror.workspace = true
+anyhow.workspace = true
+serde.workspace = true
+serde_json.workspace = true
+tokio.workspace = true
+tracing.workspace = true
+zeroize = "1.8"
+libc = "0.2"
+
+[dev-dependencies]
+criterion.workspace = true
+proptest.workspace = true
+
+# [[bench]]
+# name = "types"
+# harness = false

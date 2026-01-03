@@ -1,0 +1,40 @@
+[package]
+name = "superinstance-native-ffi"
+version.workspace = true
+edition.workspace = true
+authors.workspace = true
+license.workspace = true
+repository.workspace = true
+rust-version.workspace = true
+
+description = "FFI bindings for Node.js/TypeScript integration"
+
+[lib]
+crate-type = ["cdylib", "rlib"]
+
+[dependencies]
+superinstance-native-core = { path = "../core" }
+superinstance-native-embeddings = { path = "../embeddings" }
+superinstance-native-crypto = { path = "../crypto" }
+superinstance-native-crdt = { path = "../crdt" }
+
+napi.workspace = true
+napi-derive.workspace = true
+serde.workspace = true
+serde_json.workspace = true
+tokio.workspace = true
+thiserror.workspace = true
+tracing.workspace = true
+base64 = "0.21"
+hex = "0.4"
+
+[build-dependencies]
+napi-build = "2.0"
+
+[features]
+default = []
+# faiss-backend = ["superinstance-native-embeddings/faiss-backend"]
+
+# Platform-specific features
+[package.metadata.cargo-udeps.ignore]
+normal = ["napi", "napi-derive"]

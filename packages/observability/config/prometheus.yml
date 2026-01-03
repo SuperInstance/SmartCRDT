@@ -1,0 +1,129 @@
+# Prometheus Configuration for Aequor Cognitive Orchestration Platform
+#
+# This configuration scrapes metrics from all Aequor services
+# including Cascade Router, Privacy Suite, Performance Optimizer, and Security Audit
+
+global:
+  scrape_interval: 15s
+  evaluation_interval: 15s
+  external_labels:
+    cluster: "aequor-cluster"
+    environment: "production"
+    platform: "aequor"
+
+# Alerting configuration
+alerting:
+  alertmanagers:
+    - static_configs:
+        - targets:
+            - "localhost:9093"
+
+# Load enhanced alert rules
+rule_files:
+  - "alerts/*.yml"
+
+# Scrape configurations for Aequor services
+scrape_configs:
+  # Aequor Cascade Router
+  - job_name: "aequor-cascade"
+    static_configs:
+      - targets: ["localhost:9182"]
+        labels:
+          service: "aequor"
+          component: "cascade_router"
+          tier: "core"
+    scrape_interval: 10s
+    metrics_path: "/metrics"
+
+  # Aequor Privacy Suite
+  - job_name: "aequor-privacy"
+    static_configs:
+      - targets: ["localhost:9183"]
+        labels:
+          service: "aequor"
+          component: "privacy_suite"
+          tier: "core"
+    scrape_interval: 10s
+    metrics_path: "/metrics"
+
+  # Aequor Performance Optimizer
+  - job_name: "aequor-performance"
+    static_configs:
+      - targets: ["localhost:9184"]
+        labels:
+          service: "aequor"
+          component: "performance_optimizer"
+          tier: "core"
+    scrape_interval: 10s
+    metrics_path: "/metrics"
+
+  # Aequor Security Auditor
+  - job_name: "aequor-security"
+    static_configs:
+      - targets: ["localhost:9185"]
+        labels:
+          service: "aequor"
+          component: "security_auditor"
+          tier: "core"
+    scrape_interval: 30s
+    metrics_path: "/metrics"
+
+  # Aequor SuperInstance
+  - job_name: "aequor-superinstance"
+    static_configs:
+      - targets: ["localhost:9186"]
+        labels:
+          service: "aequor"
+          component: "superinstance"
+          tier: "core"
+    scrape_interval: 10s
+    metrics_path: "/metrics"
+
+  # Prometheus self-monitoring
+  - job_name: "prometheus"
+    static_configs:
+      - targets: ["localhost:9090"]
+
+  # Node exporter for system metrics
+  - job_name: "node-exporter"
+    static_configs:
+      - targets: ["localhost:9100"]
+        labels:
+          service: "infrastructure"
+          component: "node_exporter"
+
+  # cAdvisor for container metrics
+  - job_name: "cadvisor"
+    static_configs:
+      - targets: ["localhost:8080"]
+        labels:
+          service: "infrastructure"
+          component: "cadvisor"
+
+  # Grafana metrics
+  - job_name: "grafana"
+    static_configs:
+      - targets: ["localhost:3000"]
+        labels:
+          service: "infrastructure"
+          component: "grafana"
+
+  # Alertmanager metrics
+  - job_name: "alertmanager"
+    static_configs:
+      - targets: ["localhost:9093"]
+        labels:
+          service: "infrastructure"
+          component: "alertmanager"
+
+# Remote write configuration (optional - for long-term storage)
+# remote_write:
+#   - url: "https://your-mts-endpoint/api/v1/write"
+#     queue_config:
+#       capacity: 10000
+#       max_shards: 50
+#       min_shards: 1
+#       max_samples_per_send: 5000
+#       batch_send_deadline: 5s
+#       min_backoff: 30ms
+#       max_backoff: 100ms

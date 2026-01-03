@@ -1,0 +1,23 @@
+[package]
+name = "activelog-validate"
+version = "0.1.0"
+edition = "2021"
+authors = ["ActiveLog Team"]
+description = "Validation tool for ActiveLog configurations and compliance"
+
+[dependencies]
+clap = { version = "4.4", features = ["derive"] }
+serde = { version = "1.0", features = ["derive"] }
+serde_json = "1.0"
+tokio = { version = "1.35", features = ["full"] }
+anyhow = "1.0"
+chrono = "0.4"
+jsonschema = "0.17"
+regex = "1.10"
+colored = "2.1"
+indicatif = "0.17"
+tabled = "0.15"
+
+[[bin]]
+name = "activelog-validate"
+path = "src/main.rs"

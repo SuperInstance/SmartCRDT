@@ -1,0 +1,109 @@
+# ============================================================================
+# Prometheus Configuration for Aequor Platform
+# ============================================================================
+
+global:
+  scrape_interval: 15s
+  evaluation_interval: 15s
+  external_labels:
+    cluster: 'aequor-platform'
+    environment: 'production'
+
+# Alerting configuration
+alerting:
+  alertmanagers:
+    - static_configs:
+        - targets: []
+
+# Rule files
+rule_files:
+  - 'alerts/*.yml'
+
+# Scrape configurations
+scrape_configs:
+  # ------------------------------------------------------------------------
+  # Aequor Services
+  # ------------------------------------------------------------------------
+
+  # Cascade Router
+  - job_name: 'cascade-router'
+    static_configs:
+      - targets: ['cascade:9090']
+        labels:
+          service: 'cascade-router'
+          component: 'routing'
+
+  # Privacy Suite
+  - job_name: 'privacy-suite'
+    static_configs:
+      - targets: ['privacy:3001']
+        labels:
+          service: 'privacy-suite'
+          component: 'privacy'
+
+  # SuperInstance
+  - job_name: 'superinstance'
+    static_configs:
+      - targets: ['superinstance:3002']
+        labels:
+          service: 'superinstance'
+          component: 'orchestration'
+
+  # Performance Optimizer
+  - job_name: 'performance-optimizer'
+    static_configs:
+      - targets: ['performance:9091']
+        labels:
+          service: 'performance-optimizer'
+          component: 'optimization'
+
+  # Security Audit
+  - job_name: 'security-audit'
+    static_configs:
+      - targets: ['security:3003']
+        labels:
+          service: 'security-audit'
+          component: 'security'
+
+  # ------------------------------------------------------------------------
+  # Infrastructure
+  # ------------------------------------------------------------------------
+
+  # PostgreSQL
+  - job_name: 'postgres'
+    static_configs:
+      - targets: ['postgres:5432']
+        labels:
+          service: 'postgres'
+          component: 'database'
+
+  # Redis
+  - job_name: 'redis'
+    static_configs:
+      - targets: ['redis:6379']
+        labels:
+          service: 'redis'
+          component: 'cache'
+
+  # ChromaDB
+  - job_name: 'chromadb'
+    static_configs:
+      - targets: ['chroma:8000']
+        labels:
+          service: 'chromadb'
+          component: 'vector-db'
+
+  # Ollama
+  - job_name: 'ollama'
+    static_configs:
+      - targets: ['ollama:11434']
+        labels:
+          service: 'ollama'
+          component: 'inference'
+
+  # ------------------------------------------------------------------------
+  # Prometheus itself
+  # ------------------------------------------------------------------------
+  - job_name: 'prometheus'
+    static_configs:
+      - targets: ['localhost:9090']

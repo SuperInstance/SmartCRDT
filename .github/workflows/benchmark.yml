@@ -1,0 +1,236 @@
+name: Performance Benchmark
+
+on:
+  push:
+    branches: [main, develop]
+  pull_request:
+    branches: [main, develop]
+  schedule:
+    # Run benchmarks weekly on Sundays at 2 AM UTC
+    - cron: '0 2 * * 0'
+
+env:
+  NODE_VERSION: '20'
+  CACHE_VERSION: 'v1'
+
+jobs:
+  benchmark:
+    name: Performance Benchmark
+    runs-on: ubuntu-latest
+    needs: [install]
+    if: github.event_name != 'schedule' || github.repository_owner == github.actor
+
+    steps:
+    - name: Checkout repository
+      uses: actions/checkout@v4
+
+    - name: Setup Node.js
+      uses: actions/setup-node@v4
+      with:
+        node-version: ${{ env.NODE_VERSION }}
+        cache: 'npm'
+
+    - name: Restore node_modules
+      uses: actions/cache/restore@v4
+      with:
+        path: |
+          node_modules
+          packages/*/node_modules
+        key: ${{ runner.os }}-node-${{ hashFiles('**/package-lock.json') }}-${{ env.CACHE_VERSION }}
+
+    - name: Build TypeScript
+      run: npm run build:ts
+
+    - name: Build native modules
+      run: npm run build:native:release
+      continue-on-error: true
+      env:
+        CARGO_TERM_COLOR: always
+
+    - name: Run benchmarks
+      run: npm run bench
+      continue-on-error: true
+
+    - name: Upload benchmark results
+      uses: actions/upload-artifact@v4
+      if: always()
+      with:
+        name: benchmark-results-${{ github.run_number }}
+        path: |
+          benchmarks/results/*.json
+          docs/PERFORMANCE_REPORT.md
+        retention-days: 30
+
+    - name: Compare with baseline
+      if: github.event_name != 'schedule'
+      run: npm run bench:compare
+      continue-on-error: true
+
+    - name: Generate performance report
+      if: always()
+      run: npm run bench:report
+      continue-on-error: true
+
+    - name: Performance check
+      if: github.ref == 'refs/heads/main'
+      run: npm run bench:ci
+      env:
+        CI: true
+
+  benchmark-baseline:
+    name: Update Baseline
+    runs-on: ubuntu-latest
+    if: github.event_name == 'schedule'
+
+    steps:
+    - name: Checkout repository
+      uses: actions/checkout@v4
+
+    - name: Setup Node.js
+      uses: actions/setup-node@v4
+      with:
+        node-version: ${{ env.NODE_VERSION }}
+        cache: 'npm'
+
+    - name: Restore node_modules
+      uses: actions/cache/restore@v4
+      with:
+        path: |
+          node_modules
+          packages/*/node_modules
+        key: ${{ runner.os }}-node-${{ hashFiles('**/package-lock.json') }}-${{ env.CACHE_VERSION }}
+
+    - name: Build TypeScript
+      run: npm run build:ts
+
+    - name: Build native modules
+      run: npm run build:native:release
+      env:
+        CARGO_TERM_COLOR: always
+
+    - name: Run benchmarks
+      run: npm run bench -- --save-baseline
+
+    - name: Create timestamped baseline
+      run: |
+        cd packages/benchmarks
+        mkdir -p baseline/historical
+        TIMESTAMP=$(date -u +"%Y-%m-%dT%H:%M:%SZ")
+        cp latest-baseline.json baseline/historical/${TIMESTAMP}.json
+
+    - name: Create aggregated trend data
+      run: |
+        cd packages/benchmarks
+        python3 -c "
+        import json
+        import os
+        from datetime import datetime
+
+        # Aggregate all historical baselines
+        historical = []
+        for filename in os.listdir('baseline/historical'):
+            if filename.endswith('.json'):
+                filepath = os.path.join('baseline/historical', filename)
+                with open(filepath, 'r') as f:
+                    data = json.load(f)
+                    # Extract only essential metrics for trend analysis
+                    trend_data = {
+                        'timestamp': data['timestamp'],
+                        'metrics': {
+                            r['name']: {
+                                'mean': r['mean'],
+                                'p95': r['p95'],
+                                'throughput': r['throughput'],
+                                'memory': r['memoryUsage']
+                            }
+                            for r in data['results']
+                        }
+                    }
+                    historical.append(trend_data)
+
+        # Sort by timestamp
+        historical.sort(key=lambda x: x['timestamp'])
+
+        # Save trend data
+        with open('baseline/metrics/trend-data.json', 'w') as f:
+            json.dump(historical, f, indent=2)
+        "
+
+    - name: Commit and push baseline updates
+      run: |
+        git config --local user.email "action@github.com"
+        git config --local user.name "GitHub Action"
+        git add baseline/
+        git diff --staged --quiet || git commit -m "Update performance baselines [skip ci]"
+        git push
+      env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+  benchmark-dashboard:
+    name: Generate Dashboard Data
+    runs-on: ubuntu-latest
+    if: github.event_name == 'schedule'
+
+    steps:
+    - name: Checkout repository
+      uses: actions/checkout@v4
+
+    - name: Setup Node.js
+      uses: actions/setup-node@v4
+      with:
+        node-version: ${{ env.NODE_VERSION }}
+        cache: 'npm'
+
+    - name: Restore node_modules
+      uses: actions/cache/restore@v4
+      with:
+        path: |
+          node_modules
+          packages/*/node_modules
+        key: ${{ runner.os }}-node-${{ hashFiles('**/package-lock.json') }}-${{ env.CACHE_VERSION }}
+
+    - name: Generate dashboard data
+      run: |
+        cd packages/benchmarks
+        npm install
+
+        # Generate Grafana-compatible data
+        python3 -c "
+        import json
+        import os
+        import glob
+
+        # Prepare data for Grafana dashboard
+        grafana_data = []
+
+        # Process recent runs
+        for artifact_dir in sorted(glob.glob('/tmp/artifacts/benchmark-results-*'), reverse=True)[:10]:
+            if os.path.exists(os.path.join(artifact_dir, 'benchmark-results.json')):
+                with open(os.path.join(artifact_dir, 'benchmark-results.json'), 'r') as f:
+                    data = json.load(f)
+
+                # Convert to time series format
+                for result in data.get('results', []):
+                    grafana_data.append({
+                        'timestamp': data['timestamp'],
+                        'benchmark': result['name'],
+                        'mean': result['mean'],
+                        'p95': result['p95'],
+                        'p99': result['p99'],
+                        'throughput': result['throughput'],
+                        'memory': result['memoryUsage']
+                    })
+
+        # Save as CSV for easy import
+        with open('/tmp/grafana-data.csv', 'w') as f:
+            f.write('timestamp,benchmark,mean,p95,p99,throughput,memory\\n')
+            for entry in grafana_data:
+                f.write(f'{entry[\"timestamp\"]},{entry[\"benchmark\"]},{entry[\"mean\"]},{entry[\"p95\"]},{entry[\"p99\"]},{entry[\"throughput\"]},{entry[\"memory\"]}\\n')
+        "
+
+    - name: Upload dashboard data
+      uses: actions/upload-artifact@v4
+      with:
+        name: grafana-metrics
+        path: /tmp/grafana-data.csv
+        retention-days: 90

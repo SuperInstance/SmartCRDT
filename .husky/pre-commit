@@ -1,0 +1,37 @@
+#!/bin/sh
+. "$(dirname "$0")/_/husky.sh"
+
+echo "Running pre-commit hooks..."
+
+# Run TypeScript type check
+echo "TypeScript type check..."
+npm run build -- --noEmit
+TYPECHECK_STATUS=$?
+
+if [ $TYPECHECK_STATUS -ne 0 ]; then
+  echo "TypeScript type check failed. Commit aborted."
+  exit 1
+fi
+
+# Run linter
+echo "Running linter..."
+npm run lint
+LINT_STATUS=$?
+
+if [ $LINT_STATUS -ne 0 ]; then
+  echo "Linting failed. Commit aborted."
+  echo "Run 'npm run lint' to see errors and fix them."
+  exit 1
+fi
+
+# Run formatter check
+echo "Checking code formatting..."
+npx prettier --check "**/*.ts" 2>/dev/null || true
+FORMAT_STATUS=$?
+
+if [ $FORMAT_STATUS -ne 0 ]; then
+  echo "Code formatting check failed. Run 'npm run format' to fix."
+  exit 1
+fi
+
+echo "Pre-commit checks passed!"

@@ -1,0 +1,389 @@
+name: Release
+
+on:
+  push:
+    tags:
+      - 'v*.*.*'
+  workflow_dispatch:
+    inputs:
+      version:
+        description: 'Version to release (e.g., v2.1.0)'
+        required: true
+        type: string
+
+permissions:
+  contents: write
+  id-token: write
+
+env:
+  NODE_VERSION: '20'
+  NPM_REGISTRY: 'https://registry.npmjs.org'
+  GIT_USER: 'github-actions[bot]'
+  GIT_EMAIL: 'github-actions[bot]@users.noreply.github.com'
+
+jobs:
+  # Pre-release validation
+  validate:
+    name: Validate Release
+    runs-on: ubuntu-latest
+    outputs:
+      version: ${{ steps.get_version.outputs.version }}
+      should_publish: ${{ steps.check.outputs.should_publish }}
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+          token: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: 'npm'
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Get version from tag or input
+        id: get_version
+        run: |
+          if [[ "${{ github.event_name }}" == "workflow_dispatch" ]]; then
+            VERSION="${{ github.event.inputs.version }}"
+          else
+            VERSION="${GITHUB_REF#refs/tags/}"
+          fi
+          echo "version=${VERSION}" >> $GITHUB_OUTPUT
+          echo "version=${VERSION}" >> $GITHUB_ENV
+
+      - name: Validate version format
+        run: |
+          VERSION="${{ steps.get_version.outputs.version }}"
+          if [[ ! "$VERSION" =~ ^v[0-9]+\.[0-9]+\.[0-9]+(-[a-zA-Z0-9.]+)?$ ]]; then
+            echo "Error: Invalid version format. Expected: v1.2.3 or v1.2.3-alpha.1"
+            exit 1
+          fi
+          echo "Version validated: ${VERSION}"
+
+      - name: Check if this is a pre-release
+        id: check
+        run: |
+          VERSION="${{ steps.get_version.outputs.version }}"
+          if [[ "$VERSION" =~ -[a-zA-Z] ]]; then
+            echo "should_publish=false" >> $GITHUB_OUTPUT
+            echo "This is a pre-release version - skipping npm publish"
+          else
+            echo "should_publish=true" >> $GITHUB_OUTPUT
+            echo "This is a stable release - will publish to npm"
+          fi
+
+      - name: Verify all tests pass
+        run: |
+          npm run build
+          npm test
+
+      - name: Verify package versions
+        run: |
+          VERSION="${{ steps.get_version.outputs.version }}"
+          VERSION_NUMBER="${VERSION#v}"
+
+          echo "Checking package versions..."
+
+          # Check root package.json
+          ROOT_VERSION=$(node -p "require('./package.json').version")
+          if [[ "$ROOT_VERSION" != "$VERSION_NUMBER" ]]; then
+            echo "Error: Root package.json version ($ROOT_VERSION) does not match tag ($VERSION_NUMBER)"
+            exit 1
+          fi
+
+          # Check workspace packages
+          for pkg_file in packages/*/package.json; do
+            if [[ -f "$pkg_file" ]]; then
+              PKG_VERSION=$(node -p "require('${pkg_file}').version" 2>/dev/null || echo '')
+              if [[ -n "$PKG_VERSION" ]]; then
+                echo "  - $(dirname $pkg_file): $PKG_VERSION"
+              fi
+            fi
+          done
+
+  # Run full test suite
+  test:
+    name: Full Test Suite
+    runs-on: ubuntu-latest
+    needs: validate
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: 'npm'
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Build packages
+        run: npm run build
+
+      - name: Run all tests
+        run: npm test
+
+      - name: Run property-based tests
+        run: npm run test:property || true
+
+  # Build packages for release
+  build:
+    name: Build for Release
+    runs-on: ubuntu-latest
+    needs: [validate, test]
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: 'npm'
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Clean previous builds
+        run: npm run clean
+
+      - name: Build all packages
+        run: npm run build
+
+      - name: Verify build outputs
+        run: |
+          echo "Verifying build outputs..."
+          for pkg in packages/*/; do
+            if [[ -d "${pkg}dist" ]] && [[ -f "${pkg}dist/package.json" ]]; then
+              echo "✓ ${pkg}dist/package.json exists"
+            elif [[ -d "${pkg}dist" ]]; then
+              echo "✓ ${pkg}dist/ exists"
+            else
+              echo "⚠ ${pkg}dist/ not found (may be optional)"
+            fi
+          done
+
+      - name: Upload build artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: release-build
+          path: |
+            packages/*/dist
+            dist
+          retention-days: 30
+
+  # Generate changelog
+  changelog:
+    name: Generate Changelog
+    runs-on: ubuntu-latest
+    needs: validate
+    outputs:
+      changelog_file: ${{ steps.generate.outputs.file }}
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+
+      - name: Generate changelog
+        id: generate
+        run: |
+          VERSION="${{ needs.validate.outputs.version }}"
+          PREV_TAG=$(git describe --tags --abbrev=0 HEAD^ 2>/dev/null || echo "")
+
+          mkdir -p release-notes
+
+          if [[ -n "$PREV_TAG" ]]; then
+            echo "# Release Notes for ${VERSION}" > release-notes/CHANGELOG.md
+            echo "" >> release-notes/CHANGELOG.md
+            echo "## Changes since ${PREV_TAG}" >> release-notes/CHANGELOG.md
+            echo "" >> release-notes/CHANGELOG.md
+
+            git log ${PREV_TAG}..HEAD --pretty=format:"- %s (%h)" >> release-notes/CHANGELOG.md
+
+            echo "" >> release-notes/CHANGELOG.md
+            echo "## Contributors" >> release-notes/CHANGELOG.md
+            echo "" >> release-notes/CHANGELOG.md
+            git log ${PREV_TAG}..HEAD --pretty=format:"- %an" | sort -u >> release-notes/CHANGELOG.md
+          else
+            echo "# Release Notes for ${VERSION}" > release-notes/CHANGELOG.md
+            echo "" >> release-notes/CHANGELOG.md
+            echo "Initial release." >> release-notes/CHANGELOG.md
+          fi
+
+          echo "file=release-notes/CHANGELOG.md" >> $GITHUB_OUTPUT
+
+      - name: Upload changelog
+        uses: actions/upload-artifact@v4
+        with:
+          name: changelog
+          path: release-notes/
+          retention-days: 90
+
+      - name: Display changelog
+        run: cat release-notes/CHANGELOG.md
+
+  # Publish to npm
+  publish:
+    name: Publish to npm
+    runs-on: ubuntu-latest
+    needs: [validate, build, changelog]
+    if: needs.validate.outputs.should_publish == 'true'
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          registry-url: ${{ env.NPM_REGISTRY }}
+          cache: 'npm'
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Download build artifacts
+        uses: actions/download-artifact@v4
+        with:
+          name: release-build
+
+      - name: Download changelog
+        uses: actions/download-artifact@v4
+        with:
+          name: changelog
+
+      - name: Check npm authentication
+        run: |
+          if [[ -z "${{ secrets.NPM_TOKEN }}" ]]; then
+            echo "Warning: NPM_TOKEN not set. Will perform dry-run."
+            echo "DRY_RUN=true" >> $GITHUB_ENV
+          else
+            echo "DRY_RUN=false" >> $GITHUB_ENV
+          fi
+
+      - name: Configure npm
+        run: |
+          npm config set registry ${{ env.NPM_REGISTRY }}
+          if [[ "${DRY_RUN}" != "true" ]]; then
+            npm config set //registry.npmjs.org/:_authToken ${{ secrets.NPM_TOKEN }}
+          fi
+          npm whoami
+
+      - name: Publish workspace packages
+        env:
+          NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
+        run: |
+          VERSION="${{ needs.validate.outputs.version }}"
+
+          for pkg_dir in packages/*/; do
+            pkg_name=$(node -p "require('${pkg_dir}package.json').name" 2>/dev/null || echo '')
+            pkg_private=$(node -p "require('${pkg_dir}package.json').private || false" 2>/dev/null || echo 'false')
+
+            if [[ -n "$pkg_name" ]] && [[ "$pkg_private" != "true" ]]; then
+              echo "Publishing ${pkg_name}..."
+              cd "${pkg_dir}"
+
+              if [[ "${DRY_RUN}" == "true" ]]; then
+                npm publish --dry-run --access public
+              else
+                npm publish --access public --tag latest
+              fi
+
+              cd -
+            fi
+          done
+
+      - name: Verify published packages
+        if: env.DRY_RUN != 'true'
+        run: |
+          echo "Verifying published packages..."
+          for pkg_dir in packages/*/; do
+            pkg_name=$(node -p "require('${pkg_dir}package.json').name" 2>/dev/null || echo '')
+            pkg_private=$(node -p "require('${pkg_dir}package.json').private || false" 2>/dev/null || echo 'false')
+
+            if [[ -n "$pkg_name" ]] && [[ "$pkg_private" != "true" ]]; then
+              VERSION="${{ needs.validate.outputs.version }}"
+              npm view ${pkg_name}@${VERSION} > /dev/null && echo "✓ ${pkg_name}@${VERSION} is published" || echo "✗ Failed to verify ${pkg_name}@${VERSION}"
+            fi
+          done
+
+  # Create GitHub release
+  github-release:
+    name: Create GitHub Release
+    runs-on: ubuntu-latest
+    needs: [validate, build, changelog, publish]
+    permissions:
+      contents: write
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Download changelog
+        uses: actions/download-artifact@v4
+        with:
+          name: changelog
+
+      - name: Download build artifacts
+        uses: actions/download-artifact@v4
+        with:
+          name: release-build
+          path: release-artifacts
+
+      - name: Create release archive
+        run: |
+          cd release-artifacts
+          tar -czf ../release-${{ needs.validate.outputs.version }}.tar.gz .
+          cd ..
+
+      - name: Create GitHub Release
+        uses: softprops/action-gh-release@v1
+        with:
+          tag_name: ${{ needs.validate.outputs.version }}
+          name: Release ${{ needs.validate.outputs.version }}
+          body_path: release-notes/CHANGELOG.md
+          files: |
+            release-${{ needs.validate.outputs.version }}.tar.gz
+          draft: false
+          prerelease: ${{ contains(needs.validate.outputs.version, '-') }}
+          generate_release_notes: true
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+  # Post-release notifications
+  notify:
+    name: Post-Release Notification
+    runs-on: ubuntu-latest
+    needs: [validate, publish, github-release]
+    if: always()
+    steps:
+      - name: Release summary
+        run: |
+          echo "## Release Summary 🚀" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "**Version:** ${{ needs.validate.outputs.version }}" >> $GITHUB_STEP_SUMMARY
+          echo "**Published:** ${{ needs.publish.result == 'success' && 'Yes' || 'No (dry-run)' }}" >> $GITHUB_STEP_SUMMARY
+          echo "**GitHub Release:** ${{ needs.github-release.result == 'success' && 'Created' || 'Failed' }}" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "### Next Steps" >> $GITHUB_STEP_SUMMARY
+          echo "1. Verify the release on npm and GitHub" >> $GITHUB_STEP_SUMMARY
+          echo "2. Update documentation if needed" >> $GITHUB_STEP_SUMMARY
+          echo "3. Announce the release to users" >> $GITHUB_STEP_SUMMARY
+
+      - name: Notify on failure
+        if: failure()
+        run: |
+          echo "❌ Release failed for version ${{ needs.validate.outputs.version }}" >> $GITHUB_STEP_SUMMARY
+          echo "Please check the logs and retry if necessary." >> $GITHUB_STEP_SUMMARY

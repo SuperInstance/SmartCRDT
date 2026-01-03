@@ -1,0 +1,65 @@
+# Development Dockerfile for LSI Ecosystem
+# This creates a development environment with hot reload and debugging tools
+
+FROM node:20-alpine
+
+# Install development dependencies
+RUN apk add --no-cache \
+    git \
+    python3 \
+    make \
+    g++ \
+    cairo-dev \
+    jpeg-dev \
+    pango-dev \
+    musl-dev \
+    giflib-dev \
+    pixman-dev \
+    pangomm-dev \
+    libjpeg-turbo-dev \
+    freetype-dev \
+    bash \
+    curl \
+    vim \
+    tini
+
+# Create app user
+RUN addgroup -g 1001 -S nodejs && \
+    adduser -S lsi -u 1001 && \
+    mkdir -p /app /home/lsi/.npm-global && \
+    chown -R lsi:nodejs /app /home/lsi
+
+WORKDIR /app
+
+# Set environment for development
+ENV NODE_ENV=development
+ENV PATH=/home/lsi/.npm-global/bin:$PATH
+ENV NPM_CONFIG_PREFIX=/home/lsi/.npm-global
+
+# Install all dependencies (including devDependencies)
+COPY package.json package-lock.json ./
+COPY packages packages/
+
+RUN npm ci && \
+    npm cache clean --force
+
+# Copy source code for volume mounting
+COPY --chown=lsi:nodejs packages packages/
+COPY --chown=lsi:nodejs tsconfig*.json ./
+
+# Build initial version
+RUN npm run build
+
+# Switch to app user
+USER lsi
+
+# Expose development ports
+# 3000: Main server/API
+# 9229: Node.js debugger
+EXPOSE 3000 8001 9229
+
+# Use tini for proper signal handling
+ENTRYPOINT ["/sbin/tini", "--"]
+
+# Default development command
+CMD ["npm", "run", "watch"]

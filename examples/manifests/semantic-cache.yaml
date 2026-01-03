@@ -1,0 +1,83 @@
+apiVersion: "v1"
+kind: "Component"
+
+metadata:
+  name: semantic-cache
+  version: 1.0.0
+  description: High-hit-rate semantic caching with vector similarity search
+  author: SuperInstance
+  license: Apache-2.0
+  tags: [cache, semantic, performance, vectors]
+
+type: cache
+language: typescript
+runtime: nodejs
+
+dependencies:
+  protocol: ">=1.0.0"
+  components:
+    embeddings: "^1.0.0"
+  npm:
+    zod: "^3.22.0"
+
+configuration:
+  properties:
+    cache_size:
+      type: string
+      default: "100MB"
+      description: Maximum cache size
+      pattern: "^[0-9]+(KB|MB|GB)$"
+
+    similarity_threshold:
+      type: number
+      default: 0.9
+      description: Minimum similarity for cache hit
+      minimum: 0.0
+      maximum: 1.0
+
+    ttl_seconds:
+      type: integer
+      default: 3600
+      description: Time-to-live for cache entries in seconds
+      minimum: 0
+
+    max_entries:
+      type: integer
+      default: 10000
+      description: Maximum number of cache entries
+      minimum: 1
+
+    eviction_policy:
+      type: string
+      default: "lru"
+      description: Cache eviction policy
+      enum: ["lru", "lfu", "fifo"]
+
+  required: ["cache_size"]
+  additionalProperties: false
+
+hardware:
+  min_memory_mb: 100
+  recommended_memory_mb: 200
+  gpu_required: false
+  gpu_optional: true
+
+performance:
+  benchmark_qps: 5000
+  latency_p50_ms: 2
+  latency_p95_ms: 10
+  cache_hit_rate: 0.8
+
+interface:
+  main: ./dist/index.js
+  exports:
+    - SemanticCache
+    - CacheEntry
+  imports:
+    - IEmbeddingService
+  protocol: ICache
+
+tests:
+  framework: vitest
+  command: npm test
+  coverage_threshold: 75

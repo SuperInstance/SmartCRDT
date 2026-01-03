@@ -1,0 +1,114 @@
+{
+  "metadata": {
+    "epoch": 2,
+    "metrics": {
+      "epoch": 1,
+      "batch": 100,
+      "loss": {
+        "training": 0.5,
+        "validation": 0.6
+      },
+      "accuracy": {
+        "top1": 0.85
+      },
+      "latency": {
+        "forward": 50,
+        "backward": 30,
+        "total": 80
+      },
+      "memory": {
+        "gpu": 2000,
+        "cpu": 500,
+        "peak": 2500
+      },
+      "throughput": 100,
+      "learning": {
+        "gradientNorm": 1,
+        "learningRate": 0.001
+      },
+      "timestamp": 1767312004352
+    },
+    "modelConfig": {
+      "type": "vl-jepa",
+      "architecture": {
+        "embeddingDim": 768,
+        "numLayers": 12,
+        "numAttentionHeads": 12,
+        "hiddenDim": 3072,
+        "dropout": 0.1,
+        "activation": "gelu"
+      },
+      "visionEncoder": {
+        "patchSize": 16,
+        "numPatches": 196,
+        "positionEmbedding": true
+      },
+      "languageEncoder": {
+        "vocabSize": 50000,
+        "maxLength": 512,
+        "positionEmbedding": true
+      },
+      "predictor": {
+        "numLayers": 6,
+        "hiddenDim": 1536,
+        "predictionDepth": 6
+      },
+      "initialization": {
+        "type": "kaiming"
+      }
+    },
+    "trainingConfig": {
+      "epochs": 100,
+      "contextWindow": 8,
+      "maskingRatio": 0.9,
+      "worldModelWeight": 1,
+      "predictionWeight": 1,
+      "curriculumLearning": false,
+      "learningRate": 0.001,
+      "batchSize": 32,
+      "optimizer": {
+        "type": "adamw",
+        "learningRate": 0.001,
+        "weightDecay": 0.01,
+        "beta1": 0.9,
+        "beta2": 0.999,
+        "epsilon": 1e-8
+      },
+      "lrSchedule": {
+        "type": "warmup_cosine",
+        "totalEpochs": 100
+      },
+      "gradientClipping": {
+        "enabled": true,
+        "maxNorm": 1,
+        "algorithm": "norm"
+      },
+      "loss": {
+        "type": "combined",
+        "weights": {
+          "worldModel": 1,
+          "prediction": 1
+        }
+      },
+      "mixedPrecision": {
+        "enabled": false,
+        "dtype": "float16"
+      },
+      "distributed": {
+        "enabled": false,
+        "backend": "nccl",
+        "worldSize": 1
+      },
+      "validation": {
+        "frequency": 1
+      }
+    },
+    "timestamp": 1767312004352,
+    "configHash": "c942c921105f3dc2",
+    "checkpointType": "epoch"
+  },
+  "modelState": {},
+  "randomStates": {
+    "python": 0.06585968575500645
+  }
+}

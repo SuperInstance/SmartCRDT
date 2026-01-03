@@ -1,0 +1,94 @@
+# Dependabot Configuration File
+# See: https://docs.github.com/en/code-security/dependabot/dependabot-version-updates/configuration-options-for-the-dependabot.yml-file
+
+version: 2
+updates:
+  # NPM dependencies
+  - package-ecosystem: "npm"
+    directory: "/"
+    schedule:
+      interval: "weekly"
+      day: "monday"
+      time: "09:00"
+      timezone: "UTC"
+    open-pull-requests-limit: 10
+    pull-request-branch-name:
+      separator: "-"
+    commit-message:
+      prefix: "deps"
+      prefix-development: "build"
+      include: "scope"
+    labels:
+      - "dependencies"
+      - "javascript"
+    versioning-strategy: "increase-if-necessary"
+    allow:
+      - dependency-type: "production"
+      - dependency-type: "development"
+    ignore:
+      # Ignore major updates for certain packages
+      - dependency-name: "typescript"
+        update-types: ["version-update:semver-major"]
+      - dependency-name: "@types/node"
+        update-types: ["version-update:semver-major"]
+    groups:
+      # Group TypeScript-related updates
+      typescript:
+        patterns:
+          - "typescript"
+          - "@types/*"
+        exclude-patterns:
+          - "@types/node"
+      # Group ESLint-related updates
+      eslint:
+        patterns:
+          - "eslint*"
+          - "@typescript-eslint/*"
+      # Group testing dependencies
+      testing:
+        patterns:
+          - "vitest"
+          - "@vitest/*"
+
+  # Docker dependencies
+  - package-ecosystem: "docker"
+    directory: "/"
+    schedule:
+      interval: "weekly"
+    labels:
+      - "dependencies"
+      - "docker"
+
+  # GitHub Actions
+  - package-ecosystem: "github-actions"
+    directory: "/"
+    schedule:
+      interval: "weekly"
+    labels:
+      - "dependencies"
+      - "github-actions"
+    commit-message:
+      prefix: "ci"
+      prefix-development: "ci"
+
+# Separate configuration for production dependencies
+# (Optional - for more granular control)
+# - package-ecosystem: "npm"
+#   directory: "/"
+#   schedule:
+#     interval: "daily"
+#     time: "06:00"
+#   target-branch: "main"
+#   allow:
+#     - dependency-type: "production"
+#   labels:
+#     - "dependencies"
+#     - "production"
+#     - "auto-merge"
+#   automerge: true
+#   automerge-type: "branch"
+#   merge-method: "squash"
+#   # Require approval for major version updates
+#   ignore:
+#     - dependency-name: "*"
+#       update-types: ["version-update:semver-major"]

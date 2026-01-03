@@ -1,0 +1,42 @@
+[package]
+name = "superinstance-native-embeddings"
+version.workspace = true
+edition.workspace = true
+authors.workspace = true
+license.workspace = true
+repository.workspace = true
+rust-version.workspace = true
+
+description = "Vector operations and similarity search for SuperInstance"
+
+[dependencies]
+superinstance-native-core = { path = "../core" }
+
+ndarray.workspace = true
+serde.workspace = true
+serde_json.workspace = true
+tokio.workspace = true
+tracing.workspace = true
+thiserror.workspace = true
+rayon = "1.8"
+fastrand.workspace = true
+
+# Optional FAISS for approximate nearest neighbor
+# Note: Temporarily disabled due to workspace dependency restrictions
+# faiss = { workspace = true, optional = true }
+
+[features]
+default = []
+# faiss-backend = ["faiss"]
+
+[dev-dependencies]
+criterion.workspace = true
+proptest.workspace = true
+
+[[bench]]
+name = "quantization"
+harness = false
+
+# [[bench]]
+# name = "similarity"
+# harness = false

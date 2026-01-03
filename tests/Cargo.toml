@@ -1,0 +1,58 @@
+[package]
+name = "integration-tests"
+version = "0.1.0"
+edition = "2021"
+publish = false
+
+[lib]
+name = "integration_tests"
+path = "common/mod.rs"
+
+[[test]]
+name = "integration_test"
+path = "integration_test.rs"
+
+[dependencies]
+# Core dependencies
+tokio = { version = "1.35", features = ["full", "test-util"] }
+serde = { version = "1.0", features = ["derive"] }
+serde_json = "1.0"
+thiserror = "1.0"
+log = "0.4"
+tracing = "0.1"
+tracing-subscriber = { version = "0.3", features = ["env-filter"] }
+futures = "0.3"
+bytes = "1.5"
+chrono = { version = "0.4", features = ["serde"] }
+uuid = { version = "1.6", features = ["v4", "serde"] }
+rand = "0.8"
+
+# Workspace dependencies
+smartcrt-core = { path = "../packages/core" }
+activelog = { path = "../packages/activelog" }
+archival = { path = "../packages/archival" }
+swarm = { path = "../packages/swarm" }
+modules = { path = "../packages/modules" }
+training = { path = "../packages/training" }
+embeddings = { path = "../packages/embeddings" }
+
+[dev-dependencies]
+tokio-test = "0.4"
+env_logger = "0.11"
+criterion = "0.5"
+tempfile = "3.8"
+rstest = "0.18"
+pretty_assertions = "1.4"
+proptest = "1.4"
+
+[features]
+default = []
+all-tests = []
+stress-tests = []
+ci-run = []
+
+[profile.dev]
+opt-level = 0
+
+[profile.test]
+opt-level = 1

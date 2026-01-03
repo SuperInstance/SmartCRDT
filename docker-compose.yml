@@ -1,0 +1,153 @@
+# Docker Compose for LSI Ecosystem - Local Development
+# This configuration is for development and testing purposes
+
+version: '3.9'
+
+services:
+  # ========================================================================
+  # LSI Main Service
+  # ========================================================================
+  lsi:
+    build:
+      context: .
+      dockerfile: Dockerfile.dev
+    container_name: lsi-dev
+    ports:
+      - "3000:3000"
+      - "9229:9229"
+    environment:
+      - NODE_ENV=development
+      - LSI_LOG_LEVEL=debug
+      - ZHIPU_API_KEY=${ZHIPU_API_KEY:-}
+      - OPENAI_API_KEY=${OPENAI_API_KEY:-}
+      - ANTHROPIC_API_KEY=${ANTHROPIC_API_KEY:-}
+      - VECTOR_DB_TYPE=memory
+      - LSI_DATA_PATH=/app/data
+    volumes:
+      # Mount source code for hot reload
+      - ./packages:/app/packages:rw
+      - ./package.json:/app/package.json:ro
+      - ./package-lock.json:/app/package-lock.json:ro
+      - ./tsconfig.json:/app/tsconfig.json:ro
+      - ./data:/app/data:rw
+      - ./cartridges:/app/cartridges:rw
+      # Prevent node_modules from being overwritten
+      - /app/node_modules
+      - /app/packages/*/node_modules
+    networks:
+      - lsi-network
+    restart: unless-stopped
+    stdin_open: true
+    tty: true
+
+  # ========================================================================
+  # PostgreSQL Database (optional)
+  # ========================================================================
+  postgres:
+    image: postgres:15-alpine
+    container_name: lsi-postgres
+    environment:
+      - POSTGRES_USER=lsi
+      - POSTGRES_PASSWORD=lsi_dev
+      - POSTGRES_DB=lsi_db
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    networks:
+      - lsi-network
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U lsi"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  # ========================================================================
+  # Redis Cache (optional)
+  # ========================================================================
+  redis:
+    image: redis:7-alpine
+    container_name: lsi-redis
+    ports:
+      - "6379:6379"
+    volumes:
+      - redis_data:/data
+    networks:
+      - lsi-network
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 10s
+      timeout: 3s
+      retries: 5
+    command: redis-server --appendonly yes
+
+  # ========================================================================
+  # Chroma Vector Database (optional)
+  # ========================================================================
+  chroma:
+    image: chromadb/chroma:latest
+    container_name: lsi-chroma
+    ports:
+      - "8000:8000"
+    volumes:
+      - chroma_data:/chroma/chroma
+    environment:
+      - CHROMA_SERVER_AUTH_CREDENTIALS_FILE=/chroma/auth.toml
+      - CHROMA_SERVER_AUTH_PROVIDER=chromadb.auth.token.TokenAuthServerProvider
+      - CHROMA_SERVER_AUTH_CREDENTIALS=
+      - ANONYMIZED_TELEMETRY=False
+    networks:
+      - lsi-network
+    restart: unless-stopped
+
+  # ========================================================================
+  # Adminer (Database Management UI)
+  # ========================================================================
+  adminer:
+    image: adminer:latest
+    container_name: lsi-adminer
+    ports:
+      - "8080:8080"
+    networks:
+      - lsi-network
+    restart: unless-stopped
+    environment:
+      - ADMINER_DEFAULT_SERVER=postgres
+
+  # ========================================================================
+  # Ollama (Local LLM - optional)
+  # ========================================================================
+  ollama:
+    image: ollama/ollama:latest
+    container_name: lsi-ollama
+    ports:
+      - "11434:11434"
+    volumes:
+      - ollama_data:/root/.ollama
+    networks:
+      - lsi-network
+    restart: unless-stopped
+    # GPU support requires nvidia-container-runtime
+    # deploy:
+    #   resources:
+    #     reservations:
+    #       devices:
+    #         - driver: nvidia
+    #           count: 1
+    #           capabilities: [gpu]
+
+networks:
+  lsi-network:
+    driver: bridge
+
+volumes:
+  postgres_data:
+    driver: local
+  redis_data:
+    driver: local
+  chroma_data:
+    driver: local
+  ollama_data:
+    driver: local

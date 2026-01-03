@@ -1,0 +1,27 @@
+[package]
+name = "superinstance-python"
+version = "0.1.0"
+edition = "2021"
+authors = ["SuperInstance Contributors"]
+license = "MIT"
+
+[lib]
+name = "superinstance"
+crate-type = ["cdylib"]
+
+[dependencies]
+# PyO3 for Python bindings
+pyo3 = { version = "0.20", features = ["extension-module"] }
+
+# Internal dependencies (use hyphens in Cargo.toml)
+superinstance-native-core = { path = "../core" }
+superinstance-native-embeddings = { path = "../embeddings" }
+superinstance-native-crdt = { path = "../crdt" }
+superinstance-native-crypto = { path = "../crypto" }
+superinstance-native-ffi = { path = "../ffi" }
+
+# Serialization
+serde_json = "1.0"
+
+[features]
+default = ["pyo3/extension-module"]

@@ -1,0 +1,71 @@
+# Pre-commit configuration (for hybrid projects with Python/etc.)
+# For Node.js projects, we primarily use Husky
+# This file is for compatibility with other tools
+
+repos:
+  # General hooks
+  - repo: local
+    hooks:
+      - id: typescript-check
+        name: TypeScript Type Check
+        entry: npm run build -- --noEmit
+        language: system
+        pass_filenames: false
+        files: \.(ts|tsx)$
+
+      - id: eslint
+        name: ESLint
+        entry: npm run lint --
+        language: system
+        pass_filenames: true
+        files: \.(ts|tsx|js|jsx)$
+
+      - id: prettier
+        name: Prettier
+        entry: npx prettier --write
+        language: system
+        pass_filenames: true
+        files: \.(ts|tsx|js|jsx|json|md|yml|yaml)$
+
+      - id: check-json
+        name: Check JSON files
+        entry: npx prettier --check
+        language: system
+        pass_filenames: true
+        files: \.json$
+
+      - id: check-yaml
+        name: Check YAML files
+        entry: npx prettier --check
+        language: system
+        pass_filenames: true
+        files: \.(yml|yaml)$
+
+      # Check for large files
+      - id: check-added-large-files
+        name: Check for large files
+        entry: check-added-large-files
+        language: system
+        args: ['--maxkb=1000']
+
+      # Check for merge conflict markers
+      - id: check-merge-conflict
+        name: Check for merge conflicts
+        entry: check-merge-conflict
+        language: system
+
+# Default ignore patterns
+default_stages: [pre-commit]
+exclude: |
+  (?x)^(
+    node_modules/|
+    \.git/|
+    dist/|
+    build/|
+    coverage/|
+    \.next/|
+    \.turbo/|
+    \.vscode/|
+    \.idea/|
+    .*\.min\.(js|css)$
+  )

@@ -1,0 +1,29 @@
+[package]
+name = "superinstance-native-crdt"
+version.workspace = true
+edition.workspace = true
+authors.workspace = true
+license.workspace = true
+repository.workspace = true
+rust-version.workspace = true
+
+description = "CRDT implementations for distributed knowledge storage"
+
+[dependencies]
+superinstance-native-core = { path = "../core" }
+
+serde.workspace = true
+serde_json.workspace = true
+bincode = "1.3"
+thiserror.workspace = true
+tracing.workspace = true
+tokio.workspace = true
+uuid = { version = "1.6", features = ["v4", "serde"] }
+
+[dev-dependencies]
+criterion.workspace = true
+proptest.workspace = true
+
+# [[bench]]
+# name = "crdt_ops"
+# harness = false

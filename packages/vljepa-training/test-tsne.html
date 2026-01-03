@@ -1,0 +1,95 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>Embedding Visualization</title>
+  <style>
+    body { font-family: Arial, sans-serif; margin: 20px; }
+    #container { position: relative; width: 800px; height: 600px; }
+    canvas { border: 1px solid #ccc; }
+    .tooltip {
+      position: absolute;
+      background: rgba(0,0,0,0.8);
+      color: white;
+      padding: 5px 10px;
+      border-radius: 4px;
+      pointer-events: none;
+      display: none;
+    }
+    .info { margin: 10px 0; }
+  </style>
+</head>
+<body>
+  <h1>Embedding Visualization (TSNE)</h1>
+  <div class="info">
+    <strong>Method:</strong> TSNE |
+    <strong>Samples:</strong> 50 |
+    
+  </div>
+  <div id="container">
+    <canvas id="canvas" width="800" height="600"></canvas>
+    <div id="tooltip" class="tooltip"></div>
+  </div>
+  <script>
+    const data = {"points":[[0.3460654147714194,0.20107825420663794],[0.3897849570940885,-0.068599789681491],[-0.348029586767373,0.1362002372389624],[0.27474093962696977,0.02398100694742683],[0.32906312151329875,0.11445281684258961],[0.114199545815696,0.21316782900427578],[0.3357227152234144,0.08472338697869661],[0.00020524715960126838,0.2871923837220379],[-0.09858721921119676,-0.21362078068981716],[-0.442777236242949,0.275585052203014],[0.27784093269535354,0.18002230707953668],[-0.5606055249318044,-0.1242823133246953],[0.2295502415560454,0.19072304754139507],[0.37862760769719933,0.12271141496054772],[0.43029714566925104,0.5073210674652466],[-0.15455279427384633,-0.10493512972905986],[-0.11224294715098912,-0.002614571046872405],[0.5101524657721583,0.5298677166208577],[-0.1620474424296643,-0.24603274163383482],[-0.06266523538188454,-0.3147394551226732],[-0.7519638036236953,-0.61023572883385],[0.24247491571472524,-0.5206581824367147],[-0.03206377274675126,0.28395486812580295],[-0.4762382337529136,-0.24373767694282794],[-0.3396544710731643,-0.5245610325322245],[-0.24988974592947424,-0.20338968155893444],[0.19602937524761915,-0.15329939210184668],[-0.29684895962756885,0.5647661116492497],[-0.32184953023660806,0.00958234179035336],[-0.2816094979956112,-0.3686236335033315],[0.2039123773062945,-0.5231755343312793],[-0.5409225390772856,-0.467630424775317],[-0.3070917217326296,0.26100740770558317],[0.7028455235209652,0.20732825845992747],[-0.20009055602529197,0.3572610766709212],[-0.012608120494285308,0.34789604174643096],[0.39068972607220803,-0.07677463743097199],[0.33473658236008913,0.5130400577694939],[-0.7342194488095437,-0.34357063420228096],[-0.17144540504909245,0.16066072336865003],[-0.00941988700988397,0.09756723329364],[-0.025731329537666922,-0.4722590520437411],[0.6839291022351023,0.17143531601036915],[0.3766583068243142,0.13919473846433195],[0.21983455018361814,0.6384861590330763],[-0.005601396659954017,0.35431611255807477],[0.3852281777806873,-0.12723826243620773],[-0.2547534107192031,0.08708545200339265],[-0.07412449790673974,-0.018872420380636967],[-0.3454809042897916,0.1823965055734152]],"labels":["Sample 0","Sample 1","Sample 2","Sample 3","Sample 4","Sample 5","Sample 6","Sample 7","Sample 8","Sample 9","Sample 10","Sample 11","Sample 12","Sample 13","Sample 14","Sample 15","Sample 16","Sample 17","Sample 18","Sample 19","Sample 20","Sample 21","Sample 22","Sample 23","Sample 24","Sample 25","Sample 26","Sample 27","Sample 28","Sample 29","Sample 30","Sample 31","Sample 32","Sample 33","Sample 34","Sample 35","Sample 36","Sample 37","Sample 38","Sample 39","Sample 40","Sample 41","Sample 42","Sample 43","Sample 44","Sample 45","Sample 46","Sample 47","Sample 48","Sample 49"]};
+    const canvas = document.getElementById('canvas');
+    const ctx = canvas.getContext('2d');
+    const tooltip = document.getElementById('tooltip');
+
+    // Find bounds
+    let minX = Infinity, maxX = -Infinity;
+    let minY = Infinity, maxY = -Infinity;
+    data.points.forEach(p => {
+      minX = Math.min(minX, p[0]);
+      maxX = Math.max(maxX, p[0]);
+      minY = Math.min(minY, p[1]);
+      maxY = Math.max(maxY, p[1]);
+    });
+
+    // Scale to canvas
+    const padding = 50;
+    const scaleX = (canvas.width - 2 * padding) / (maxX - minX);
+    const scaleY = (canvas.height - 2 * padding) / (maxY - minY);
+
+    function toCanvas(x, y) {
+      return [
+        padding + (x - minX) * scaleX,
+        canvas.height - padding - (y - minY) * scaleY
+      ];
+    }
+
+    // Draw points
+    const colors = ['#1f77b4', '#ff7f0e', '#2ca02c', '#d62728', '#9467bd'];
+    data.points.forEach((p, i) => {
+      const [cx, cy] = toCanvas(p[0], p[1]);
+      ctx.beginPath();
+      ctx.arc(cx, cy, 5, 0, 2 * Math.PI);
+      ctx.fillStyle = colors[i % colors.length];
+      ctx.fill();
+    });
+
+    // Hover tooltip
+    canvas.addEventListener('mousemove', (e) => {
+      const rect = canvas.getBoundingClientRect();
+      const mouseX = e.clientX - rect.left;
+      const mouseY = e.clientY - rect.top;
+
+      let found = false;
+      data.points.forEach((p, i) => {
+        const [cx, cy] = toCanvas(p[0], p[1]);
+        const dist = Math.sqrt((mouseX - cx) ** 2 + (mouseY - cy) ** 2);
+        if (dist < 10) {
+          tooltip.style.left = (e.clientX + 10) + 'px';
+          tooltip.style.top = (e.clientY + 10) + 'px';
+          tooltip.textContent = data.labels[i] || 'Point ' + i;
+          tooltip.style.display = 'block';
+          found = true;
+        }
+      });
+
+      if (!found) {
+        tooltip.style.display = 'none';
+      }
+    });
+  </script>
+</body>
+</html>

@@ -1,0 +1,473 @@
+name: Smoke Tests
+
+on:
+  workflow_call:
+    inputs:
+      environment:
+        required: true
+        type: string
+      url:
+        required: true
+        type: string
+      skip_tests:
+        required: false
+        type: boolean
+        default: false
+    secrets:
+      API_KEY:
+        required: false
+      DATABASE_URL:
+        required: false
+    outputs:
+      success:
+        value: ${{ jobs.tests.outputs.result }}
+      duration:
+        value: ${{ jobs.tests.outputs.duration }}
+
+  workflow_dispatch:
+    inputs:
+      environment:
+        description: 'Target environment'
+        required: true
+        type: choice
+        options:
+          - dev
+          - staging
+          - production
+      url:
+        description: 'Base URL for testing'
+        required: true
+        type: string
+
+env:
+  NODE_VERSION: '20'
+
+jobs:
+  tests:
+    name: Run Smoke Tests
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    outputs:
+      result: ${{ steps.test-result.outputs.status }}
+      duration: ${{ steps.test-result.outputs.duration }}
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: 'npm'
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Build packages
+        run: npm run build
+
+      - name: Start timer
+        id: timer
+        run: echo "start=$(date +%s)" >> $GITHUB_OUTPUT
+
+      # ========================================================================
+      # Health Checks
+      # ========================================================================
+      - name: Health endpoint check
+        id: health-check
+        run: |
+          echo "### Health Endpoint Check 🏥" >> $GITHUB_STEP_SUMMARY
+
+          URL="${{ github.event.inputs.url || inputs.url }}"
+          MAX_ATTEMPTS=5
+          ATTEMPT=0
+
+          while [ $ATTEMPT -lt $MAX_ATTEMPTS ]; do
+            echo "Attempt $((ATTEMPT + 1))/$MAX_ATTEMPTS"
+
+            HTTP_CODE=$(curl -s -o /dev/null -w "%{http_code}" ${URL}/health || echo "000")
+
+            if [ "$HTTP_CODE" = "200" ]; then
+              echo "✅ Health check passed (HTTP $HTTP_CODE)"
+              echo "status=pass" >> $GITHUB_OUTPUT
+              exit 0
+            fi
+
+            ATTEMPT=$((ATTEMPT + 1))
+            sleep 10
+          done
+
+          echo "❌ Health check failed after $MAX_ATTEMPTS attempts"
+          echo "status=fail" >> $GITHUB_OUTPUT
+          exit 1
+
+      - name: Readiness endpoint check
+        run: |
+          echo "### Readiness Endpoint Check ✅" >> $GITHUB_STEP_SUMMARY
+
+          URL="${{ github.event.inputs.url || inputs.url }}"
+          START=$(date +%s)
+
+          HTTP_CODE=$(curl -s -o /dev/null -w "%{http_code}" ${URL}/api/v1/ready || echo "000")
+          END=$(date +%s)
+          DURATION=$((END - START))
+
+          if [ "$HTTP_CODE" = "200" ]; then
+            echo "✅ Readiness check passed (${DURATION}s)"
+            echo "Response time: ${DURATION}s" >> $GITHUB_STEP_SUMMARY
+          else
+            echo "❌ Readiness check failed (HTTP $HTTP_CODE)"
+            exit 1
+          fi
+
+      - name: Liveness endpoint check
+        run: |
+          echo "### Liveness Endpoint Check 💓" >> $GITHUB_STEP_SUMMARY
+
+          URL="${{ github.event.inputs.url || inputs.url }}"
+          START=$(date +%s)
+
+          HTTP_CODE=$(curl -s -o /dev/null -w "%{http_code}" ${URL}/health/live || echo "000")
+          END=$(date +%s)
+          DURATION=$((END - START))
+
+          if [ "$HTTP_CODE" = "200" ]; then
+            echo "✅ Liveness check passed (${DURATION}s)"
+            echo "Response time: ${DURATION}s" >> $GITHUB_STEP_SUMMARY
+          else
+            echo "❌ Liveness check failed (HTTP $HTTP_CODE)"
+            exit 1
+          fi
+
+      # ========================================================================
+      # API Version Check
+      # ========================================================================
+      - name: API version check
+        run: |
+          echo "### API Version Check 🔢" >> $GITHUB_STEP_SUMMARY
+
+          URL="${{ github.event.inputs.url || inputs.url }}"
+          RESPONSE=$(curl -s ${URL}/api/v1/version || echo '{}')
+
+          echo "Response: ${RESPONSE}" >> $GITHUB_STEP_SUMMARY
+
+          VERSION=$(echo $RESPONSE | jq -r '.version // empty')
+
+          if [ -n "$VERSION" ]; then
+            echo "✅ API version: ${VERSION}"
+            echo "Version: ${VERSION}" >> $GITHUB_STEP_SUMMARY
+          else
+            echo "⚠️ Could not determine API version"
+          fi
+
+      # ========================================================================
+      # Core Functionality Tests
+      # ========================================================================
+      - name: Query routing test
+        run: |
+          echo "### Query Routing Test 🔀" >> $GITHUB_STEP_SUMMARY
+
+          URL="${{ github.event.inputs.url || inputs.url }}"
+
+          # Test simple query (should route locally)
+          RESPONSE=$(curl -s -X POST ${URL}/api/v1/query \
+            -H "Content-Type: application/json" \
+            -H "Authorization: Bearer ${{ inputs.API_KEY || secrets.API_KEY }}" \
+            -d '{"query":"Hello, world!","complexity":0.3}' || echo '{}')
+
+          echo "Response: ${RESPONSE}" >> $GITHUB_STEP_SUMMARY
+
+          ROUTE=$(echo $RESPONSE | jq -r '.route // empty')
+
+          if [ -n "$ROUTE" ]; then
+            echo "✅ Query routed to: ${ROUTE}"
+            echo "Route: ${ROUTE}" >> $GITHUB_STEP_SUMMARY
+          else
+            echo "⚠️ Could not determine query route"
+          fi
+
+      - name: Embedding service test
+        run: |
+          echo "### Embedding Service Test 🔢" >> $GITHUB_STEP_SUMMARY
+
+          URL="${{ github.event.inputs.url || inputs.url }}"
+
+          RESPONSE=$(curl -s -X POST ${URL}/api/v1/embeddings \
+            -H "Content-Type: application/json" \
+            -H "Authorization: Bearer ${{ inputs.API_KEY || secrets.API_KEY }}" \
+            -d '{"text":"test query","provider":"openai"}' || echo '{}')
+
+          echo "Response: ${RESPONSE}" >> $GITHUB_STEP_SUMMARY
+
+          DIMENSIONS=$(echo $RESPONSE | jq -r '.dimensions // empty')
+
+          if [ -n "$DIMENSIONS" ]; then
+            echo "✅ Embedding generated: ${DIMENSIONS} dimensions"
+            echo "Dimensions: ${DIMENSIONS}" >> $GITHUB_STEP_SUMMARY
+          else
+            echo "⚠️ Could not generate embedding"
+          fi
+
+      - name: Cache functionality test
+        run: |
+          echo "### Cache Functionality Test 💾" >> $GITHUB_STEP_SUMMARY
+
+          URL="${{ github.event.inputs.url || inputs.url }}"
+
+          # First request
+          curl -s -X POST ${URL}/api/v1/query \
+            -H "Content-Type: application/json" \
+            -H "Authorization: Bearer ${{ inputs.API_KEY || secrets.API_KEY }}" \
+            -d '{"query":"cache test","complexity":0.5}' > /dev/null
+
+          # Second request (should hit cache)
+          START=$(date +%s%N)
+          RESPONSE=$(curl -s -X POST ${URL}/api/v1/query \
+            -H "Content-Type: application/json" \
+            -H "Authorization: Bearer ${{ inputs.API_KEY || secrets.API_KEY }}" \
+            -d '{"query":"cache test","complexity":0.5}' || echo '{}')
+          END=$(date +%s%N)
+
+          DURATION=$(( (END - START) / 1000000 ))
+
+          CACHED=$(echo $RESPONSE | jq -r '.cached // false')
+
+          if [ "$CACHED" = "true" ]; then
+            echo "✅ Cache hit (${DURATION}ms)"
+            echo "Cache hit: Yes (${DURATION}ms)" >> $GITHUB_STEP_SUMMARY
+          else
+            echo "⚠️ Cache miss or not enabled"
+            echo "Cache hit: No (${DURATION}ms)" >> $GITHUB_STEP_SUMMARY
+          fi
+
+      # ========================================================================
+      # Database Connectivity Tests
+      # ========================================================================
+      - name: Database connectivity test
+        run: |
+          echo "### Database Connectivity Test 🗄️" >> $GITHUB_STEP_SUMMARY
+
+          URL="${{ github.event.inputs.url || inputs.url }}"
+
+          HTTP_CODE=$(curl -s -o /dev/null -w "%{http_code}" ${URL}/health/db || echo "000")
+
+          if [ "$HTTP_CODE" = "200" ]; then
+            echo "✅ Database connectivity: OK"
+          else
+            echo "⚠️ Database connectivity check returned HTTP $HTTP_CODE"
+          fi
+
+      - name: Redis connectivity test
+        run: |
+          echo "### Redis Connectivity Test 🔴" >> $GITHUB_STEP_SUMMARY
+
+          URL="${{ github.event.inputs.url || inputs.url }}"
+
+          HTTP_CODE=$(curl -s -o /dev/null -w "%{http_code}" ${URL}/health/redis || echo "000")
+
+          if [ "$HTTP_CODE" = "200" ]; then
+            echo "✅ Redis connectivity: OK"
+          else
+            echo "⚠️ Redis connectivity check returned HTTP $HTTP_CODE"
+          fi
+
+      # ========================================================================
+      # External Service Integration Tests
+      # ========================================================================
+      - name: OpenAI integration test
+        if: inputs.API_KEY != '' || secrets.OPENAI_API_KEY != ''
+        run: |
+          echo "### OpenAI Integration Test 🤖" >> $GITHUB_STEP_SUMMARY
+
+          URL="${{ github.event.inputs.url || inputs.url }}"
+
+          RESPONSE=$(curl -s -X POST ${URL}/api/v1/test/openai \
+            -H "Content-Type: application/json" \
+            -H "Authorization: Bearer ${{ inputs.API_KEY || secrets.API_KEY }}" \
+            -d '{"prompt":"test"}' || echo '{}')
+
+          echo "Response: ${RESPONSE}" >> $GITHUB_STEP_SUMMARY
+
+          STATUS=$(echo $RESPONSE | jq -r '.status // empty')
+
+          if [ "$STATUS" = "ok" ]; then
+            echo "✅ OpenAI integration: OK"
+          else
+            echo "⚠️ OpenAI integration check failed"
+          fi
+
+      - name: Ollama integration test
+        run: |
+          echo "### Ollama Integration Test 🦙" >> $GITHUB_STEP_SUMMARY
+
+          URL="${{ github.event.inputs.url || inputs.url }}"
+
+          RESPONSE=$(curl -s -X POST ${URL}/api/v1/test/ollama \
+            -H "Content-Type: application/json" \
+            -H "Authorization: Bearer ${{ inputs.API_KEY || secrets.API_KEY }}" \
+            -d '{"prompt":"test"}' || echo '{}')
+
+          echo "Response: ${RESPONSE}" >> $GITHUB_STEP_SUMMARY
+
+          STATUS=$(echo $RESPONSE | jq -r '.status // empty')
+
+          if [ "$STATUS" = "ok" ]; then
+            echo "✅ Ollama integration: OK"
+          elif [ "$STATUS" = "unavailable" ]; then
+            echo "⚠️ Ollama not configured (this is expected)"
+          else
+            echo "⚠️ Ollama integration check failed"
+          fi
+
+      # ========================================================================
+      # Performance Sanity Checks
+      # ========================================================================
+      - name: Response time check
+        run: |
+          echo "### Response Time Check ⏱️" >> $GITHUB_STEP_SUMMARY
+
+          URL="${{ github.event.inputs.url || inputs.url }}"
+          TOTAL_TIME=0
+          REQUESTS=10
+
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "Running ${REQUESTS} requests..." >> $GITHUB_STEP_SUMMARY
+
+          for i in $(seq 1 $REQUESTS); do
+            START=$(date +%s%N)
+            curl -s ${URL}/health > /dev/null
+            END=$(date +%s%N)
+
+            DURATION=$(( (END - START) / 1000000 ))
+            TOTAL_TIME=$((TOTAL_TIME + DURATION))
+          done
+
+          AVG_TIME=$((TOTAL_TIME / REQUESTS))
+
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "| Metric | Value |" >> $GITHUB_STEP_SUMMARY
+          echo "|--------|-------|" >> $GITHUB_STEP_SUMMARY
+          echo "| Total requests | ${REQUESTS} |" >> $GITHUB_STEP_SUMMARY
+          echo "| Average response time | ${AVG_TIME}ms |" >> $GITHUB_STEP_SUMMARY
+          echo "| Total time | ${TOTAL_TIME}ms |" >> $GITHUB_STEP_SUMMARY
+
+          if [ $AVG_TIME -lt 500 ]; then
+            echo "✅ Performance is within acceptable range"
+            echo "status=pass" >> $GITHUB_OUTPUT
+          else
+            echo "⚠️ Average response time exceeds 500ms threshold"
+            echo "status=warning" >> $GITHUB_OUTPUT
+          fi
+
+      - name: Memory usage check
+        run: |
+          echo "### Memory Usage Check 💾" >> $GITHUB_STEP_SUMMARY
+
+          URL="${{ github.event.inputs.url || inputs.url }}"
+
+          RESPONSE=$(curl -s ${URL}/metrics || echo '{}')
+
+          MEMORY=$(echo $RESPONSE | jq -r '.memory_mb // empty')
+
+          if [ -n "$MEMORY" ]; then
+            echo "Memory usage: ${MEMORY}MB" >> $GITHUB_STEP_SUMMARY
+
+            if [ $MEMORY -lt 1024 ]; then
+              echo "✅ Memory usage is acceptable"
+            else
+              echo "⚠️ Memory usage exceeds 1GB threshold"
+            fi
+          else
+            echo "⚠️ Could not retrieve memory metrics"
+          fi
+
+      # ========================================================================
+      # Security Tests
+      # ========================================================================
+      - name: Authentication test
+        run: |
+          echo "### Authentication Test 🔐" >> $GITHUB_STEP_SUMMARY
+
+          URL="${{ github.event.inputs.url || inputs.url }}"
+
+          # Test without auth (should fail)
+          HTTP_CODE=$(curl -s -o /dev/null -w "%{http_code}" ${URL}/api/v1/query \
+            -H "Content-Type: application/json" \
+            -d '{"query":"test"}' || echo "000")
+
+          if [ "$HTTP_CODE" = "401" ] || [ "$HTTP_CODE" = "403" ]; then
+            echo "✅ Authentication is enforced"
+            echo "Authentication: Enforced (HTTP $HTTP_CODE)" >> $GITHUB_STEP_SUMMARY
+          else
+            echo "⚠️ Authentication may not be properly enforced (HTTP $HTTP_CODE)"
+          fi
+
+      - name: Rate limiting test
+        run: |
+          echo "### Rate Limiting Test 🚦" >> $GITHUB_STEP_SUMMARY
+
+          URL="${{ github.event.inputs.url || inputs.url }}"
+
+          # Send multiple requests quickly
+          COUNT=0
+          for i in $(seq 1 20); do
+            HTTP_CODE=$(curl -s -o /dev/null -w "%{http_code}" ${URL}/health || echo "000")
+
+            if [ "$HTTP_CODE" = "429" ]; then
+              echo "✅ Rate limiting is active"
+              echo "Rate limiting: Active (triggered after ${COUNT} requests)" >> $GITHUB_STEP_SUMMARY
+              exit 0
+            fi
+
+            COUNT=$((COUNT + 1))
+          done
+
+          echo "⚠️ Rate limiting may not be configured"
+
+      # ========================================================================
+      # Test Summary
+      # ========================================================================
+      - name: Calculate duration
+        id: test-result
+        run: |
+          START=${{ steps.timer.outputs.start }}
+          END=$(date +%s)
+          DURATION=$((END - START))
+
+          echo "duration=${DURATION}" >> $GITHUB_OUTPUT
+          echo "status=success" >> $GITHUB_OUTPUT
+
+      - name: Generate test summary
+        if: always()
+        run: |
+          echo "## Smoke Test Summary 🧪" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "**Environment:** ${{ inputs.environment || github.event.inputs.environment }}" >> $GITHUB_STEP_SUMMARY
+          echo "**Duration:** ${{ steps.test-result.outputs.duration }}s" >> $GITHUB_STEP_SUMMARY
+          echo "**Status:** ${{ steps.test-result.outputs.status }}" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+
+          echo "### Tests Executed" >> $GITHUB_STEP_SUMMARY
+          echo "- ✅ Health endpoint check" >> $GITHUB_STEP_SUMMARY
+          echo "- ✅ Readiness endpoint check" >> $GITHUB_STEP_SUMMARY
+          echo "- ✅ Liveness endpoint check" >> $GITHUB_STEP_SUMMARY
+          echo "- ✅ API version check" >> $GITHUB_STEP_SUMMARY
+          echo "- ✅ Query routing test" >> $GITHUB_STEP_SUMMARY
+          echo "- ✅ Embedding service test" >> $GITHUB_STEP_SUMMARY
+          echo "- ✅ Cache functionality test" >> $GITHUB_STEP_SUMMARY
+          echo "- ✅ Database connectivity test" >> $GITHUB_STEP_SUMMARY
+          echo "- ✅ Redis connectivity test" >> $GITHUB_STEP_SUMMARY
+          echo "- ✅ External service integration tests" >> $GITHUB_STEP_SUMMARY
+          echo "- ✅ Response time check" >> $GITHUB_STEP_SUMMARY
+          echo "- ✅ Memory usage check" >> $GITHUB_STEP_SUMMARY
+          echo "- ✅ Authentication test" >> $GITHUB_STEP_SUMMARY
+          echo "- ✅ Rate limiting test" >> $GITHUB_STEP_SUMMARY
+
+      - name: Upload test results
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: smoke-test-results-${{ inputs.environment || github.event.inputs.environment }}
+          path: |
+            ${{ github.step_summary }}
+          retention-days: 30

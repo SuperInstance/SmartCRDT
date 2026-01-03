@@ -1,0 +1,72 @@
+[workspace]
+members = [
+    "core",
+    "embeddings",
+    "crypto",
+    "crdt",
+    "ffi",
+    "python",
+    "wasm"
+]
+resolver = "2"
+
+[workspace.package]
+version = "0.1.0"
+edition = "2021"
+authors = ["SuperInstance Contributors"]
+license = "MIT"
+repository = "https://github.com/SuperInstance/SmartCRDT"
+rust-version = "1.75"
+
+[workspace.dependencies]
+# Core utilities
+thiserror = "1.0"
+anyhow = "1.0"
+fastrand = "2.0"
+
+# Serialization
+serde = { version = "1.0", features = ["derive"] }
+serde_json = "1.0"
+
+# Async runtime
+tokio = { version = "1.35", features = ["full"] }
+async-trait = "0.1"
+
+# FFI bindings
+napi = { version = "2.14", features = ["async", "error_anyhow"] }
+napi-derive = "2.14"
+
+# Crypto
+sha2 = "0.10"
+blake3 = "1.5"
+argon2 = "0.5"
+chacha20poly1305 = "0.10"
+
+# Vector operations
+ndarray = { version = "0.15", features = ["serde"] }
+# Note: faiss commented out as workspace dependencies cannot be optional
+# faiss = { version = "0.12", optional = true }
+
+# CRDT
+# crdt = "0.1"
+
+# Logging
+tracing = "0.1"
+tracing-subscriber = "0.3"
+
+# Testing
+criterion = "0.5"
+proptest = "1.4"
+
+[profile.release]
+opt-level = 3
+lto = true
+codegen-units = 1
+strip = true
+panic = "abort"
+
+[profile.dev]
+opt-level = 0
+
+[profile.bench]
+inherits = "release"

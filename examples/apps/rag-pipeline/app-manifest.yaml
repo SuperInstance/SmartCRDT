@@ -1,0 +1,130 @@
+apiVersion: "v1"
+kind: "App"
+
+metadata:
+  name: rag-pipeline
+  version: 1.0.0
+  description: RAG pipeline for document processing, embedding, and retrieval
+  author: SuperInstance
+  license: Apache-2.0
+  tags: [rag, search, data-processing, embeddings]
+  keywords: [rag, pipeline, document-processing, vector-search]
+
+category: data-processing
+
+components:
+  - name: document-processor
+    version: ">=1.0.0"
+    required: true
+    configuration:
+      supported_formats: [pdf, txt, md, html, docx]
+      chunk_size: 1024
+      chunk_overlap: 100
+      extract_metadata: true
+
+  - name: openai-embeddings
+    version: "^1.0.0"
+    required: true
+    configuration:
+      model: "text-embedding-3-large"
+      dimensions: 3072
+      batch_size: 100
+
+  - name: vector-store
+    version: ">=1.0.0"
+    required: true
+    configuration:
+      index_type: hnsw
+      m: 16
+      ef_construction: 200
+      ef_search: 50
+
+  - name: semantic-cache
+    version: "^1.0.0"
+    required: true
+    configuration:
+      cache_size: "500MB"
+      ttl_seconds: 3600
+      similarity_threshold: 0.85
+
+  - name: query-router
+    version: ">=1.0.0"
+    required: true
+    configuration:
+      max_concurrent: 100
+      timeout_seconds: 30
+
+advanced_components:
+  - name: distributed-indexing
+    version: ">=1.0.0"
+    description: Enable distributed indexing for large-scale datasets
+    configuration:
+      num_shards: 4
+      replication_factor: 2
+      consistency_level: quorum
+
+  - name: hybrid-search
+    version: ">=1.0.0"
+    description: Combine semantic and keyword search for better results
+    configuration:
+      semantic_weight: 0.7
+      keyword_weight: 0.3
+      fusion_algorithm: rrf
+
+  - name: document-summarization
+    version: ">=1.0.0"
+    description: Auto-generate summaries for long documents
+    configuration:
+      model: gpt-4
+      max_length: 500
+      summary_type: abstractive
+
+configuration:
+  environment: production
+  log_level: info
+  enable_metrics: true
+  enable_tracing: true
+
+environment_vars:
+  OPENAI_API_KEY: "${OPENAI_API_KEY}"
+  DATABASE_URL: "${DATABASE_URL}"
+  LOG_LEVEL: "info"
+
+networking:
+  host: "0.0.0.0"
+  port: 9090
+  expose:
+    - "9090/tcp"
+
+storage:
+  data_path: "/var/lib/aequor/rag-pipeline/data"
+  cache_path: "/var/lib/aequor/rag-pipeline/cache"
+  persistence_enabled: true
+  backup_enabled: true
+  backup_schedule: "0 2 * * *"
+  backup_retention_days: 30
+
+scaling:
+  mode: horizontal
+  instances: 2
+  min_instances: 2
+  max_instances: 8
+  cpu_limit: "4"
+  memory_limit: "8Gi"
+
+health_checks:
+  enabled: true
+  interval_seconds: 30
+  timeout_seconds: 10
+  failure_threshold: 3
+  endpoints:
+    - path: "/health"
+      method: "GET"
+      expected_status: 200
+    - path: "/index/health"
+      method: "GET"
+      expected_status: 200
+
+telemetry:
+  enabled: true
+  sampled: 0.1

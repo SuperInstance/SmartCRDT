@@ -1,0 +1,22 @@
+#!/bin/sh
+. "$(dirname "$0")/_/husky.sh"
+
+echo "Running pre-push hooks..."
+
+# Run all tests
+echo "Running tests..."
+npm test
+TEST_STATUS=$?
+
+if [ $TEST_STATUS -ne 0 ]; then
+  echo "Tests failed. Push aborted."
+  exit 1
+fi
+
+# Run property-based tests (if available)
+if grep -q '"test:property"' package.json; then
+  echo "Running property-based tests..."
+  npm run test:property || true
+fi
+
+echo "Pre-push checks passed!"

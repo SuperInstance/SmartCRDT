@@ -1,0 +1,355 @@
+name: Benchmark Regression Detection
+
+on:
+  push:
+    branches: [ main, master, develop ]
+  pull_request:
+    branches: [ main, master, develop ]
+  schedule:
+    # Run daily at 2 AM UTC
+    - cron: '0 2 * * *'
+
+jobs:
+  benchmark:
+    runs-on: ${{ matrix.os }}
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [ubuntu-latest, macos-latest, windows-latest]
+        node-version: ['20.10.0', '21.0.0', '22.0.0']
+        exclude:
+          # Exclude Windows for now due to build issues
+          - os: windows-latest
+            node-version: '22.0.0'
+
+    steps:
+    - uses: actions/checkout@v4
+
+    - name: Set up Node.js ${{ matrix.node-version }}
+      uses: actions/setup-node@v4
+      with:
+        node-version: ${{ matrix.node-version }}
+        cache: 'pnpm'
+
+    - name: Install pnpm
+      run: npm install -g pnpm
+
+    - name: Install dependencies
+      run: pnpm install --frozen-lockfile
+
+    - name: Build project
+      run: pnpm build
+
+    - name: Run benchmarks
+      id: benchmark
+      run: |
+        # Set environment variables for consistent results
+        export BENCHMARK_ITERATIONS=5000
+        export BENCHMARK_WARMUP=500
+        export BENCHMARK_SEED=42
+
+        # Run benchmarks
+        pnpm exec node --max-old-space-size=8192 -e "
+        import { runPoolingBenchmarks } from './packages/core/src/benchmark/pooling-benchmark-runner.ts';
+
+        runPoolingBenchmarks({
+          iterations: parseInt(process.env.BENCHMARK_ITERATIONS),
+          warmup: parseInt(process.env.BENCHMARK_WARMUP),
+          arraySize: 1000,
+        }).then(() => process.exit(0)).catch(err => {
+          console.error('Benchmark failed:', err);
+          process.exit(1);
+        });
+        "
+
+    - name: Upload benchmark results
+      uses: actions/upload-artifact@v3
+      with:
+        name: benchmark-results-${{ matrix.os }}-${{ matrix.node-version }}
+        path: benchmark-results/
+        retention-days: 30
+
+  regression-analysis:
+    needs: benchmark
+    runs-on: ubuntu-latest
+
+    steps:
+    - uses: actions/checkout@v4
+
+    - name: Set up Node.js
+      uses: actions/setup-node@v4
+      with:
+        node-version: '20.10.0'
+        cache: 'pnpm'
+
+    - name: Install dependencies
+      run: pnpm install --frozen-lockfile
+
+    - name: Download all benchmark results
+      uses: actions/download-artifact@v3
+      with:
+        path: benchmark-results/
+
+    - name: Analyze regressions
+      id: analyze
+      run: |
+        # Create regression analysis script
+        cat > analyze-regressions.js << 'EOF'
+        const fs = require('fs');
+        const path = require('path');
+        const { quickValidate } = require('./packages/core/src/benchmark/known-results-database.js');
+
+        const resultsDir = './benchmark-results';
+        const results = [];
+
+        // Collect all results
+        const files = fs.readdirSync(resultsDir);
+        for (const file of files) {
+          if (file.endsWith('.json')) {
+            try {
+              const content = fs.readFileSync(path.join(resultsDir, file), 'utf8');
+              const data = JSON.parse(content);
+
+              if (data.results && data.results.length > 0) {
+                const result = data.results[0]; // Take first result (simple allocation)
+                results.push({
+                  file,
+                  ...result,
+                  config: data.config,
+                  timestamp: data.timestamp,
+                });
+              }
+            } catch (error) {
+              console.error(`Error parsing ${file}:`, error.message);
+            }
+          }
+        }
+
+        // Sort by timestamp
+        results.sort((a, b) => a.timestamp - b.timestamp);
+
+        // Find baseline (most recent successful run)
+        const baseline = results.find(r =>
+          r.system.platform === 'linux' &&
+          r.system.nodeVersion.startsWith('20.10.')
+        );
+
+        let report = '# Regression Analysis Report\n\n';
+        report += `Generated: ${new Date().toISOString()}\n\n`;
+
+        if (!baseline) {
+          report += '❌ No baseline found for comparison\n';
+          fs.writeFileSync('regression-report.md', report);
+          process.exit(1);
+        }
+
+        report += `## Baseline: ${baseline.file}\n`;
+        report += `- Speedup: ${baseline.speedup.toFixed(2)}x\n`;
+        report += `- Pooled time: ${baseline.pooledTime.toFixed(2)}ms\n`;
+        report += `- Fresh time: ${baseline.freshTime.toFixed(2)}ms\n\n`;
+
+        // Compare each result with baseline
+        for (const result of results) {
+          if (result === baseline) continue;
+
+          report += `## ${result.file}\n`;
+          report += `System: ${result.system.platform} ${result.system.arch}\n`;
+          report += `Node.js: ${result.system.nodeVersion}\n\n`;
+
+          // Calculate regression
+          const speedupRegression = ((result.speedup - baseline.speedup) / baseline.speedup) * 100;
+          const pooledRegression = ((result.pooledTime - baseline.pooledTime) / baseline.pooledTime) * 100;
+          const freshRegression = ((result.freshTime - baseline.freshTime) / baseline.freshTime) * 100;
+
+          report += `### Performance Changes\n`;
+          report += `- Speedup: ${speedupRegression >= 0 ? '+' : ''}${speedupRegression.toFixed(1)}%\n`;
+          report += `- Pooled time: ${pooledRegression >= 0 ? '+' : ''}${pooledRegression.toFixed(1)}%\n`;
+          report += `- Fresh time: ${freshRegression >= 0 ? '+' : ''}${freshRegression.toFixed(1)}%\n\n`;
+
+          // Check for significant regressions
+          const regressions = [];
+          if (Math.abs(speedupRegression) > 5) regressions.push(`Speedup (${speedupRegression.toFixed(1)}%)`);
+          if (Math.abs(pooledRegression) > 5) regressions.push(`Pooled time (${pooledRegression.toFixed(1)}%)`);
+          if (Math.abs(freshRegression) > 5) regressions.push(`Fresh time (${freshRegression.toFixed(1)}%)`);
+
+          if (regressions.length > 0) {
+            report += `⚠️  Significant regressions detected:\n`;
+            for (const regression of regressions) {
+              report += `- ${regression}\n`;
+            }
+            report += '\n';
+          } else {
+            report += '✅ No significant regressions\n\n';
+          }
+
+          // Validation
+          const validation = quickValidate(result);
+          report += `### Validation\n`;
+          report += `Passes: ${validation.passes ? '✅' : '❌'}\n`;
+          if (!validation.passes) {
+            report += `Issues: ${validation.message}\n`;
+          }
+          report += '\n---\n\n';
+        }
+
+        // Summary
+        report += '## Summary\n\n';
+        const totalRuns = results.length;
+        const failedRuns = results.filter(r => !quickValidate(r).passes).length;
+        const avgSpeedup = results.reduce((sum, r) => sum + r.speedup, 0) / results.length;
+
+        report += `Total benchmark runs: ${totalRuns}\n`;
+        report += `Failed validation: ${failedRuns}\n`;
+        report += `Average speedup: ${avgSpeedup.toFixed(2)}x\n`;
+
+        if (failedRuns > 0) {
+          report += '\n❌ Some benchmark runs failed validation. Please investigate regressions.\n';
+        } else {
+          report.append('\n✅ All benchmark runs passed validation.\n');
+        }
+
+        fs.writeFileSync('regression-report.md', report);
+        console.log('Regression analysis complete');
+        EOF
+
+        # Run analysis
+        node analyze-regressions.js
+
+    - name: Upload regression report
+      uses: actions/upload-artifact@v3
+      with:
+        name: regression-report
+        path: regression-report.md
+
+    - name: Comment on PR
+      if: github.event_name == 'pull_request'
+      uses: actions/github-script@v7
+      with:
+        script: |
+          const fs = require('fs');
+          const report = fs.readFileSync('regression-report.md', 'utf8');
+
+          // Extract summary
+          const summaryMatch = report.match(/## Summary\s*\n(.*?)\n/);
+          const summary = summaryMatch ? summaryMatch[1] : 'No summary available';
+
+          // Extract failed runs
+          const failedRuns = (report.match(/Failed validation: (\d+)/) || [])[1] || '0';
+
+          const comment = `
+          ## Benchmark Regression Check
+
+          ${summary}
+
+          Failed validation runs: ${failedRuns}
+
+          Full report available in artifacts.
+          `;
+
+          github.rest.issues.createComment({
+            issue_number: context.issue.number,
+            owner: context.repo.owner,
+            repo: context.repo.repo,
+            body: comment
+          });
+
+  performance-trend:
+    needs: benchmark
+    runs-on: ubuntu-latest
+
+    steps:
+    - uses: actions/checkout@v4
+
+    - name: Set up Node.js
+      uses: actions/setup-node@v4
+      with:
+        node-version: '20.10.0'
+
+    - name: Download benchmark results
+      uses: actions/download-artifact@v3
+      with:
+        path: benchmark-results/
+
+    - name: Generate performance trend chart
+      run: |
+        # Create trend analysis script
+        cat > generate-trend.js << 'EOF'
+        const fs = require('fs');
+        const path = require('path');
+
+        const resultsDir = './benchmark-results';
+        const results = [];
+
+        // Collect all results
+        const files = fs.readdirSync(resultsDir);
+        for (const file of files) {
+          if (file.endsWith('.json')) {
+            try {
+              const content = fs.readFileSync(path.join(resultsDir, file), 'utf8');
+              const data = JSON.parse(content);
+
+              if (data.results && data.results.length > 0) {
+                const result = data.results[0];
+                results.push({
+                  date: new Date(data.timestamp).toISOString().split('T')[0],
+                  speedup: result.speedup,
+                  pooledTime: result.pooledTime,
+                  freshTime: result.freshTime,
+                  system: result.system,
+                });
+              }
+            } catch (error) {
+              console.error(`Error parsing ${file}:`, error.message);
+            }
+          }
+        }
+
+        // Sort by date
+        results.sort((a, b) => a.date.localeCompare(b.date));
+
+        // Generate CSV for chart
+        let csv = 'Date,Speedup,Pooled Time (ms),Fresh Time (ms),Platform,Node Version\n';
+        for (const result of results) {
+          csv += `${result.date},${result.speedup.toFixed(2)},${result.pooledTime.toFixed(2)},${result.freshTime.toFixed(2)},${result.system.platform},${result.system.nodeVersion}\n`;
+        }
+
+        fs.writeFileSync('performance-trend.csv', csv);
+        console.log(`Generated trend data for ${results.length} runs`);
+        EOF
+
+        node generate-trend.js
+
+    - name: Upload trend data
+      uses: actions/upload-artifact@v3
+      with:
+        name: performance-trend
+        path: performance-trend.csv
+
+  notify:
+    needs: [regression-analysis, performance-trend]
+    runs-on: ubuntu-latest
+    if: always()
+
+    steps:
+    - uses: actions/checkout@v4
+
+    - name: Download regression report
+      uses: actions/download-artifact@v3
+      with:
+        name: regression-report
+        path: .
+
+    - name: Notify on failure
+      if: contains(needs.regression-analysis.outputs.result, 'failure')
+      uses: actions/github-script@v7
+      with:
+        script: |
+          const fs = require('fs');
+          const report = fs.readFileSync('regression-report.md', 'utf8');
+
+          github.rest.issues.createComment({
+            issue_number: context.issue.number || 0,
+            owner: context.repo.owner,
+            repo: context.repo.repo,
+            body: `🚨 Benchmark regression detected!\n\n${report}`
+          });

@@ -1,0 +1,89 @@
+apiVersion: "v1"
+kind: "Component"
+
+metadata:
+  name: cascade-router
+  version: 1.0.0
+  description: Complexity + confidence cascade routing with emotional intelligence
+  author: SuperInstance
+  license: Apache-2.0
+  homepage: https://aequor.dev
+  repository: https://github.com/lsi/aequor
+  tags: [routing, ai, orchestration, cascade]
+  keywords: [cascade, complexity, confidence, routing]
+
+type: routing
+language: typescript
+runtime: nodejs
+
+dependencies:
+  protocol: ">=1.0.0"
+  components:
+    complexity-scorer: "^1.0.0"
+    motivation-encoder: "^1.0.0"
+  npm:
+    zod: "^3.22.0"
+
+configuration:
+  properties:
+    complexity_threshold:
+      type: number
+      default: 0.7
+      description: Complexity threshold for routing decisions
+      minimum: 0.0
+      maximum: 1.0
+
+    cache_enabled:
+      type: boolean
+      default: true
+      description: Enable semantic caching
+
+    log_level:
+      type: string
+      default: "info"
+      enum: ["debug", "info", "warn", "error"]
+
+    retry_config:
+      type: object
+      properties:
+        max_retries:
+          type: integer
+          default: 3
+        backoff_ms:
+          type: integer
+          default: 1000
+
+  required: ["complexity_threshold"]
+  additionalProperties: false
+
+hardware:
+  min_memory_mb: 50
+  recommended_memory_mb: 100
+  min_cpu_cores: 1
+  recommended_cpu_cores: 2
+  gpu_required: false
+  gpu_optional: false
+
+performance:
+  benchmark_qps: 10000
+  latency_p50_ms: 1
+  latency_p95_ms: 5
+  latency_p99_ms: 10
+  cold_start_ms: 50
+
+interface:
+  main: ./dist/index.js
+  exports:
+    - CascadeRouter
+    - RouteDecision
+  imports:
+    - IEmbeddingService
+    - ICache
+  protocol: IRouter
+
+tests:
+  framework: vitest
+  command: npm test
+  coverage_threshold: 80
+  unit_tests: "**/*.test.ts"
+  integration_tests: "**/*.int.test.ts"

@@ -1,0 +1,85 @@
+apiVersion: "v1"
+kind: "Component"
+
+metadata:
+  name: native-rust-router
+  version: 1.0.0
+  description: High-performance routing in Rust with WASM support and SIMD optimizations
+  author: SuperInstance
+  license: MIT
+  repository: https://github.com/lsi/aequor
+  tags: [routing, rust, native, wasm, performance]
+
+type: routing
+language: rust
+runtime: wasm
+
+native:
+  language: rust
+  bindings: [typescript, python, javascript]
+  wasm: true
+  simd: true
+
+dependencies:
+  protocol: ">=1.0.0"
+
+configuration:
+  properties:
+    thread_count:
+      type: integer
+      default: 4
+      description: Number of worker threads
+      minimum: 1
+      maximum: 64
+
+    enable_simd:
+      type: boolean
+      default: true
+      description: Enable SIMD optimizations
+
+    batch_size:
+      type: integer
+      default: 1000
+      description: Batch size for routing queries
+      minimum: 1
+
+    allocation_strategy:
+      type: string
+      default: "arena"
+      description: Memory allocation strategy
+      enum: ["arena", "pool", "default"]
+
+  required: []
+  additionalProperties: false
+
+hardware:
+  min_memory_mb: 10
+  recommended_memory_mb: 20
+  min_cpu_cores: 1
+  recommended_cpu_cores: 4
+  gpu_required: false
+  gpu_optional: false
+
+performance:
+  benchmark_qps: 50000
+  latency_p50_ms: 0.1
+  latency_p95_ms: 0.5
+  latency_p99_ms: 1.0
+  cold_start_ms: 10
+  throughput_mb_per_sec: 500
+
+interface:
+  main: ./dist/router.wasm
+  exports:
+    - route_query
+    - benchmark
+    - get_stats
+  bindings:
+    typescript: ./dist/bindings.ts
+    python: ./dist/bindings.py
+  protocol: IRouter
+
+tests:
+  framework: "cargo test"
+  command: cargo test
+  coverage_threshold: 80

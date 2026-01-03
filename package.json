@@ -1,0 +1,67 @@
+{
+  "name": "smartcrdt",
+  "version": "1.0.0",
+  "description": "SuperInstance - Modular infrastructure for AI applications",
+  "private": true,
+  "type": "module",
+  "workspaces": [
+    "packages/*"
+  ],
+  "scripts": {
+    "build": "npm run build:ts && npm run build:native",
+    "build:ts": "tsc -b",
+    "build:native": "npm run build:native -w native",
+    "build:native:release": "npm run build:release -w native",
+    "clean": "rm -rf dist packages/*/dist",
+    "clean:deep": "npm run clean && rm -rf node_modules packages/*/node_modules",
+    "test": "vitest run",
+    "test:watch": "vitest watch",
+    "test:coverage": "vitest run --coverage",
+    "test:unit": "vitest run --run tests/unit",
+    "test:e2e": "vitest run --run tests/e2e",
+    "bench": "node benchmarks/run.js",
+    "bench:report": "npm run bench -- --report",
+    "lint": "eslint packages --ext .ts",
+    "format": "prettier --write \"packages/**/*.ts\"",
+    "format:check": "prettier --check \"packages/**/*.ts\"",
+    "precommit": "lint-staged",
+    "prepare": "husky install"
+  },
+  "devDependencies": {
+    "@types/node": "^20.10.0",
+    "@typescript-eslint/eslint-plugin": "^6.13.0",
+    "@typescript-eslint/parser": "^6.13.0",
+    "@vitest/coverage-v8": "^1.0.0",
+    "eslint": "^8.54.0",
+    "eslint-config-prettier": "^9.0.0",
+    "husky": "^8.0.3",
+    "lint-staged": "^15.1.0",
+    "prettier": "^3.1.0",
+    "typescript": "^5.3.2",
+    "vitest": "^1.0.0"
+  },
+  "engines": {
+    "node": ">=18.0.0",
+    "npm": ">=9.0.0"
+  },
+  "keywords": [
+    "ai",
+    "infrastructure",
+    "routing",
+    "cache",
+    "privacy",
+    "embeddings",
+    "modular",
+    "components"
+  ],
+  "author": "SuperInstance",
+  "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/SuperInstance/SmartCRDT"
+  },
+  "bugs": {
+    "url": "https://github.com/SuperInstance/SmartCRDT/issues"
+  },
+  "homepage": "https://github.com/SuperInstance/SmartCRDT#readme"
+}

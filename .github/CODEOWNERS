@@ -1,0 +1,297 @@
+# Code Owners File for SmartCRDT/Aequor Project
+#
+# This file defines teams or individuals responsible for code review
+# for different parts of the codebase.
+#
+# Format:
+#   pattern @username
+#   pattern @team
+#
+# Patterns are relative to the repository root
+# See: https://docs.github.com/en/repositories/managing-your-repositorys-settings-and-features/customizing-your-repository/about-codeowners
+
+# ============================================================================
+# DEFAULT OWNERS
+# ============================================================================
+
+# Default fallback - maintainers
+* @maintainers
+
+# ============================================================================
+# CORE PACKAGES
+# ============================================================================
+
+# Protocol definitions (types, interfaces)
+packages/protocol/ @core-team
+
+# Cascade router and routing logic
+packages/cascade/ @core-team @performance-team
+
+# SuperInstance (Context, Intention, LucidDreamer)
+packages/superinstance/ @core-team @training-team
+
+# ============================================================================
+# PRIVACY & SECURITY
+# ============================================================================
+
+# Privacy suite (encryption, R-A Protocol, intent encoding)
+packages/privacy/ @privacy-team @security-team
+
+# Security audit
+packages/security-audit/ @security-team
+
+# Input sanitization
+packages/sanitization/ @security-team
+
+# ============================================================================
+# PERFORMANCE & OPTIMIZATION
+# ============================================================================
+
+# Performance optimizer (caching, hardware dispatch)
+packages/performance-optimizer/ @performance-team
+
+# CRDT and distributed state
+packages/swarm/ @core-team @performance-team
+
+# ============================================================================
+# INTEGRATIONS
+# ============================================================================
+
+# LangChain integration
+packages/langchain/ @integration-team
+
+# SSO integration
+packages/sso/ @integration-team @security-team
+
+# ============================================================================
+# INFRASTRUCTURE
+# ============================================================================
+
+# Docker and deployment configurations
+docker/ @infra-team
+*.dockerfile @infra-team
+docker-compose*.yml @infra-team
+
+# Kubernetes manifests
+k8s/ @infra-team
+
+# Monitoring and observability
+monitoring/ @infra-team
+grafana/ @infra-team
+prometheus/ @infra-team
+
+# CI/CD workflows
+.github/workflows/ @infra-team
+
+# ============================================================================
+# DOCUMENTATION
+# ============================================================================
+
+# Project documentation
+docs/ @docs-team
+*.md @docs-team
+
+# Documentation website
+docs-site/ @docs-team
+
+# Examples and tutorials
+examples/ @docs-team @core-team
+tutorials/ @docs-team @core-team
+
+# ============================================================================
+# TESTING
+# ============================================================================
+
+# Test infrastructure
+tests/ @core-team @qa-team
+
+# Integration tests
+integration-tests/ @qa-team @core-team
+
+# Performance benchmarks
+benchmarks/ @performance-team @qa-team
+
+# ============================================================================
+# TOOLS & SCRIPTS
+# ============================================================================
+
+# Build scripts and tooling
+scripts/ @infra-team @core-team
+
+# VS Code settings
+.vscode/ @core-team
+
+# ============================================================================
+# CONFIGURATION FILES
+# ============================================================================
+
+# TypeScript configuration
+tsconfig*.json @core-team
+
+# Package configuration
+package.json @core-team
+pnpm-workspace.yaml @core-team
+
+# ESLint configuration
+.eslintrc* @core-team
+
+# Prettier configuration
+.prettierrc* @core-team
+
+# Vitest configuration
+vitest.config.* @core-team @qa-team
+
+# ============================================================================
+# SECURITY FILES
+# ============================================================================
+
+# Security policies
+SECURITY.md @security-team
+
+# Dependency update configuration
+.dependabot.yml @infra-team @security-team
+
+# CodeQL configuration
+.github/codeql-config.yml @security-team
+
+# ============================================================================
+# PROJECT MANAGEMENT
+# ============================================================================
+
+# Contributing guidelines
+CONTRIBUTING.md @core-team @docs-team
+
+# Project roadmap
+PROJECT_ROADMAP.md @core-team @docs-team
+
+# Architecture decisions
+ARCHITECTURE_DECISIONS.md @core-team
+
+# ============================================================================
+# SPECIAL FILES
+# ============================================================================
+
+# README
+README.md @docs-team @core-team
+
+# License
+LICENSE @maintainers
+
+# Changelog
+CHANGELOG.md @maintainers @docs-team
+
+# Contributors
+CONTRIBUTORS.md @maintainers @docs-team
+
+# ============================================================================
+# EXCLUDES
+# ============================================================================
+
+# No owners required for dependency files
+# These are auto-generated or updated by bots
+pnpm-lock.yaml @dependabot
+yarn.lock @dependabot
+package-lock.json @dependabot
+
+# No review needed for generated files
+dist/ @dependabot
+node_modules/ @dependabot
+*.tsbuildinfo @dependabot
+
+# ============================================================================
+# TEAM DEFINITIONS
+# ============================================================================
+
+# Note: Teams must be created in GitHub organization settings
+# Available teams:
+#
+# @maintainers - Project maintainers with full access
+# @core-team - Core platform developers
+# @privacy-team - Privacy and security features
+# @performance-team - Performance optimization
+# @integration-team - Third-party integrations
+# @security-team - Security audit and compliance
+# @infra-team - Infrastructure and DevOps
+# @docs-team - Documentation and examples
+# @qa-team - Quality assurance and testing
+# @training-team - ML training and optimization
+
+# ============================================================================
+# REVIEW RULES
+# ============================================================================
+
+# Changes to protocol always require core team approval
+packages/protocol/** @core-team
+
+# Security changes always require security team approval
+packages/privacy/** @privacy-team @security-team
+packages/security-audit/** @security-team
+packages/sanitization/** @security-team
+
+# Performance changes require performance team approval
+packages/performance-optimizer/** @performance-team
+
+# Infrastructure changes require infra team approval
+.github/workflows/deploy.yml @infra-team
+.github/workflows/release.yml @infra-team
+k8s/** @infra-team
+docker/** @infra-team
+
+# Documentation changes require docs team approval
+docs/** @docs-team
+docs-site/** @docs-team
+README.md @docs-team
+
+# ============================================================================
+# OVERRIDE RULES
+# ============================================================================
+
+# You can override more specific rules with more general ones
+# by listing them later in the file.
+
+# Example: All TypeScript files require core team review
+# But specific packages have their own teams above
+
+# All test files require QA approval
+**/*.test.ts @qa-team
+**/*.spec.ts @qa-team
+**/__tests__/ @qa-team
+
+# ============================================================================
+# EMERGENCY CONTACTS
+# ============================================================================
+
+# For urgent security issues, contact:
+SECURITY.md @security-team @maintainers
+
+# For build/CI failures, contact:
+.github/workflows/ @infra-team
+
+# For documentation fixes, contact:
+*.md @docs-team
+
+# ============================================================================
+# NOTES
+# ============================================================================
+
+# 1. Code owners are automatically requested for review when
+#    a pull request modifies code they own
+#
+# 2. Multiple owners can be specified - only one needs to approve
+#
+# 3. Use '!' prefix to require approval from ALL owners
+#    Example: !@core-team !@security-team
+#
+# 4. Patterns are matched using gitignore syntax
+#    - * matches any characters
+#    - ** matches any directory
+#    - ? matches a single character
+#
+# 5. Last matching pattern wins
+#    Order matters in this file
+#
+# 6. This file should be version controlled
+#    Changes to CODEOWNERS are themselves subject to code review
+#
+# 7. Teams must be public in the organization
+#    Private teams cannot be code owners

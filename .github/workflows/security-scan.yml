@@ -1,0 +1,435 @@
+name: Security Scanning
+
+on:
+  push:
+    branches: [main, develop]
+  pull_request:
+    branches: [main, develop]
+  schedule:
+    # Run security scans daily at 2 AM UTC
+    - cron: '0 2 * * *'
+  workflow_dispatch:
+
+env:
+  NODE_VERSION: '20'
+
+permissions:
+  contents: read
+  security-events: write
+  actions: read
+
+jobs:
+  # ===========================================================================
+  # CodeQL Analysis
+  # ===========================================================================
+  codeql:
+    name: CodeQL Security Analysis
+    runs-on: ubuntu-latest
+    timeout-minutes: 60
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Initialize CodeQL
+        uses: github/codeql-action/init@v3
+        with:
+          languages: javascript, typescript
+          queries: security-extended,security-and-quality
+          config-file: .github/codeql-config.yml
+
+      - name: Auto-build for CodeQL
+        uses: github/codeql-action/autobuild@v3
+
+      - name: Perform CodeQL Analysis
+        uses: github/codeql-action/analyze@v3
+        with:
+          category: "/language:javascript-typescript"
+
+  # ===========================================================================
+  # Dependency Security Audit
+  # ===========================================================================
+  dependency-audit:
+    name: Dependency Security Audit
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: 'npm'
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Run npm audit
+        run: |
+          echo "## Dependency Security Audit" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+
+          # Run audit and capture output
+          npm audit --audit-level=moderate --json > /tmp/npm-audit.json || true
+
+          # Parse and display results
+          if [ -s /tmp/npm-audit.json ]; then
+            VULNS=$(node -e "const data=require('/tmp/npm-audit.json'); console.log(Object.keys(data.metadata.vulnerabilities || {}).reduce((acc, k) => acc + (data.metadata.vulnerabilities[k] || 0), 0))")
+            echo "Found ${VULNS} vulnerabilities" >> $GITHUB_STEP_SUMMARY
+
+            # Count by severity
+            echo "" >> $GITHUB_STEP_SUMMARY
+            echo "### Vulnerability Breakdown" >> $GITHUB_STEP_SUMMARY
+            echo "" >> $GITHUB_STEP_SUMMARY
+            echo "| Severity | Count |" >> $GITHUB_STEP_SUMMARY
+            echo "|----------|-------|" >> $GITHUB_STEP_SUMMARY
+            echo "| Critical | $(node -e "const data=require('/tmp/npm-audit.json'); console.log((data.metadata.vulnerabilities || {}).critical || 0)") |" >> $GITHUB_STEP_SUMMARY
+            echo "| High | $(node -e "const data=require('/tmp/npm-audit.json'); console.log((data.metadata.vulnerabilities || {}).high || 0)") |" >> $GITHUB_STEP_SUMMARY
+            echo "| Moderate | $(node -e "const data=require('/tmp/npm-audit.json'); console.log((data.metadata.vulnerabilities || {}).moderate || 0)") |" >> $GITHUB_STEP_SUMMARY
+            echo "| Low | $(node -e "const data=require('/tmp/npm-audit.json'); console.log((data.metadata.vulnerabilities || {}).low || 0)") |" >> $GITHUB_STEP_SUMMARY
+            echo "| Info | $(node -e "const data=require('/tmp/npm-audit.json'); console.log((data.metadata.vulnerabilities || {}).info || 0)") |" >> $GITHUB_STEP_SUMMARY
+          fi
+
+      - name: Fail on critical vulnerabilities
+        run: |
+          npm audit --audit-level=critical
+        continue-on-error: false
+
+      - name: Run npm audit (production only)
+        run: npm audit --production --audit-level=high
+
+  # ===========================================================================
+  # Dependency Review
+  # ===========================================================================
+  dependency-review:
+    name: Dependency Review
+    runs-on: ubuntu-latest
+    if: github.event_name == 'pull_request'
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Dependency Review
+        uses: actions/dependency-review-action@v4
+        with:
+          fail-on-severity: high
+          deny-licenses: GPL-3.0, AGPL-3.0
+          allow-licenses: MIT, Apache-2.0, BSD-2-Clause, BSD-3-Clause, ISC, 0BSD
+
+      - name: Review summary
+        run: |
+          echo "## Dependency Review ✅" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "No problematic dependencies detected in this PR." >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "**Checks performed:**" >> $GITHUB_STEP_SUMMARY
+          echo "- License validation" >> $GITHUB_STEP_SUMMARY
+          echo "- Severity assessment" >> $GITHUB_STEP_SUMMARY
+          echo "- Dependency changes" >> $GITHUB_STEP_SUMMARY
+
+  # ===========================================================================
+  # Snyk Security Scan
+  # ===========================================================================
+  snyk:
+    name: Snyk Security Scan
+    runs-on: ubuntu-latest
+    continue-on-error: true
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: 'npm'
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Run Snyk to check for vulnerabilities
+        uses: snyk/actions/node@master
+        env:
+          SNYK_TOKEN: ${{ secrets.SNYK_TOKEN }}
+        with:
+          args: --severity-threshold=high --sarif-file-output=snyk.sarif
+
+      - name: Upload Snyk results to GitHub Security
+        uses: github/codeql-action/upload-sarif@v3
+        with:
+          sarif_file: snyk.sarif
+          category: 'snyk-vulnerabilities'
+
+  # ===========================================================================
+  # Trivy Container Scan
+  # ===========================================================================
+  trivy:
+    name: Trivy Container Scan
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        variant: [base, cli, full]
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Build test image
+        run: |
+          docker build -f docker/Dockerfile.${{ matrix.variant }} \
+            -t test-image:${{ matrix.variant }} \
+            --build-arg NODE_VERSION=${{ env.NODE_VERSION }} \
+            .
+
+      - name: Run Trivy vulnerability scanner
+        uses: aquasecurity/trivy-action@master
+        with:
+          image-ref: 'test-image:${{ matrix.variant }}'
+          format: 'sarif'
+          output: 'trivy-results-${{ matrix.variant }}.sarif'
+          exit-code: '0'
+          severity: 'CRITICAL,HIGH'
+          vuln-type: 'os,library'
+
+      - name: Upload Trivy results to GitHub Security
+        uses: github/codeql-action/upload-sarif@v3
+        with:
+          sarif_file: 'trivy-results-${{ matrix.variant }}.sarif'
+          category: 'trivy-container-${{ matrix.variant }}'
+
+      - name: Generate Trivy report
+        run: |
+          echo "## Trivy Container Scan (${{ matrix.variant }})" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+
+          # Run Trivy again for human-readable output
+          trivy image --format json --output trivy-report.json test-image:${{ matrix.variant }} || true
+
+          if [ -f trivy-report.json ]; then
+            CRITICAL=$(jq '[.Results[]?.Vulnerabilities[] | select(.Severity == "CRITICAL")] | length' trivy-report.json)
+            HIGH=$(jq '[.Results[]?.Vulnerabilities[] | select(.Severity == "HIGH")] | length' trivy-report.json)
+
+            echo "| Severity | Count |" >> $GITHUB_STEP_SUMMARY
+            echo "|----------|-------|" >> $GITHUB_STEP_SUMMARY
+            echo "| CRITICAL | ${CRITICAL} |" >> $GITHUB_STEP_SUMMARY
+            echo "| HIGH | ${HIGH} |" >> $GITHUB_STEP_SUMMARY
+          fi
+
+  # ===========================================================================
+  # Semgrep Security Scan
+  # ===========================================================================
+  semgrep:
+    name: Semgrep Security Scan
+    runs-on: ubuntu-latest
+    continue-on-error: true
+    container:
+      image: returntocorp/semgrep
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Run Semgrep
+        run: |
+          semgrep scan \
+            --config auto \
+            --severity ERROR \
+            --json \
+            --output semgrep-results.json \
+            || true
+
+      - name: Parse Semgrep results
+        run: |
+          if [ -f semgrep-results.json ]; then
+            RESULTS=$(jq '.results | length' semgrep-results.json)
+            echo "## Semgrep Results 🔍" >> $GITHUB_STEP_SUMMARY
+            echo "" >> $GITHUB_STEP_SUMMARY
+            echo "Found ${RESULTS} findings" >> $GITHUB_STEP_SUMMARY
+
+            # Group by rule ID
+            echo "" >> $GITHUB_STEP_SUMMARY
+            echo "### Findings by Rule" >> $GITHUB_STEP_SUMMARY
+            echo "" >> $GITHUB_STEP_SUMMARY
+            jq -r '.results | group_by(.check_id)[] | "- \.[0].check_id: \(length) occurrences"' semgrep-results.json >> $GITHUB_STEP_SUMMARY || true
+          fi
+
+  # ===========================================================================
+  # Secret Scanning
+  # ===========================================================================
+  secret-scan:
+    name: Secret Scanning
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: TruffleHog Secret Scanning
+        uses: trufflesecurity/trufflehog@main
+        with:
+          path: ./
+          base: ${{ github.event.repository.default_branch }}
+          head: HEAD
+          extra_args: --only-verified
+
+      - name: Gitleaks Secret Scanning
+        uses: gitleaks/gitleaks-action@v2
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          GITLEAKS_LICENSE: ${{ secrets.GITLEAKS_LICENSE }}
+
+  # ===========================================================================
+  # Security Policy Check
+  # ===========================================================================
+  policy-check:
+    name: Security Policy Check
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Check security documentation
+        run: |
+          echo "## Security Policy Check 📋" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+
+          MISSING=0
+
+          # Check for SECURITY.md
+          if [ -f "SECURITY.md" ]; then
+            echo "✅ SECURITY.md exists" >> $GITHUB_STEP_SUMMARY
+          else
+            echo "❌ SECURITY.md missing" >> $GITHUB_STEP_SUMMARY
+            MISSING=$((MISSING + 1))
+          fi
+
+          # Check for security policy
+          if [ -f ".github/SECURITY.md" ] || [ -f "SECURITY.md" ]; then
+            echo "✅ Security policy documented" >> $GITHUB_STEP_SUMMARY
+          else
+            echo "⚠️ Consider adding a security policy" >> $GITHUB_STEP_SUMMARY
+          fi
+
+          # Check for dependency update automation
+          if [ -f ".github/dependabot.yml" ]; then
+            echo "✅ Dependabot configured" >> $GITHUB_STEP_SUMMARY
+          else
+            echo "⚠️ Dependabot not configured" >> $GITHUB_STEP_SUMMARY
+          fi
+
+          # Check for CodeQL config
+          if [ -f ".github/codeql-config.yml" ]; then
+            echo "✅ CodeQL configured" >> $GITHUB_STEP_SUMMARY
+          else
+            echo "⚠️ CodeQL config not found" >> $GITHUB_STEP_SUMMARY
+          fi
+
+          exit ${MISSING}
+
+  # ===========================================================================
+  # Security Scorecard
+  # ===========================================================================
+  scorecard:
+    name: OSSF Scorecard
+    runs-on: ubuntu-latest
+    permissions:
+      security-events: write
+      id-token: write
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+
+      - name: Run OSSF Scorecard
+        uses: ossf/scorecard-action@v2.3.1
+        with:
+          results_file: results.json
+          results_format: json
+          repo_token: ${{ secrets.SCORECARD_TOKEN }}
+
+      - name: Upload Scorecard results
+        uses: github/codeql-action/upload-sarif@v3
+        with:
+          sarif_file: results.json
+
+      - name: Scorecard summary
+        run: |
+          if [ -f results.json ]; then
+            echo "## OSSF Scorecard 📊" >> $GITHUB_STEP_SUMMARY
+            echo "" >> $GITHUB_STEP_SUMMARY
+
+            SCORE=$(jq '.score' results.json)
+            echo "**Overall Score:** ${SCORE}/100" >> $GITHUB_STEP_SUMMARY
+            echo "" >> $GITHUB_STEP_SUMMARY
+
+            echo "### Check Results" >> $GITHUB_STEP_SUMMARY
+            echo "" >> $GITHUB_STEP_SUMMARY
+            echo "| Check | Score |" >> $GITHUB_STEP_SUMMARY
+            echo "|-------|-------|" >> $GITHUB_STEP_SUMMARY
+
+            jq -r '.checks | to_entries[] | "|\(.key)| \(.value.score | tostring) |"' results.json >> $GITHUB_STEP_SUMMARY
+          fi
+
+  # ===========================================================================
+  # Security Summary
+  # ===========================================================================
+  security-summary:
+    name: Security Summary
+    runs-on: ubuntu-latest
+    needs: [codeql, dependency-audit, dependency-review, snyk, trivy, semgrep, secret-scan, policy-check, scorecard]
+    if: always()
+    steps:
+      - name: Generate security summary
+        run: |
+          echo "## Security Scan Summary 🔒" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "**Scan Date:** $(date -u +'%Y-%m-%d %H:%M:%S UTC')" >> $GITHUB_STEP_SUMMARY
+          echo "**Commit:** ${{ github.sha }}" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+
+          echo "### Scan Results" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "| Security Check | Status |" >> $GITHUB_STEP_SUMMARY
+          echo "|-----------------|--------|" >> $GITHUB_STEP_SUMMARY
+          echo "| CodeQL Analysis | ${{ needs.codeql.result == 'success' && '✅ Passed' || '❌ Failed' }} |" >> $GITHUB_STEP_SUMMARY
+          echo "| Dependency Audit | ${{ needs.dependency-audit.result == 'success' && '✅ Passed' || '⚠️ Review' }} |" >> $GITHUB_STEP_SUMMARY
+          echo "| Dependency Review | ${{ needs.dependency-review.result == 'success' && '✅ Passed' || (needs.dependency-review.result == 'skipped' && '⏭️ Skipped' || '❌ Failed') }} |" >> $GITHUB_STEP_SUMMARY
+          echo "| Snyk Scan | ${{ needs.snyk.result == 'success' && '✅ Passed' || '⚠️ Review' }} |" >> $GITHUB_STEP_SUMMARY
+          echo "| Trivy Container Scan | ${{ needs.trivy.result == 'success' && '✅ Passed' || '⚠️ Review' }} |" >> $GITHUB_STEP_SUMMARY
+          echo "| Semgrep Scan | ${{ needs.semgrep.result == 'success' && '✅ Passed' || '⚠️ Review' }} |" >> $GITHUB_STEP_SUMMARY
+          echo "| Secret Scanning | ${{ needs.secret-scan.result == 'success' && '✅ Passed' || '❌ Failed' }} |" >> $GITHUB_STEP_SUMMARY
+          echo "| Policy Check | ${{ needs.policy-check.result == 'success' && '✅ Passed' || '⚠️ Review' }} |" >> $GITHUB_STEP_SUMMARY
+          echo "| OSSF Scorecard | ${{ needs.scorecard.result == 'success' && '✅ Passed' || '⚠️ Review' }} |" >> $GITHUB_STEP_SUMMARY
+
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "### Resources" >> $GITHUB_STEP_SUMMARY
+          echo "- [Security Tab](https://github.com/${{ github.repository }}/security)" >> $GITHUB_STEP_SUMMARY
+          echo "- [Dependency Graph](https://github.com/${{ github.repository }}/network/dependencies)" >> $GITHUB_STEP_SUMMARY
+
+      - name: Create security issue on critical findings
+        if: |
+          needs.codeql.result == 'failure' ||
+          needs.dependency-audit.result == 'failure' ||
+          needs.secret-scan.result == 'failure'
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const issue = await github.rest.issues.create({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              title: `Security scan failures detected - ${context.sha}`,
+              body: `Security scans detected critical issues.
+
+              **Commit:** ${context.sha}
+              **Workflow:** ${context.workflow}
+
+              Failed checks:
+              - CodeQL: ${{ needs.codeql.result }}
+              - Dependency Audit: ${{ needs.dependency-audit.result }}
+              - Secret Scanning: ${{ needs.secret-scan.result }}
+
+              Please review and address these issues.`,
+              labels: ['security', 'priority-critical']
+            });
+
+            console.log(`Created security issue: #${issue.data.number}`);
