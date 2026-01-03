@@ -52,7 +52,7 @@ jobs:
       continue-on-error: true
 
     - name: Upload benchmark results
-      uses: actions/upload-artifact@v4
+      uses: actions/upload-artifact@v6
       if: always()
       with:
         name: benchmark-results-${{ github.run_number }}
@@ -229,7 +229,7 @@ jobs:
         "
 
     - name: Upload dashboard data
-      uses: actions/upload-artifact@v4
+      uses: actions/upload-artifact@v6
       with:
         name: grafana-metrics
         path: /tmp/grafana-data.csv
