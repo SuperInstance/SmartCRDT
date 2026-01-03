@@ -86,7 +86,7 @@ jobs:
       run: pnpm install --frozen-lockfile
 
     - name: Download all benchmark results
-      uses: actions/download-artifact@v3
+      uses: actions/download-artifact@v7
       with:
         path: benchmark-results/
 
@@ -266,7 +266,7 @@ jobs:
         node-version: '20.10.0'
 
     - name: Download benchmark results
-      uses: actions/download-artifact@v3
+      uses: actions/download-artifact@v7
       with:
         path: benchmark-results/
 
@@ -334,7 +334,7 @@ jobs:
     - uses: actions/checkout@v4
 
     - name: Download regression report
-      uses: actions/download-artifact@v3
+      uses: actions/download-artifact@v7
       with:
         name: regression-report
         path: .
