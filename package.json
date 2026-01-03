@@ -25,7 +25,10 @@
     "format": "prettier --write \"packages/**/*.ts\"",
     "format:check": "prettier --check \"packages/**/*.ts\"",
     "precommit": "lint-staged",
-    "prepare": "husky install"
+    "prepare": "husky install",
+    "docs:generate": "node scripts/generate-docs.cjs",
+    "docs:serve": "npx serve docs/api",
+    "docs:watch": "node scripts/generate-docs.cjs --watch"
   },
   "devDependencies": {
     "@types/node": "^20.10.0",
