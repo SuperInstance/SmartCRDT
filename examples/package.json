@@ -1,0 +1,38 @@
+{
+  "name": "@lsi/examples",
+  "version": "1.0.0",
+  "description": "Comprehensive usage examples for Aequor Cognitive Orchestration Platform",
+  "type": "module",
+  "private": true,
+  "scripts": {
+    "cascade": "tsx cascade-basic-usage.ts",
+    "privacy": "tsx privacy-first-bot.ts",
+    "caching": "tsx semantic-caching.ts",
+    "hardware": "tsx hardware-aware-dispatch.ts",
+    "superinstance": "tsx superinstance-three-planes.ts",
+    "all": "npm-run-all --parallel cascade privacy caching hardware superinstance",
+    "build": "tsc",
+    "clean": "rm -rf dist"
+  },
+  "keywords": [
+    "examples",
+    "tutorial",
+    "documentation",
+    "aequor",
+    "cognitive-orchestration",
+    "ai-routing",
+    "privacy",
+    "semantic-cache",
+    "hardware-aware"
+  ],
+  "author": "Aequor Project",
+  "license": "MIT",
+  "devDependencies": {
+    "tsx": "^4.7.0",
+    "npm-run-all": "^4.1.5",
+    "typescript": "^5.3.3"
+  },
+  "engines": {
+    "node": ">=18.0.0"
+  }
+}
