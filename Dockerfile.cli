@@ -1,7 +1,7 @@
 # CLI Tools Dockerfile for LSI Ecosystem
 # Lightweight image with lsictl CLI tools only
 
-FROM node:20-alpine AS builder
+FROM node:25-alpine AS builder
 WORKDIR /app
 
 # Install build dependencies
@@ -27,7 +27,7 @@ RUN npm run build --workspace=@lsi/cli && \
 # ============================================================================
 # CLI Runtime Stage
 # ============================================================================
-FROM node:20-alpine
+FROM node:25-alpine
 
 RUN apk add --no-cache \
     cairo \
