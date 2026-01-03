@@ -55,7 +55,7 @@ export class ProgressManager {
       stream: process.stderr,
       clearOnComplete: false,
       hideCursor: true,
-      format: chalk.cyan('{bar}') + ' | {percentage}% | {value}/{total} {operation} | {name}',
+      format: (chalk.cyan('{bar}') as any) + ' | {percentage}% | {value}/{total} {operation} | {name}',
       barCompleteChar: '\u2588',
       barIncompleteChar: '\u2591',
       barsize: 100,
@@ -149,7 +149,7 @@ export function createDownloadBar(name: string, totalBytes: number): {
   complete: () => void;
 } {
   const bar = new cliProgress.SingleBar({
-    format: chalk.cyan('{bar}') + ' | {percentage}% | {value}/{total} bytes | {name}',
+    format: (chalk.cyan as any)('{bar}') + ' | {percentage}% | {value}/{total} bytes | {name}',
     barCompleteChar: '\u2588',
     barIncompleteChar: '\u2591',
     barsize: 80,
@@ -244,28 +244,28 @@ class SimpleSpinner implements SpinnerState {
   succeed(text?: string): SpinnerState {
     this.stop();
     const message = text || this._text;
-    console.log(chalk.green('✔') + ' ' + message);
+    console.log((chalk.green as any)('✔') + ' ' + message);
     return this;
   }
 
   fail(text?: string): SpinnerState {
     this.stop();
     const message = text || this._text;
-    console.error(chalk.red('✖') + ' ' + message);
+    console.error((chalk.red as any)('✖') + ' ' + message);
     return this;
   }
 
   info(text?: string): SpinnerState {
     this.stop();
     const message = text || this._text;
-    console.log(chalk.blue('ℹ') + ' ' + message);
+    console.log((chalk.blue as any)('ℹ') + ' ' + message);
     return this;
   }
 
   warn(text?: string): SpinnerState {
     this.stop();
     const message = text || this._text;
-    console.warn(chalk.yellow('⚠') + ' ' + message);
+    console.warn((chalk.yellow as any)('⚠') + ' ' + message);
     return this;
   }
 }
@@ -292,28 +292,28 @@ export function createSpinner(text?: string): SpinnerState {
  * Print a success message
  */
 export function success(message: string): void {
-  console.log(chalk.green('✔') + ' ' + message);
+  console.log((chalk.green as any)('✔') + ' ' + message);
 }
 
 /**
  * Print an error message
  */
 export function error(message: string): void {
-  console.error(chalk.red('✖') + ' ' + message);
+  console.error((chalk.red as any)('✖') + ' ' + message);
 }
 
 /**
  * Print a warning message
  */
 export function warning(message: string): void {
-  console.warn(chalk.yellow('⚠') + ' ' + message);
+  console.warn((chalk.yellow as any)('⚠') + ' ' + message);
 }
 
 /**
  * Print an info message
  */
 export function info(message: string): void {
-  console.log(chalk.blue('ℹ') + ' ' + message);
+  console.log((chalk.blue as any)('ℹ') + ' ' + message);
 }
 
 /**
@@ -321,7 +321,7 @@ export function info(message: string): void {
  */
 export function debug(message: string, enabled: boolean = false): void {
   if (enabled) {
-    console.log(chalk.gray('●') + ' ' + chalk.gray(message));
+    console.log((chalk.gray as any)('●') + ' ' + (chalk.gray as any)(message));
   }
 }
 

@@ -161,7 +161,7 @@ export class ProductQuantizer {
 
       // Extract subvectors
       const subvectors: number[][] = trainingVectors.map((v) =>
-        v.slice(start, end)
+        Array.from(v.slice(start, end))
       );
 
       // Run K-means on this subvector

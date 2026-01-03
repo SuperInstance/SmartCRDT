@@ -204,7 +204,7 @@ export class ProofAggregator {
 
     return {
       aggregatedProof,
-      originalProofs: proofs,
+      originalProofs: proofs as any,
       stats: {
         aggregationTimeMs,
         originalSizeBytes,
@@ -641,7 +641,7 @@ export class AggregatedProofVerifier {
     }
 
     for (const id of aggregatedIds) {
-      if (!originalIds.has(id)) {
+      if (!originalIds.has(id as any)) {
         return false;
       }
     }

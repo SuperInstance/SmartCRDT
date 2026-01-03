@@ -12,3 +12,13 @@ declare module "vitest" {
 declare module "@lsi/native/bindings" {
   export const native: any;
 }
+
+declare module "ajv" {
+  const ajv: any;
+  export = ajv;
+}
+
+declare module "ajv-formats" {
+  const plugin: any;
+  export default plugin;
+}

@@ -242,12 +242,12 @@ export function validateModel(model: string): ValidationResult {
  * Format a validation error for display
  */
 export function formatValidationError(error: string): string {
-  return `${chalk.red("✗")} Validation Error: ${error}`;
+  return `${(chalk.red as any)("✗")} Validation Error: ${error}`;
 }
 
 /**
  * Format a validation success for display
  */
 export function formatValidationSuccess(message: string): string {
-  return `${chalk.green("✓")} ${message}`;
+  return `${(chalk.green as any)("✓")} ${message}`;
 }

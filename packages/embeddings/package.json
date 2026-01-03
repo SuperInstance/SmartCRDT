@@ -1,0 +1,25 @@
+{
+  "name": "@lsi/embeddings",
+  "version": "1.0.0",
+  "description": "Production-ready embedding services for Aequor",
+  "type": "module",
+  "main": "./dist/index.js",
+  "types": "./dist/index.d.ts",
+  "exports": {
+    ".": {
+      "import": "./dist/index.js",
+      "types": "./dist/index.d.ts"
+    }
+  },
+  "files": [
+    "dist"
+  ],
+  "keywords": [
+    "embeddings",
+    "openai",
+    "ollama",
+    "vector"
+  ],
+  "author": "SuperInstance",
+  "license": "MIT"
+}

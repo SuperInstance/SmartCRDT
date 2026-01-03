@@ -563,7 +563,7 @@ export class DisjunctionProofVerifier {
 
     // In a real implementation, we would verify the Sigma protocol here
     // For now, just check that the proof is well-formed
-    return satisfactionProof.hash && satisfactionProof.hash.length > 0;
+    return !!(satisfactionProof.hash && satisfactionProof.hash.length > 0);
   }
 
   /**

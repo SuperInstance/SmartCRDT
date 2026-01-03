@@ -58,7 +58,7 @@ export class Logger {
     color: (msg: string) => string
   ): string {
     const timestamp = this.config.showTimestamp
-      ? `${chalk.grey(new Date().toISOString())} `
+      ? `${(chalk.grey as any)(new Date().toISOString())} `
       : "";
     const levelStr = prefix ? color(prefix) : "";
     return `${timestamp}${levelStr} ${message}`;
@@ -69,7 +69,7 @@ export class Logger {
    */
   debug(message: string): void {
     if (this.config.minLevel <= LogLevel.DEBUG) {
-      console.log(this.format(message, "DEBUG", "DBG", chalk.grey));
+      console.log(this.format(message, "DEBUG", "DBG", chalk.grey as any));
     }
   }
 
@@ -78,7 +78,7 @@ export class Logger {
    */
   info(message: string): void {
     if (this.config.minLevel <= LogLevel.INFO) {
-      console.log(this.format(message, "INFO", "INFO", chalk.blue));
+      console.log(this.format(message, "INFO", "INFO", chalk.blue as any));
     }
   }
 
@@ -87,7 +87,7 @@ export class Logger {
    */
   warn(message: string): void {
     if (this.config.minLevel <= LogLevel.WARN) {
-      console.warn(this.format(message, "WARN", "WARN", chalk.yellow));
+      console.warn(this.format(message, "WARN", "WARN", chalk.yellow as any));
     }
   }
 
@@ -96,7 +96,7 @@ export class Logger {
    */
   error(message: string): void {
     if (this.config.minLevel <= LogLevel.ERROR) {
-      console.error(this.format(message, "ERROR", "ERR", chalk.red));
+      console.error(this.format(message, "ERROR", "ERR", chalk.red as any));
     }
   }
 
@@ -105,7 +105,7 @@ export class Logger {
    */
   success(message: string): void {
     if (this.config.minLevel <= LogLevel.SUCCESS) {
-      console.log(this.format(message, "SUCCESS", "✓", chalk.green));
+      console.log(this.format(message, "SUCCESS", "✓", chalk.green as any));
     }
   }
 

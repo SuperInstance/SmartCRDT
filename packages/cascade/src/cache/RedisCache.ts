@@ -238,6 +238,20 @@ export class RedisCache {
 
   /**
    * Get entry from cache
+   *
+   * Attempts to retrieve from Redis first, then falls back to memory cache.
+   * Handles expiration checking and access frequency tracking.
+   *
+   * @param key - Cache key to retrieve
+   * @returns Cached entry or null if not found or expired
+   *
+   * @example
+   * ```ts
+   * const entry = await redisCache.get("query:123");
+   * if (entry) {
+   *   console.log("Cache hit:", entry.result);
+   * }
+   * ```
    */
   async get(key: string): Promise<SemanticCacheEntry | null> {
     const startTime = Date.now();
@@ -309,6 +323,24 @@ export class RedisCache {
 
   /**
    * Set entry in cache
+   *
+   * Stores entry in Redis if available, otherwise falls back to memory cache.
+   * Handles LRU eviction when cache is at capacity.
+   *
+   * @param key - Cache key to store under
+   * @param entry - Semantic cache entry to store
+   * @param ttl - Optional time-to-live in milliseconds (defaults to config TTL)
+   * @returns Promise that resolves when entry is stored
+   *
+   * @example
+   * ```ts
+   * await redisCache.set("query:123", {
+   *   query: "What is AI?",
+   *   result: { answer: "AI is..." },
+   *   hitCount: 1,
+   *   createdAt: Date.now()
+   * }, 300000); // 5 minutes TTL
+   * ```
    */
   async set(
     key: string,
@@ -501,6 +533,19 @@ export class RedisCache {
 
   /**
    * Get cache statistics
+   *
+   * Returns comprehensive statistics including hit rates, error counts,
+   * and timing metrics for both Redis and memory cache layers.
+   *
+   * @returns Cache statistics with hit/miss rates, errors, and timing data
+   *
+   * @example
+   * ```ts
+   * const stats = redisCache.getStats();
+   * console.log(`Hit rate: ${(stats.hitRate * 100).toFixed(1)}%`);
+   * console.log(`Using Redis: ${stats.usingRedis}`);
+   * console.log(`Redis hits: ${stats.redisHits}, Memory hits: ${stats.memoryHits}`);
+   * ```
    */
   getStats() {
     const totalRequests = this.stats.hits + this.stats.misses;

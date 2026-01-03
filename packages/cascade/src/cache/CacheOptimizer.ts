@@ -270,7 +270,17 @@ export class CacheOptimizer {
    * Note: Some optimizations require cache reset or reconfiguration.
    *
    * @param suggestion - The optimization suggestion to apply
-   * @returns Result of the optimization attempt
+   * @returns Result of the optimization attempt with success status and new metrics
+   * @throws {Error} When optimization category is unknown
+   *
+   * @example
+   * ```ts
+   * const suggestions = optimizer.analyze();
+   * for (const suggestion of suggestions) {
+   *   const result = await optimizer.applyOptimization(suggestion);
+   *   console.log(`Success: ${result.success}`);
+   * }
+   * ```
    */
   async applyOptimization(
     suggestion: OptimizationSuggestion
@@ -311,7 +321,17 @@ export class CacheOptimizer {
   /**
    * Get current cache performance metrics
    *
-   * @returns Current cache metrics
+   * Calculates and returns comprehensive performance metrics including
+   * hit rate, memory usage, latency, and per-query-type statistics.
+   *
+   * @returns Current cache metrics with detailed performance breakdown
+   *
+   * @example
+   * ```ts
+   * const metrics = optimizer.getMetrics();
+   * console.log(`Hit Rate: ${(metrics.hitRate * 100).toFixed(1)}%`);
+   * console.log(`Memory: ${(metrics.memoryUsage / 1024 / 1024).toFixed(1)} MB`);
+   * ```
    */
   getMetrics(): CachePerformanceMetrics {
     const stats = this.cache.getStats();

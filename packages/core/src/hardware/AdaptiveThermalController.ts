@@ -234,7 +234,9 @@ export class AdaptiveThermalController {
   /**
    * Check if policy is adaptive (supports prediction)
    */
-  private isAdaptivePolicy(policy: ThermalPolicy): policy is any {
+  private isAdaptivePolicy(policy: ThermalPolicy): policy is ThermalPolicy & {
+    getPrediction(state: ThermalState): ThermalPrediction | null;
+  } {
     return (
       "getPrediction" in policy &&
       typeof (policy as any).getPrediction === "function"

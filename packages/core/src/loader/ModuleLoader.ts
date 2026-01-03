@@ -324,8 +324,8 @@ export class ModuleLoader {
       timeout: this.config.defaultTimeout,
       retries: this.config.maxRetries,
       cache: true,
-      version: options.version || "latest",
-      ...options,
+      version: (options?.version) || "latest",
+      ...(options ?? {}),
     };
 
     entry.loadPromise = this.loadWithRetry(entry.manifest, opts);

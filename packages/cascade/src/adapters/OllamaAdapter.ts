@@ -203,11 +203,20 @@ export class OllamaAdapter {
   /**
    * Process a prompt with the given model
    *
-   * Alias for execute() for compatibility
+   * Alias for execute() for compatibility. Routes to local backend with
+   * the specified model or default.
    *
    * @param prompt - Input prompt to process
-   * @param model - Model to use (optional, falls back to default)
-   * @returns Process result
+   * @param model - Model to use (optional, falls back to defaultModel from config)
+   * @returns Process result with content, tokens used, and latency
+   * @throws {OllamaAdapterError} When processing fails after retries
+   * @throws {RateLimitError} When rate limit is exceeded (if rate limiter configured)
+   *
+   * @example
+   * ```ts
+   * const result = await adapter.process("Explain quantum computing");
+   * console.log(result.content);
+   * ```
    */
   async process(prompt: string, model?: string): Promise<ProcessResult> {
     const decision: RoutingDecision = {
@@ -228,7 +237,16 @@ export class OllamaAdapter {
    * Note: This does NOT retry aggressively like execute() does.
    * Health checks should fail fast to indicate service issues.
    *
-   * @returns Health check result with available models
+   * @returns Health check result with available models list and status
+   * @throws {OllamaAdapterError} When health check fails to connect
+   *
+   * @example
+   * ```ts
+   * const health = await adapter.checkHealth();
+   * if (health.healthy) {
+   *   console.log("Available models:", health.models);
+   * }
+   * ```
    */
   async checkHealth(): Promise<AdapterHealthCheckResult> {
     try {

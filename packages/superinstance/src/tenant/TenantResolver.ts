@@ -311,7 +311,7 @@ export class TenantResolver {
 
     // Extract tenant ID from subject
     const sub = payload.sub as string | undefined;
-    const tenantId = createTenantId(sub);
+    const tenantId = createTenantId(sub || "unknown");
     const tenant = this.registry.getTenant(tenantId);
     if (!tenant) {
       throw new TenantResolutionError(

@@ -13,11 +13,12 @@
  * Native module interface (loaded dynamically)
  */
 interface NativeHNSWModule {
-  cosine_similarity_simd(a: number[], b: number[]): number;
-  euclidean_distance_simd_ffi(a: number[], b: number[]): number;
-  dot_product_simd_ffi(a: number[], b: number[]): number;
-  batch_cosine_similarity_ffi(query: number[], candidates: number[][]): number[];
-  batch_euclidean_distance_ffi(query: number[], candidates: number[][]): number[];
+  cosine_similarity_simd?(a: number[], b: number[]): number;
+  euclidean_distance_simd_ffi?(a: number[], b: number[]): number;
+  dot_product_simd_ffi?(a: number[], b: number[]): number;
+  batch_cosine_similarity_ffi?(query: number[], candidates: number[][]): number[];
+  batch_euclidean_distance_ffi?(query: number[], candidates: number[][]): number[];
+  [key: string]: any; // Allow other properties
 }
 
 /**
@@ -43,13 +44,18 @@ export async function loadNativeModule(): Promise<boolean> {
     // Try to load the native module
     const module = await import('@lsi/native/bindings');
 
-    // Check if required functions are available
-    if (
-      typeof module.cosine_similarity_simd === 'function' &&
-      typeof module.euclidean_distance_simd_ffi === 'function' &&
-      typeof module.dot_product_simd_ffi === 'function'
-    ) {
-      nativeModule = module;
+    // Check if module has any of the required functions (not all need to be available)
+    const bindings = (module as any).default || module;
+    const hasAnyFunction =
+      typeof bindings.cosine_similarity_simd === 'function' ||
+      typeof bindings.euclidean_distance_simd_ffi === 'function' ||
+      typeof bindings.dot_product_simd_ffi === 'function' ||
+      typeof (module as any).cosine_similarity_simd === 'function' ||
+      typeof (module as any).euclidean_distance_simd_ffi === 'function' ||
+      typeof (module as any).dot_product_simd_ffi === 'function';
+
+    if (hasAnyFunction) {
+      nativeModule = module as NativeHNSWModule;
       nativeAvailable = true;
       console.log('[HNSWNative] ✓ Rust module loaded successfully');
     } else {
@@ -82,7 +88,10 @@ export function cosineSimilarity(a: Float32Array, b: Float32Array): number {
     try {
       const aArr = Array.from(a);
       const bArr = Array.from(b);
-      return nativeModule.cosine_similarity_simd(aArr, bArr);
+      const fn = nativeModule.cosine_similarity_simd || nativeModule.default?.cosine_similarity_simd;
+      if (fn) {
+        return fn(aArr, bArr);
+      }
     } catch (e) {
       console.warn('[HNSWNative] Rust cosine_similarity failed, falling back to TS:', e);
       return cosineSimilarityTS(a, b);
@@ -104,7 +113,10 @@ export function cosineDistance(a: Float32Array, b: Float32Array): number {
     try {
       const aArr = Array.from(a);
       const bArr = Array.from(b);
-      return 1.0 - nativeModule.cosine_similarity_simd(aArr, bArr);
+      const fn = nativeModule.cosine_similarity_simd || nativeModule.default?.cosine_similarity_simd;
+      if (fn) {
+        return 1.0 - fn(aArr, bArr);
+      }
     } catch (e) {
       console.warn('[HNSWNative] Rust cosine_distance failed, falling back to TS:', e);
       return cosineDistanceTS(a, b);
@@ -126,7 +138,10 @@ export function euclideanDistance(a: Float32Array, b: Float32Array): number {
     try {
       const aArr = Array.from(a);
       const bArr = Array.from(b);
-      return nativeModule.euclidean_distance_simd_ffi(aArr, bArr);
+      const fn = nativeModule.euclidean_distance_simd_ffi || nativeModule.default?.euclidean_distance_simd_ffi;
+      if (fn) {
+        return fn(aArr, bArr);
+      }
     } catch (e) {
       console.warn('[HNSWNative] Rust euclidean_distance failed, falling back to TS:', e);
       return euclideanDistanceTS(a, b);
@@ -148,7 +163,10 @@ export function dotProduct(a: Float32Array, b: Float32Array): number {
     try {
       const aArr = Array.from(a);
       const bArr = Array.from(b);
-      return nativeModule.dot_product_simd_ffi(aArr, bArr);
+      const fn = nativeModule.dot_product_simd_ffi || nativeModule.default?.dot_product_simd_ffi;
+      if (fn) {
+        return fn(aArr, bArr);
+      }
     } catch (e) {
       console.warn('[HNSWNative] Rust dot_product failed, falling back to TS:', e);
       return dotProductTS(a, b);
@@ -173,7 +191,10 @@ export function batchCosineSimilarity(
     try {
       const queryArr = Array.from(query);
       const candidatesArr = candidates.map((c) => Array.from(c));
-      return nativeModule.batch_cosine_similarity_ffi(queryArr, candidatesArr);
+      const fn = nativeModule.batch_cosine_similarity_ffi || nativeModule.default?.batch_cosine_similarity_ffi;
+      if (fn) {
+        return fn(queryArr, candidatesArr);
+      }
     } catch (e) {
       console.warn('[HNSWNative] Rust batch_cosine_similarity failed, falling back to TS:', e);
       return batchCosineSimilarityTS(query, candidates);
@@ -198,7 +219,10 @@ export function batchEuclideanDistance(
     try {
       const queryArr = Array.from(query);
       const candidatesArr = candidates.map((c) => Array.from(c));
-      return nativeModule.batch_euclidean_distance_ffi(queryArr, candidatesArr);
+      const fn = nativeModule.batch_euclidean_distance_ffi || nativeModule.default?.batch_euclidean_distance_ffi;
+      if (fn) {
+        return fn(queryArr, candidatesArr);
+      }
     } catch (e) {
       console.warn('[HNSWNative] Rust batch_euclidean_distance failed, falling back to TS:', e);
       return batchEuclideanDistanceTS(query, candidates);

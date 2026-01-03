@@ -99,7 +99,7 @@ class ResourcePool {
     return {
       cpuCores: (this.totalResources.cpuCores || 0) - allocatedCpuCores,
       memoryBytes: (this.totalResources.memoryBytes || 0) - allocatedMemoryBytes,
-      gpu: (this.totalResources.gpu || 0) - allocatedGpu,
+      gpu: (typeof this.totalResources.gpu === "number" ? this.totalResources.gpu : 0) - allocatedGpu,
       storageBytes: (this.totalResources.storageBytes || 0) - allocatedStorageBytes,
       networkBandwidth: (this.totalResources.networkBandwidth || 0) - allocatedNetworkBandwidth,
     };
@@ -344,7 +344,7 @@ export class ResourcePoolManager {
       tenantId,
       poolType,
       resources: requiredResources,
-      priority,
+      priority: priority as any,
       allocatedAt: Date.now(),
     };
 
@@ -413,7 +413,7 @@ export class ResourcePoolManager {
     for (const waitingTenantId of pool.waitingQueue) {
       const waitingAllocation = this.allocations.get(waitingTenantId);
       if (waitingAllocation) {
-        const waitingPriority = PRIORITY_LEVELS[waitingAllocation.priority];
+        const waitingPriority = (PRIORITY_LEVELS as any)[waitingAllocation.priority as any];
         if (waitingPriority > tenantPriority) {
           return false;
         }
@@ -432,8 +432,8 @@ export class ResourcePoolManager {
       const sortedQueue = [...pool.waitingQueue].sort((a, b) => {
         const allocationA = this.allocations.get(a);
         const allocationB = this.allocations.get(b);
-        const priorityA = allocationA ? PRIORITY_LEVELS[allocationA.priority] : 0;
-        const priorityB = allocationB ? PRIORITY_LEVELS[allocationB.priority] : 0;
+        const priorityA = allocationA ? (PRIORITY_LEVELS as any)[allocationA.priority as any] : 0;
+        const priorityB = allocationB ? (PRIORITY_LEVELS as any)[allocationB.priority as any] : 0;
         return priorityB - priorityA;
       });
 
@@ -481,7 +481,7 @@ export class ResourcePoolManager {
     }
 
     if (pool.totalResources.gpu) {
-      fairShare.gpu = pool.totalResources.gpu / totalTenants;
+      fairShare.gpu = (typeof pool.totalResources.gpu === "number" ? pool.totalResources.gpu : 0) / totalTenants;
     }
 
     if (pool.totalResources.storageBytes) {
@@ -508,7 +508,7 @@ export class ResourcePoolManager {
     available: AllocatedResources;
     utilizationPercentage: number;
   } | undefined {
-    const pool = this.sharedPools.get(poolId) || this.dedicatedPools.get(poolId);
+    const pool = this.sharedPools.get(poolId as any) || this.dedicatedPools.get(poolId as any);
     if (!pool) {
       return undefined;
     }
@@ -525,7 +525,9 @@ export class ResourcePoolManager {
     }
 
     if (pool.totalResources.gpu) {
-      used.gpu = (pool.totalResources.gpu || 0) - (available.gpu || 0);
+      const totalGpu = typeof pool.totalResources.gpu === "number" ? pool.totalResources.gpu : 0;
+      const availGpu = typeof available.gpu === "number" ? available.gpu : 0;
+      used.gpu = totalGpu - availGpu;
     }
 
     if (pool.totalResources.storageBytes) {

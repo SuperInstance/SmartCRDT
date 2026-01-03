@@ -132,19 +132,19 @@ export class CacheInvalidator {
         break;
 
       case InvalidationStrategy.LFU:
-        count = this.invalidateLFU(options, entries);
+        count = this.invalidateLFU(options as any).count;
         break;
 
       case InvalidationStrategy.TTL:
-        count = this.invalidateByTTL(options, entries);
+        count = this.invalidateByTTL(options as any).count;
         break;
 
       case InvalidationStrategy.ADAPTIVE:
-        count = this.invalidateAdaptive(options, entries);
+        count = this.invalidateAdaptive(options as any).count;
         break;
 
       case InvalidationStrategy.MANUAL:
-        count = this.invalidateByPattern(options, entries);
+        count = this.invalidateManual(options, entries);
         break;
 
       default:
@@ -851,7 +851,7 @@ export class CacheInvalidator {
       case "adaptive":
         return this.invalidateAdaptive(config as AdaptiveInvalidationConfig);
       default:
-        throw new Error(`Unknown strategy: ${config.strategy}`);
+        throw new Error(`Unknown strategy: ${(config as any).strategy}`);
     }
   }
 
@@ -1155,6 +1155,42 @@ export class CacheInvalidator {
       dryRun: result.dryRun,
       success: true,
     };
+  }
+
+  /**
+   * Invalidate manual (pattern-based eviction)
+   *
+   * @param options - Invalidation options
+   * @param entries - Array to collect invalidated entries
+   * @returns Number of entries invalidated
+   */
+  private invalidateManual(
+    options: InvalidationOptions,
+    entries: Array<{ key: string; query: string; reason: string }>
+  ): number {
+    const pattern = options.pattern;
+    if (!pattern) {
+      return 0;
+    }
+
+    let count = 0;
+
+    for (const [key, entry] of this.getCacheEntries()) {
+      if (pattern.test(key) || pattern.test(entry.query)) {
+        this.cache.delete(key);
+        count++;
+
+        if (entries.length < 100) {
+          entries.push({
+            key,
+            query: entry.query,
+            reason: `Manual: matched pattern ${pattern.source}`,
+          });
+        }
+      }
+    }
+
+    return count;
   }
 }
 

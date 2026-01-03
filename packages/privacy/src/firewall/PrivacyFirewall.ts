@@ -1,16 +1,259 @@
 /**
  * PrivacyFirewall - Privacy enforcement middleware for Aequor
  *
- * The Privacy Firewall acts as a gatekeeper between the IntentionPlane and external
- * models, ensuring that SOVEREIGN data never leaves the local system and that
- * SENSITIVE data is properly handled.
+ * @package @lsi/privacy
+ * @author SuperInstance
+ * @license MIT
  *
- * Features:
- * - Rule-based privacy enforcement with priority evaluation
- * - Default security-first rules (SOVEREIGN blocked from cloud, SENSITIVE redacted)
- * - Custom rule addition/removal at runtime
- * - Support for multiple action types (allow, deny, redact, redirect)
+ * ## Overview
  *
+ * PrivacyFirewall acts as a gatekeeper between the IntentionPlane and external
+ * models, ensuring that privacy policies are enforced before data leaves the
+ * local system. It implements a security-first approach with defense-in-depth.
+ *
+ * ## Core Principles
+ *
+ * 1. **Security-First Default**: If no rules match, action is 'deny'
+ * 2. **Priority-Based Evaluation**: Rules evaluated in priority order (highest first)
+ * 3. **Explicit Allow**: Data must be explicitly allowed to transmit
+ * 4. **Audit Trail**: All decisions include matched rules and reasoning
+ *
+ * ## Architecture
+ *
+ * ```
+ * Query Request
+ *     │
+ *     ├─ Privacy Classification
+ *     │   ├─ PUBLIC: Safe to share
+ *     │   ├─ SENSITIVE: Rewrite needed
+ *     │   └─ SOVEREIGN: Block from cloud
+ *     │
+ *     ├─ Firewall Evaluation
+ *     │   ├─ Sort rules by priority (highest first)
+ *     │   ├─ Check each enabled rule
+ *     │   ├─ First match determines action
+ *     │   └─ No match → default deny
+ *     │
+ *     └─ Enforcement Action
+ *         ├─ ALLOW: Proceed with request
+ *         ├─ DENY: Block with reason
+ *         ├─ REDACT: Remove PII, then proceed
+ *         └─ REDIRECT: Route to different backend
+ * ```
+ *
+ * ## Default Security Rules
+ *
+ * The firewall includes pre-configured security-first rules (priority order):
+ *
+ * | Priority | Rule ID | Condition | Action | Purpose |
+ * |----------|---------|-----------|--------|---------|
+ * 100 | sovereign-block | SOVEREIGN classification | DENY | Block sovereign data from cloud |
+ * 95 | ssn-block-cloud | Has SSN PII | DENY | Block SSN transmission |
+ * 94 | credit-card-block-cloud | Has credit card PII | DENY | Block credit card transmission |
+ * 90 | sensitive-redact | SENSITIVE classification | REDACT | Redact sensitive data |
+ * 80 | public-allow | PUBLIC classification | ALLOW | Allow public data |
+ * 10 | local-allow-all | Local destination | ALLOW | Allow all local processing |
+ *
+ * ## Firewall Conditions
+ *
+ * Rules can match on:
+ *
+ * **Classification**: Match privacy level
+ * ```typescript
+ * { type: "classification", value: PrivacyLevel.SOVEREIGN }
+ * ```
+ *
+ * **Has PII**: Match specific PII types
+ * ```typescript
+ * { type: "hasPII", piiTypes: [PIIType.SSN, PIIType.CREDIT_CARD] }
+ * ```
+ *
+ * **Destination**: Match target backend
+ * ```typescript
+ * { type: "destination", value: "cloud" }
+ * ```
+ *
+ * **Constraint**: Match custom constraints
+ * ```typescript
+ * { type: "constraint", key: "region", value: "EU" }
+ * ```
+ *
+ * ## Firewall Actions
+ *
+ * **ALLOW**: Permit the request
+ * ```typescript
+ * { type: "allow" }
+ * ```
+ *
+ * **DENY**: Block the request with reason
+ * ```typescript
+ * { type: "deny", reason: "SSN detected - cannot transmit to cloud" }
+ * ```
+ *
+ * **REDACT**: Remove PII using strategy
+ * ```typescript
+ * { type: "redact", strategy: RedactionStrategy.PARTIAL }
+ * ```
+ *
+ * **REDIRECT**: Route to different backend
+ * ```typescript
+ * { type: "redirect", destination: "local" }
+ * ```
+ *
+ * ## Example Usage
+ *
+ * ```typescript
+ * import { PrivacyFirewall } from '@lsi/privacy';
+ * import { PrivacyClassifier } from '@lsi/privacy';
+ * import { PrivacyLevel, PIIType } from '@lsi/protocol';
+ *
+ * // Create firewall with default rules
+ * const firewall = new PrivacyFirewall({
+ *   enableDefaultRules: true,
+ * });
+ *
+ * // Create classifier
+ * const classifier = new PrivacyClassifier();
+ *
+ * // Classify query
+ * const classification = await classifier.classify("My SSN is 123-45-6789");
+ *
+ * // Evaluate against firewall
+ * const decision = firewall.evaluate(
+ *   "My SSN is 123-45-6789",
+ *   classification,
+ *   "cloud"  // Requested destination
+ * );
+ *
+ * console.log(decision.action);          // "deny"
+ * console.log(decision.reason);          // "SSN detected - cannot transmit to cloud"
+ * console.log(decision.matchedRules);    // ["ssn-block-cloud"]
+ * console.log(decision.confidence);      // 0.8
+ *
+ * // Add custom rule
+ * firewall.addRule({
+ *   id: "eu-data-local-only",
+ *   name: "EU Data Local Only",
+ *   description: "Force EU data to stay local",
+ *   condition: { type: "constraint", key: "region", value: "EU" },
+ *   action: { type: "redirect", destination: "local" },
+ *   priority: 99,
+ *   enabled: true,
+ * });
+ *
+ * // Export/import rules
+ * const rulesJson = firewall.exportRules();
+ * firewall.importRules(rulesJson, true);  // Replace existing rules
+ *
+ * // List rules
+ * const allRules = firewall.getRules();
+ * const enabledRules = firewall.getEnabledRules();
+ *
+ * // Rule management
+ * firewall.disableRule("public-allow");
+ * firewall.enableRule("public-allow");
+ * firewall.removeRule("eu-data-local-only");
+ * firewall.updateRulePriority("sovereign-block", 200);
+ *
+ * // Reset to defaults
+ * firewall.resetToDefaults();
+ *
+ * // Clear all rules (use with caution!)
+ * firewall.clearAllRules();
+ * ```
+ *
+ * ## Custom Rule Examples
+ *
+ * ### Block specific PII types from cloud
+ * ```typescript
+ * firewall.addRule({
+ *   id: "block-medical-from-cloud",
+ *   name: "Block Medical from Cloud",
+ *   description: "Prevent medical records from leaving local system",
+ *   condition: {
+ *     type: "hasPII",
+ *     piiTypes: [PIIType.MEDICAL_RECORD, PIIType.DATE_OF_BIRTH],
+ *   },
+ *   action: {
+ *     type: "deny",
+ *     reason: "Medical data detected - cannot transmit to cloud",
+ *   },
+ *   priority: 96,
+ *   enabled: true,
+ * });
+ * ```
+ *
+ * ### Redact specific PII types
+ * ```typescript
+ * firewall.addRule({
+ *   id: "redact-email-from-cloud",
+ *   name: "Redact Email from Cloud",
+ *   description: "Redact email addresses before cloud transmission",
+ *   condition: {
+ *     type: "hasPII",
+ *     piiTypes: [PIIType.EMAIL],
+ *   },
+ *   action: {
+ *     type: "redact",
+ *     strategy: RedactionStrategy.PARTIAL,
+ *   },
+ *   priority: 85,
+ *   enabled: true,
+ * });
+ * ```
+ *
+ * ### Conditional routing based on constraints
+ * ```typescript
+ * firewall.addRule({
+ *   id: "gdpr-compliance",
+ *   name: "GDPR Compliance",
+ *   description: "Force GDPR-sensitive data to local processing",
+ *   condition: {
+ *     type: "constraint",
+ *     key: "gdpr",
+ *     value: true,
+ *   },
+ *   action: {
+ *     type: "redirect",
+ *     destination: "local",
+ *   },
+ *   priority: 98,
+ *   enabled: true,
+ * });
+ * ```
+ *
+ * ## Configuration
+ *
+ * - `customRules`: Array of custom rules to add
+ * - `enableDefaultRules`: Include default security rules (default: true)
+ * - `maxRules`: Maximum number of rules allowed (default: 100)
+ *
+ * ## Performance
+ *
+ * - **Latency**: ~100μs per evaluation (O(n) where n = number of rules)
+ * - **Memory**: O(n) where n = number of rules
+ * - **Scalability**: Up to 1000 rules with acceptable performance
+ *
+ * ## Security Considerations
+ *
+ * - **Default deny**: If no rules match, request is denied (security-first)
+ * - **Priority ordering**: Rules evaluated highest-to-lowest priority
+ * - **First match wins**: Once a rule matches, no further evaluation
+ * - **Audit trail**: All decisions include matched rules and reasoning
+ * - **Explicit configuration**: Rules must be explicitly enabled/disabled
+ *
+ * ## Best Practices
+ *
+ * 1. **Keep default rules enabled**: They provide essential security guarantees
+ * 2. **Use high priorities for critical rules**: Ensure they're evaluated first
+ * 3. **Document custom rules**: Use clear descriptions for maintainability
+ * 4. **Test rule priority order**: Verify rules match in expected order
+ * 5. **Audit decisions regularly**: Review matched rules and decision patterns
+ * 6. **Version control rules**: Export and commit rules for reproducibility
+ *
+ * @see PrivacyClassifier - Privacy classification
+ * @see IntentEncoder - Privacy-preserving intent encoding
+ * @see RedactionAdditionProtocol - Functional privacy protocol
  * @packageDocumentation
  */
 

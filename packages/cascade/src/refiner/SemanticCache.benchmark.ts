@@ -267,7 +267,7 @@ async function runBenchmark(config: BenchmarkConfig): Promise<BenchmarkResults> 
   console.log();
 
   // Generate query sequence with realistic repetition
-  const querySequence: Array<{ query: string; type: any; seed: number }> = [];
+  const querySequence: QuerySequenceItem[] = [];
   const similarityGroups = 5; // Number of similar queries per original
 
   for (let i = 0; i < config.numQueries; i++) {

@@ -182,11 +182,19 @@ export class OpenAIAdapter {
   /**
    * Process a prompt with the given model
    *
-   * Alias for execute() for compatibility
+   * Alias for execute() for compatibility. Routes to cloud backend with
+   * the specified model or default.
    *
    * @param prompt - Input prompt to process
-   * @param model - Model to use (optional, falls back to default)
-   * @returns Process result
+   * @param model - Model to use (optional, falls back to defaultModel from config)
+   * @returns Process result with content, tokens used, and latency
+   * @throws {OpenAIAdapterError} When processing fails after retries or API key is invalid
+   *
+   * @example
+   * ```ts
+   * const result = await adapter.process("Explain machine learning");
+   * console.log(result.content);
+   * ```
    */
   async process(prompt: string, model?: string): Promise<ProcessResult> {
     const decision: RoutingDecision = {
@@ -204,10 +212,26 @@ export class OpenAIAdapter {
   /**
    * Process a prompt with streaming response
    *
+   * Streams the response chunk by chunk, calling the onChunk callback for each
+   * chunk. Accumulates the full response and returns it when complete.
+   *
    * @param prompt - Input prompt to process
-   * @param model - Model to use (optional, falls back to default)
-   * @param onChunk - Callback for each chunk received
-   * @returns Process result with accumulated content
+   * @param model - Model to use (optional, falls back to defaultModel from config)
+   * @param onChunk - Callback for each chunk received (chunk, done)
+   * @returns Process result with accumulated content, tokens used, and latency
+   * @throws {OpenAIAdapterError} When streaming fails or connection is interrupted
+   *
+   * @example
+   * ```ts
+   * const result = await adapter.processStream(
+   *   "Count to 100",
+   *   "gpt-4",
+   *   (chunk, done) => {
+   *     if (!done) process.stdout.write(chunk);
+   *     else console.log("\nDone!");
+   *   }
+   * );
+   * ```
    */
   async processStream(
     prompt: string,
@@ -324,7 +348,18 @@ export class OpenAIAdapter {
    * Note: This does NOT retry aggressively like execute() does.
    * Health checks should fail fast to indicate service issues.
    *
-   * @returns Health check result with available models
+   * @returns Health check result with available chat models list and status
+   * @throws {OpenAIAdapterError} When health check fails to connect or API key is invalid
+   *
+   * @example
+   * ```ts
+   * const health = await adapter.checkHealth();
+   * if (health.healthy) {
+   *   console.log("Available models:", health.models);
+   * } else {
+   *   console.error("Service unhealthy:", health.error);
+   * }
+   * ```
    */
   async checkHealth(): Promise<AdapterHealthCheckResult> {
     try {

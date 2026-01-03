@@ -207,7 +207,8 @@ export class ThermalIntegration {
 
     if (this.enablePrediction) {
       policyAction = await this.controller.getAction(thermalState);
-      prediction = await this.controller.getPrediction();
+      const predResult = await this.controller.getPrediction();
+      prediction = predResult ?? undefined;
     } else {
       policyAction = this.thermalPolicy.getAction(thermalState);
     }

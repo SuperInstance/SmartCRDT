@@ -455,11 +455,11 @@ export class HNSWIndexWithPQ {
 
     // Sort by distance
     candidatesArray.sort((a, b) => {
-      const distA = this.distance(
+      const distA = this.euclideanDistance(
         this.nodes.get(nodeId)!.vector!,
         this.nodes.get(a)!.vector!
       );
-      const distB = this.distance(
+      const distB = this.euclideanDistance(
         this.nodes.get(nodeId)!.vector!,
         this.nodes.get(b)!.vector!
       );

@@ -25,9 +25,11 @@ import {
 import { readFile, writeFile } from "fs/promises";
 import { join, relative } from "path";
 import { createHash } from "crypto";
-import Ajv, { ValidateFunction, JSONSchemaType } from "ajv";
+import Ajv from "ajv";
 import addFormats from "ajv-formats";
 import type { CartridgeManifest, CartridgeCapabilities } from "@lsi/protocol";
+
+type ValidateFunction = ReturnType<typeof Ajv.prototype["compile"]>;
 
 /**
  * Options for loading manifests
@@ -133,8 +135,8 @@ interface LocalValidationResult {
  * ManifestLoader - Load, validate, and create cartridge manifests
  */
 export class ManifestLoader {
-  private ajv: Ajv;
-  private validateFn: ValidateFunction | null = null;
+  private ajv: InstanceType<typeof Ajv>;
+  private validateFn: ReturnType<typeof Ajv.prototype["compile"]> | null = null;
   private schema: object | null = null;
 
   constructor(private schemaPath?: string) {

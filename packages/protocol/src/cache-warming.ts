@@ -68,7 +68,7 @@ export interface HistoricalWarmingConfig {
  */
 export interface PredictiveWarmingConfig {
   /** ML model type for prediction */
-  modelType: "frequency" | "markov" | "neural";
+  modelType: "frequency" | "markov" | "temporal" | "ensemble" | "neural";
   /** Prediction confidence threshold (0-1) */
   confidenceThreshold: number;
   /** Maximum predictions to generate */

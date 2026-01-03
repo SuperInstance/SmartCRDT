@@ -582,7 +582,7 @@ export class PredictivePreloader {
    * @returns Accuracy score
    */
   private async evaluateAccuracy(queryLogs: QueryLogEntry[]): Promise<number> {
-    return this.evaluateModel(this.config.modelType, queryLogs);
+    return this.evaluateModel(this.config.modelType as ModelType, queryLogs);
   }
 
   /**

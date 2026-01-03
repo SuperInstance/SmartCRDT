@@ -243,8 +243,23 @@ export class SemanticCache {
 
   /**
    * Get from cache with semantic similarity matching
+   *
+   * Checks for exact match first (fast path), then performs semantic
+   * similarity search if embeddings are available.
+   *
    * @param refinedQuery - The refined query with semantic features
-   * @returns Cache hit or miss
+   * @returns Cache hit with result and similarity, or miss with similar queries
+   *
+   * @example
+   * ```ts
+   * const result = await cache.get(refinedQuery);
+   * if (result.found) {
+   *   console.log(`Cache hit! Similarity: ${result.similarity}`);
+   *   console.log(result.result);
+   * } else {
+   *   console.log("Cache miss. Similar queries:", result.similarQueries);
+   * }
+   * ```
    */
   async get(refinedQuery: RefinedQuery): Promise<CacheHit | CacheMiss> {
     const { cacheKey, semanticFeatures, staticFeatures } = refinedQuery;
@@ -313,8 +328,18 @@ export class SemanticCache {
 
   /**
    * Set entry in cache
-   * @param refinedQuery - The refined query
-   * @param result - The result to cache
+   *
+   * Stores the result in the cache with the refined query as key.
+   * Evicts LRU entry if cache is at maximum capacity.
+   *
+   * @param refinedQuery - The refined query with semantic features
+   * @param result - The result to cache (any serializable value)
+   * @returns Promise that resolves when entry is stored
+   *
+   * @example
+   * ```ts
+   * await cache.set(refinedQuery, { answer: "42", confidence: 0.99 });
+   * ```
    */
   async set(refinedQuery: RefinedQuery, result: unknown): Promise<void> {
     const { cacheKey, original, semanticFeatures } = refinedQuery;
@@ -623,7 +648,19 @@ export class SemanticCache {
 
   /**
    * Get cache statistics
-   * @returns Enhanced cache statistics
+   *
+   * Returns comprehensive statistics including hit rate, similarity
+   * distributions, per-query-type breakdowns, and top entries.
+   *
+   * @returns Enhanced cache statistics with detailed metrics
+   *
+   * @example
+   * ```ts
+   * const stats = cache.getStats();
+   * console.log(`Hit rate: ${(stats.hitRate * 100).toFixed(1)}%`);
+   * console.log(`Total entries: ${stats.size}`);
+   * console.log(`Top entries:`, stats.topEntries);
+   * ```
    */
   getStats(): EnhancedCacheStats {
     const entries: Array<{ query: string; hitCount: number }> = [];

@@ -161,7 +161,7 @@ export class CacheInvalidationManager {
     for (const key of toInvalidate) {
       const entry = this.cache.get(key);
       if (entry) {
-        this.invalidateEntry(key, entry, "tag-invalidated", `Tag matched: ${tags.join(", ")}`);
+        this.invalidateEntry(key, entry, "tag-invalidated" as any, `Tag matched: ${tags.join(", ")}`);
         count++;
       }
     }
@@ -200,7 +200,7 @@ export class CacheInvalidationManager {
       for (const depKey of entry.dependents) {
         const depEntry = this.cache.get(depKey);
         if (depEntry && !depEntry.pinned) {
-          this.invalidateEntry(depKey, depEntry, "dependency-changed", `Dependency changed: ${key}`);
+          this.invalidateEntry(depKey, depEntry, "dependency-changed" as any, `Dependency changed: ${key}`);
           count++;
           await invalidateDependents(depKey, depth + 1);
         }
@@ -233,7 +233,7 @@ export class CacheInvalidationManager {
       const age = Date.now() - entry.createdAt;
 
       if (age > maxAge) {
-        this.invalidateEntry(key, entry, "semantic-threshold", "Entry too old (semantic drift)");
+        this.invalidateEntry(key, entry, "semantic-threshold" as any, "Entry too old (semantic drift)");
         count++;
       }
     }
@@ -925,8 +925,8 @@ export class CacheInvalidationManager {
 
     // Add to history
     this.invalidationStats.recentHistory.push({
-      strategy: event.strategy,
-      config: {},
+      strategy: event.strategy ?? 'ttl' as any,
+      config: {} as any,
       count: event.entriesAffected,
       skipped: 0,
       examined: 0,

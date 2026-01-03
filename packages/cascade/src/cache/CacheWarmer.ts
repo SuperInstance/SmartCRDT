@@ -82,7 +82,14 @@ export class CacheWarmer {
    * to avoid overwhelming the system. Returns statistics
    * about the warming process.
    *
-   * @returns Cache warming statistics
+   * @returns Cache warming statistics with success/failure counts and duration
+   *
+   * @example
+   * ```ts
+   * const result = await warmer.warm();
+   * console.log(`Warmed ${result.successful} queries successfully`);
+   * console.log(`Failed: ${result.failed}, Duration: ${result.duration}ms`);
+   * ```
    */
   async warm(): Promise<CacheWarmingResult> {
     const startTime = Date.now();

@@ -197,28 +197,28 @@ export class AdvancedCacheWarmer {
 
     switch (strategy.type) {
       case "static":
-        await this.executeStaticStrategy(strategy.config as StaticWarmingConfig);
+        await this.executeStaticStrategy(strategy.config as unknown as StaticWarmingConfig);
         break;
 
       case "historical":
         await this.executeHistoricalStrategy(
-          strategy.config as HistoricalWarmingConfig
+          strategy.config as unknown as HistoricalWarmingConfig
         );
         break;
 
       case "predictive":
         await this.executePredictiveStrategy(
-          strategy.config as PredictiveWarmingConfig
+          strategy.config as unknown as PredictiveWarmingConfig
         );
         break;
 
       case "hybrid":
-        await this.executeHybridStrategy(strategy.config as HybridWarmingConfig);
+        await this.executeHybridStrategy(strategy.config as unknown as HybridWarmingConfig);
         break;
 
       case "adaptive":
         await this.executeAdaptiveStrategy(
-          strategy.config as AdaptiveWarmingConfig
+          strategy.config as unknown as AdaptiveWarmingConfig
         );
         break;
 
@@ -447,17 +447,17 @@ export class AdvancedCacheWarmer {
   ): Promise<string[]> {
     switch (strategy.type) {
       case "static":
-        return (strategy.config as StaticWarmingConfig).seedQueries;
+        return (strategy.config as unknown as StaticWarmingConfig).seedQueries;
 
       case "historical": {
-        const config = strategy.config as HistoricalWarmingConfig;
+        const config = strategy.config as unknown as HistoricalWarmingConfig;
         const queryLogs = await this.loadQueryLogs(config.logPath);
         const learningResult = await this.patternLearner.learnFromLogs(queryLogs);
         return learningResult.topPatterns.flatMap(p => p.examples);
       }
 
       case "predictive": {
-        const config = strategy.config as PredictiveWarmingConfig;
+        const config = strategy.config as unknown as PredictiveWarmingConfig;
         const queryLogs = await this.loadQueryLogs(this.config.queryLogPath);
         await this.patternLearner.learnFromLogs(queryLogs);
         const predictions = this.generatePredictions(config, queryLogs);

@@ -528,7 +528,7 @@ export class PowerStateController extends EventEmitter {
         balanced: "381b4222-f694-41f0-9685-ff5bb260df2e",
       };
 
-      const planId = plans[governor] || plans.balanced;
+      const planId = plans[governor as keyof typeof plans] || plans.balanced;
       await execAsync(`powercfg /setactive ${planId}`);
     }
 
