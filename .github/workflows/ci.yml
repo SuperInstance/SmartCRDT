@@ -179,7 +179,7 @@ jobs:
           npx istanbul-combine -d coverage/combined -r lcov -r json-summary coverage/*/coverage-final.json || true
 
       - name: Upload coverage to Codecov
-        uses: codecov/codecov-action@v4
+        uses: codecov/codecov-action@v5
         with:
           token: ${{ secrets.CODECOV_TOKEN }}
           files: ./coverage/combined/lcov.info
