@@ -63,7 +63,7 @@ jobs:
         "
 
     - name: Upload benchmark results
-      uses: actions/upload-artifact@v3
+      uses: actions/upload-artifact@v6
       with:
         name: benchmark-results-${{ matrix.os }}-${{ matrix.node-version }}
         path: benchmark-results/
@@ -216,7 +216,7 @@ jobs:
         node analyze-regressions.js
 
     - name: Upload regression report
-      uses: actions/upload-artifact@v3
+      uses: actions/upload-artifact@v6
       with:
         name: regression-report
         path: regression-report.md
@@ -320,7 +320,7 @@ jobs:
         node generate-trend.js
 
     - name: Upload trend data
-      uses: actions/upload-artifact@v3
+      uses: actions/upload-artifact@v6
       with:
         name: performance-trend
         path: performance-trend.csv
