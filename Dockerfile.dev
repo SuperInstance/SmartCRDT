@@ -1,7 +1,7 @@
 # Development Dockerfile for LSI Ecosystem
 # This creates a development environment with hot reload and debugging tools
 
-FROM node:20-alpine
+FROM node:25-alpine
 
 # Install development dependencies
 RUN apk add --no-cache \

@@ -4,7 +4,7 @@
 # ============================================================================
 # Stage 1: Dependencies
 # ============================================================================
-FROM node:20-alpine AS deps
+FROM node:25-alpine AS deps
 WORKDIR /app
 
 # Install build dependencies for native modules
@@ -32,7 +32,7 @@ RUN npm ci
 # ============================================================================
 # Stage 2: Builder
 # ============================================================================
-FROM node:20-alpine AS builder
+FROM node:25-alpine AS builder
 WORKDIR /app
 
 # Install build dependencies
@@ -61,7 +61,7 @@ RUN npm run build
 # ============================================================================
 # Stage 3: Production Dependencies
 # ============================================================================
-FROM node:20-alpine AS production-deps
+FROM node:25-alpine AS production-deps
 WORKDIR /app
 
 # Install runtime dependencies only
@@ -75,7 +75,7 @@ RUN npm ci --production && \
 # ============================================================================
 # Stage 4: Production Runtime
 # ============================================================================
-FROM node:20-alpine AS production
+FROM node:25-alpine AS production
 WORKDIR /app
 
 # Install runtime libraries for canvas/native modules
