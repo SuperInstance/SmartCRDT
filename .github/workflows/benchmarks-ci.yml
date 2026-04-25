@@ -49,7 +49,7 @@ jobs:
         continue-on-error: true
 
       - name: Download baseline data
-        uses: actions/cache@v3
+        uses: actions/cache@v5
         with:
           path: benchmarks/baselines
           key: benchmark-baselines-${{ github.base_ref || github.ref_name }}
@@ -74,7 +74,7 @@ jobs:
 
       - name: Save baseline data
         if: github.event_name == 'push' && (github.ref == 'refs/heads/main' || github.ref == 'refs/heads/develop')
-        uses: actions/cache@v3
+        uses: actions/cache@v5
         with:
           path: benchmarks/baselines
           key: benchmark-baselines-${{ github.ref_name }}-${{ github.sha }}
