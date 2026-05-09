@@ -1,5 +1,15 @@
 # SmartCRDT / SuperInstance
 
+
+## Meta
+
+**Domain:** ai-agents
+**Depends on:** —
+**Depended by:** —
+**Implements:** crdt-merging, self-improving-systems
+**Related:** fleet-crdt, zeroclaw-agent
+
+
 ![Version](https://img.shields.io/badge/version-24.0--CLEAN-blue)
 ![License](https://img.shields.io/badge/license-MIT-green)
 ![Packages](https://img.shields.io/badge/packages-81-orange)
