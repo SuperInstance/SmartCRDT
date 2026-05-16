@@ -31,7 +31,7 @@ jobs:
         cache: 'npm'
 
     - name: Restore node_modules
-      uses: actions/cache/restore@v4
+      uses: actions/cache/restore@v5
       with:
         path: |
           node_modules
@@ -93,7 +93,7 @@ jobs:
         cache: 'npm'
 
     - name: Restore node_modules
-      uses: actions/cache/restore@v4
+      uses: actions/cache/restore@v5
       with:
         path: |
           node_modules
@@ -182,7 +182,7 @@ jobs:
         cache: 'npm'
 
     - name: Restore node_modules
-      uses: actions/cache/restore@v4
+      uses: actions/cache/restore@v5
       with:
         path: |
           node_modules
