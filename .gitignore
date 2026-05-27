@@ -58,3 +58,4 @@ temp/
 
 # Test artifacts
 test-*.ts
+__pycache__/
