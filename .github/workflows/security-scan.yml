@@ -411,7 +411,7 @@ jobs:
           needs.codeql.result == 'failure' ||
           needs.dependency-audit.result == 'failure' ||
           needs.secret-scan.result == 'failure'
-        uses: actions/github-script@v7
+        uses: actions/github-script@v9
         with:
           script: |
             const issue = await github.rest.issues.create({
