@@ -1,0 +1,92 @@
+Metadata-Version: 2.4
+Name: smartcrdt
+Version: 1.0.0
+Summary: Pure Python CRDT library for distributed agent state
+License: MIT
+Keywords: crdt,distributed,eventual-consistency,agent,state
+Classifier: Development Status :: 4 - Beta
+Classifier: Intended Audience :: Developers
+Classifier: License :: OSI Approved :: MIT License
+Classifier: Programming Language :: Python :: 3
+Classifier: Programming Language :: Python :: 3.9
+Classifier: Programming Language :: Python :: 3.10
+Classifier: Programming Language :: Python :: 3.11
+Classifier: Programming Language :: Python :: 3.12
+Classifier: Topic :: Software Development :: Libraries
+Requires-Python: >=3.9
+Description-Content-Type: text/markdown
+License-File: LICENSE
+Provides-Extra: dev
+Requires-Dist: pytest>=7.0; extra == "dev"
+Dynamic: license-file
+
+# SmartCRDT
+
+**Self-improving infrastructure for AI applications powered by CRDTs** — distributed state management, vector search, real-time observability, and a full Docker-based development stack. TypeScript monorepo with optional Rust native modules.
+
+## What This Gives You
+
+- **81 packages** — modular CRDT types, vector stores, agents, and monitoring
+- **ChromaDB integration** — vector embeddings for semantic search
+- **Python bridge** — use CRDTs from Python alongside TypeScript
+- **Docker Compose stack** — PostgreSQL, Redis, ChromaDB, Ollama in one command
+- **Real-time observability** — live dashboards for CRDT merge tracking
+- **Rust native modules** — performance-critical operations compiled to native code
+
+## Quick Start
+
+### Docker (fastest)
+
+```bash
+git clone https://github.com/SuperInstance/SmartCRDT.git
+cd SmartCRDT
+docker-compose up -d
+```
+
+### From source
+
+```bash
+pnpm install
+pnpm build
+pnpm test
+```
+
+## CRDT Types
+
+| Type | Description |
+|------|-------------|
+| `G-Counter` | Grow-only counter |
+| `PN-Counter` | Increment/decrement counter |
+| `G-Set` | Grow-only set |
+| `OR-Set` | Observed-remove set |
+| `LWW-Register` | Last-writer-wins register |
+| `LWW-Map` | Last-writer-wins map |
+| `RGA` | Replicated growable array (sequence) |
+
+## Architecture
+
+```
+packages/
+├── crdt-core/        # Core CRDT types
+├── crdt-merge/       # Merge strategies
+├── vector-store/     # ChromaDB integration
+├── observability/    # Real-time monitoring
+├── python-bridge/    # Python bindings
+└── native/           # Rust performance modules
+```
+
+## Testing
+
+```bash
+pnpm test              # All tests
+pnpm test:coverage     # With coverage
+pnpm test:unit         # Unit tests only
+```
+
+## How It Fits
+
+The distributed state backbone of the SuperInstance ecosystem. All fleet agents use SmartCRDT for state synchronization, conflict resolution, and offline-first operation.
+
+## License
+
+MIT
