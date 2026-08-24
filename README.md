@@ -2,13 +2,30 @@
 
 **SmartCRDT** is a self-improving infrastructure platform for AI applications powered by Conflict-free Replicated Data Types (CRDTs). It provides distributed state management, vector search via ChromaDB, real-time observability, and a full Docker-based development stack as a TypeScript monorepo with optional Rust native modules.
 
+<p align="center">
+  <img src="assets/images/hero-convergence.jpg" width="680" alt="Separate lamplit logbooks in the dark, all settling to the same glowing page — convergence without a captain's order">
+</p>
+
 ## Why It Matters
 
 Distributed AI agents need shared state that survives network partitions, concurrent writes, and offline operation. Traditional distributed databases require consensus protocols (Paxos, Raft) that block under partition. CRDTs sidestep this entirely: their merge operation is mathematically guaranteed to converge regardless of operation order, making them **partition-tolerant by construction**. SmartCRDT packages production-grade CRDT types (G-Counter, PN-Counter, OR-Set, LWW-Register, RGA) with vector search integration, real-time merge dashboards, and Python bindings. This makes CRDT-based state management accessible to full-stack applications without requiring each developer to re-derive the commutativity proofs.
 
 ## How It Works
 
+*Replicas that have never spoken still agree — every ledger, given the same entries, settles to the same page.*
+
 ### CRDT Fundamentals
+
+```mermaid
+flowchart LR
+    A[Replica A<br/>node-1] -- "op / state" --> M(( ⨆ merge ))
+    B[Replica B<br/>node-2] -- "op / state" --> M
+    C[Replica C<br/>offline → rejoins] -- "replay" --> M
+    M --> CA[Converged state<br/>s₁ ⊔ s₂ ⊔ s₃]
+    CA --> V[Embedding]
+    V --> X[ChromaDB<br/>semantic search]
+    CA --> D[Observability<br/>divergence · convergence_time]
+```
 
 A CRDT is a data structure where all concurrent updates commute — any two replicas that receive the same set of updates (in any order) converge to the same state. There are two families:
 
