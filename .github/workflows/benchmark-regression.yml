@@ -23,7 +23,7 @@ jobs:
             node-version: '22.0.0'
 
     steps:
-    - uses: actions/checkout@v6
+    - uses: actions/checkout@v7
 
     - name: Set up Node.js ${{ matrix.node-version }}
       uses: actions/setup-node@v7
@@ -74,7 +74,7 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
-    - uses: actions/checkout@v6
+    - uses: actions/checkout@v7
 
     - name: Set up Node.js
       uses: actions/setup-node@v7
@@ -258,7 +258,7 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
-    - uses: actions/checkout@v6
+    - uses: actions/checkout@v7
 
     - name: Set up Node.js
       uses: actions/setup-node@v7
@@ -331,7 +331,7 @@ jobs:
     if: always()
 
     steps:
-    - uses: actions/checkout@v6
+    - uses: actions/checkout@v7
 
     - name: Download regression report
       uses: actions/download-artifact@v8
