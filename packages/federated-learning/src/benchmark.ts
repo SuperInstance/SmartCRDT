@@ -88,6 +88,9 @@ export interface AlgorithmResult {
   /** Algorithm name */
   name: string;
 
+  /** Number of clients that contributed to the final aggregate */
+  numClients: number;
+
   /** Loss trajectory (per round) */
   lossTrajectory: number[];
 
@@ -287,6 +290,7 @@ export class AggregationBenchmark {
 
     return {
       name: algorithm,
+      numClients: this.config.numClients,
       lossTrajectory,
       accuracyTrajectory,
       communicationCost,

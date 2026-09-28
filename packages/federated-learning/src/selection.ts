@@ -952,7 +952,7 @@ export function createClientState(
 ): ClientState {
   return {
     id,
-    isAvailable: true,
+    isAvailable: options.isAvailable ?? true,
     dataDistribution: {
       sampleCount,
       classDistribution: new Map(),

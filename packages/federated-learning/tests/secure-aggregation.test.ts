@@ -239,11 +239,17 @@ describe("SecureAggregator", () => {
     });
 
     it("should throw for missing shares", () => {
-      const incompleteUpdates = [encryptedUpdates[0]];
+      // Construct an update that genuinely lacks server_1's share:
+      // encryptUpdate always emits all numServers shares, so passing a
+      // complete update (as before) could never trigger the guard.
+      const missingShareUpdate: EncryptedUpdate = {
+        ...encryptedUpdates[0],
+        shares: encryptedUpdates[0].shares.filter(s => s.serverId !== "server_1"),
+      };
 
       expect(() => {
-        aggregator.aggregateShares("server_1", incompleteUpdates);
-      }).toThrow();
+        aggregator.aggregateShares("server_1", [missingShareUpdate]);
+      }).toThrow("Missing shares for server server_1");
     });
 
     it("should produce consistent aggregation across servers", () => {
@@ -486,9 +492,11 @@ describe("VerifiableAggregator", () => {
       const values = [10, 20, 30];
       const index = 0;
 
-      // Create commitments
-      for (const clientId of clientIds) {
-        aggregator.createBatchCommitments([values[index]], clientId);
+      // Create commitments: client i commits its own value values[i] for
+      // dimension `index`. (The former `values[index]` committed 10 for all
+      // three clients, whose sum 30 can never open against aggregate 60.)
+      for (let i = 0; i < clientIds.length; i++) {
+        aggregator.createBatchCommitments([values[i]], clientIds[i]);
       }
 
       // Verify aggregation
