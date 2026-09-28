@@ -17,8 +17,8 @@
     "test": "vitest run",
     "test:watch": "vitest watch",
     "test:coverage": "vitest run --coverage",
-    "test:unit": "vitest run --run tests/unit",
-    "test:e2e": "vitest run --run tests/e2e",
+    "test:unit": "vitest run packages --exclude \"packages/integration-tests/**\"",
+    "test:e2e": "vitest run packages/integration-tests",
     "bench": "node benchmarks/run.js",
     "bench:report": "npm run bench -- --report",
     "lint": "eslint packages --ext .ts",
@@ -31,10 +31,10 @@
     "docs:watch": "node scripts/generate-docs.cjs --watch"
   },
   "devDependencies": {
-    "@types/node": "^20.19.43",
+    "@types/node": "^22.20.4",
     "@typescript-eslint/eslint-plugin": "^8.68.0",
     "@typescript-eslint/parser": "^8.68.0",
-    "@vitest/coverage-v8": "^4.1.7",
+    "@vitest/coverage-v8": "^5.0.0",
     "eslint": "^10.9.1",
     "eslint-config-prettier": "^10.1.8",
     "husky": "^8.0.3",
