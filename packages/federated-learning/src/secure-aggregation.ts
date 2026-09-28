@@ -186,7 +186,14 @@ export interface SecureAggregationConfig {
   /** Differential privacy delta */
   delta?: number;
 
-  /** Prime modulus for secret sharing (default: large 128-bit prime) */
+  /**
+   * Prime modulus for commitment schemes (VerifiableAggregator).
+   * NOTE: secret sharing does NOT use this value — shares are stored as JS
+   * numbers (SecretShare.share: number[]), so the sharing field must keep
+   * every field element exactly representable as a double (see
+   * ShamirSecretSharing). Passing a bigint-domain prime there silently
+   * corrupted shares before the fix.
+   */
   prime?: bigint;
 
   /** Random seed for reproducibility (testing only) */
@@ -229,10 +236,25 @@ export const DEFAULT_SECURE_CONFIG: Required<SecureAggregationConfig> = {
 };
 
 /**
- * 128-bit prime for modular arithmetic (smaller than default for efficiency)
- * This is 2^127 - 1, a Mersenne-like prime
+ * Largest prime below 2^53 (verified prime by independent Miller-Rabin).
+ *
+ * The sharing field MUST keep every field element (coefficients, share
+ * y-values, reconstructed values) exactly representable as a JS Number:
+ * SecretShare.share is number[], and a field element > 2^53 rounded through
+ * a double is silently corrupted — the pre-fix root cause of split/reconstruct
+ * round-trip failures (e.g. 42 reconstructing as 37/56 depending on the
+ * random coefficients). With p < 2^53 every Number(share) is bit-exact.
  */
-const SMALL_PRIME = BigInt("0x7FFFFFFFFFFFFFFFFFFFFFFFFFFFFFFF");
+const SMALL_PRIME = BigInt("0x1FFFFFFFFFFF91"); // 2^53 - 111 = 9007199254740881
+
+/**
+ * Fixed-point scale for encoding JS number secrets into the field.
+ * A secret is stored as round(secret * 2^10) mod p, i.e. quantized to 1/1024
+ * units with sign preserved; decode divides back out. Signed values use the
+ * symmetric range (-p/2, p/2]. Max representable magnitude is ~4.4e12
+ * (aggregation sums must stay inside that range to avoid field wrap-around).
+ */
+const FIELD_SCALE = 1024n;
 
 // ============================================================================
 // SHAMIR'S SECRET SHARING
@@ -263,6 +285,15 @@ export class ShamirSecretSharing {
     this.threshold = threshold;
     this.numShares = numShares;
     this.prime = prime ?? SMALL_PRIME;
+
+    // Fail closed: shares are stored as JS numbers, so any field element
+    // above 2^53 would be rounded and silently corrupt split/reconstruct.
+    if (this.prime > BigInt(Number.MAX_SAFE_INTEGER) + BigInt(1)) {
+      throw new Error(
+        "Shamir prime must be <= 2^53 so field elements stay exactly " +
+          "representable as JS numbers (SecretShare.share: number[])"
+      );
+    }
   }
 
   /**
@@ -277,8 +308,8 @@ export class ShamirSecretSharing {
    * @returns Array of secret shares
    */
   splitValue(secret: number, seed?: number): SecretShare[] {
-    // Convert secret to field element
-    const secretField = this.mod(BigInt(Math.floor(Math.abs(secret))), this.prime);
+    // Convert secret to field element (signed fixed-point, sign preserved)
+    const secretField = this.encodeSecret(secret);
 
     // Generate random polynomial coefficients
     // f(x) = secret + a_1*x + a_2*x^2 + ... + a_{k-1}*x^{k-1}
@@ -376,7 +407,7 @@ export class ShamirSecretSharing {
       result = this.mod(result + yi * li, this.prime);
     }
 
-    return Number(result);
+    return this.decodeSecret(result);
   }
 
   /**
@@ -407,6 +438,34 @@ export class ShamirSecretSharing {
     }
 
     return result;
+  }
+
+  /**
+   * Encode a JS number secret into a field element:
+   * signed fixed-point (round(secret * 2^10)) reduced into [0, p).
+   * Quantization error is at most 1/2048; sign is preserved via the
+   * symmetric range on decode.
+   */
+  private encodeSecret(secret: number): bigint {
+    if (!Number.isFinite(secret)) {
+      throw new Error("Secret must be a finite number");
+    }
+    const maxMagnitude = Number(this.prime / BigInt(2) / FIELD_SCALE);
+    if (Math.abs(secret) >= maxMagnitude) {
+      throw new Error(
+        `Secret magnitude must be < ${maxMagnitude} for exact fixed-point sharing`
+      );
+    }
+    return this.mod(BigInt(Math.round(secret * Number(FIELD_SCALE))), this.prime);
+  }
+
+  /**
+   * Decode a field element back to a JS number (inverse of encodeSecret).
+   */
+  private decodeSecret(fieldElement: bigint): number {
+    const half = this.prime / BigInt(2);
+    const signed = fieldElement <= half ? fieldElement : fieldElement - this.prime;
+    return Number(signed) / Number(FIELD_SCALE);
   }
 
   /**
@@ -468,6 +527,13 @@ export class ShamirSecretSharing {
   }
 
   /**
+   * Get the prime modulus used for sharing (number-exact field)
+   */
+  getPrime(): bigint {
+    return this.prime;
+  }
+
+  /**
    * Get threshold
    */
   getThreshold(): number {
@@ -504,10 +570,14 @@ export class SecureAggregator {
 
   constructor(config: SecureAggregationConfig = DEFAULT_SECURE_CONFIG) {
     this.config = { ...DEFAULT_SECURE_CONFIG, ...config };
+    // NOTE: config.prime is deliberately NOT passed to ShamirSecretSharing.
+    // Shares are stored as JS numbers (SecretShare.share: number[]), so the
+    // sharing field must keep every field element <= 2^53; the bigint-domain
+    // config prime is used for commitments (VerifiableAggregator) only.
+    // ShamirSecretSharing throws if handed a larger prime (fail-closed).
     this.secretSharing = new ShamirSecretSharing(
       this.config.threshold,
-      this.config.numServers,
-      this.config.prime
+      this.config.numServers
     );
     this.pairwiseMasks = new Map();
     this.roundNonces = new Set();
@@ -543,10 +613,15 @@ export class SecureAggregator {
     if (this.config.enablePairwiseMasking) {
       for (const otherClientId of otherClientIds) {
         const mask = this.getOrCreatePairwiseMask(clientId, otherClientId, parameters.length);
+        // Bonawitz-style sign convention: the lexicographically-first client
+        // of a pair applies +mask, the other -mask, so two clients sharing a
+        // pair never produce identical masked parameters (and each client's
+        // double-mask correction cancels exactly its own application).
+        const sign = clientId <= otherClientId ? 1 : -1;
         // Apply mask to parameters
         for (let i = 0; i < parameters.length; i++) {
-          maskedParameters[i] += mask.mask[i];
-          doubleMaskCorrection[i] -= mask.mask[i];
+          maskedParameters[i] += sign * mask.mask[i];
+          doubleMaskCorrection[i] -= sign * mask.mask[i];
         }
       }
     }
@@ -598,14 +673,21 @@ export class SecureAggregator {
       throw new Error(`Missing shares for server ${serverId}`);
     }
 
-    // Aggregate shares by summing them (homomorphic property)
+    // Aggregate shares by summing them (homomorphic property).
+    // Summed exactly in BigInt and reduced mod the sharing prime: share
+    // values approach 2^53, so plain Number addition would round and
+    // corrupt the aggregate sharing.
+    const sharingPrime = this.secretSharing.getPrime();
     const dim = serverShares[0].share.length;
     const aggregatedShare = new Array(dim).fill(0);
 
-    for (const share of serverShares) {
-      for (let i = 0; i < dim; i++) {
-        aggregatedShare[i] += share.share[i];
+    for (let i = 0; i < dim; i++) {
+      let sum = BigInt(0);
+      for (const share of serverShares) {
+        sum += BigInt(share.share[i]);
       }
+      const reduced = ((sum % sharingPrime) + sharingPrime) % sharingPrime;
+      aggregatedShare[i] = Number(reduced);
     }
 
     return {
@@ -658,6 +740,18 @@ export class SecureAggregator {
       // Apply correction
       for (let i = 0; i < dim; i++) {
         parameters[i] += totalCorrection[i];
+      }
+    }
+
+    // Step 2b: FedAvg semantics — the protocol recovers the SUM of client
+    // updates (masks cancel exactly); the aggregated model is the per-client
+    // MEAN, matching plainAggregate() and the comparison utilities.
+    const clientCount = this.config.enablePairwiseMasking && doubleMaskCorrections
+      ? doubleMaskCorrections.length
+      : aggregatedShares.length;
+    if (clientCount > 0) {
+      for (let i = 0; i < parameters.length; i++) {
+        parameters[i] /= clientCount;
       }
     }
 
@@ -889,10 +983,15 @@ export class SecureAggregator {
  */
 export class VerifiableAggregator extends SecureAggregator {
   private commitments: Map<string, bigint>;
+  // Stored commitment randomness per key: Pedersen commitments are only
+  // homomorphic when opened with the SUM of the individual randomnesses
+  // (product of g^v*h^r commitments = g^(sum v)*h^(sum r)).
+  private commitmentRandomness: Map<string, bigint>;
 
   constructor(config: SecureAggregationConfig = DEFAULT_SECURE_CONFIG) {
     super(config);
     this.commitments = new Map();
+    this.commitmentRandomness = new Map();
   }
 
   /**
@@ -948,11 +1047,14 @@ export class VerifiableAggregator extends SecureAggregator {
 
     for (let i = 0; i < values.length; i++) {
       const value = BigInt(Math.floor(values[i]));
-      const commitment = this.createCommitment(value);
+      const randomness = this.randomBigInt();
+      const commitment = this.createCommitment(value, randomness);
       commitments.push(commitment);
 
-      // Store for later verification
+      // Store for later verification (value randomness is required to open
+      // the homomorphic product against the aggregate commitment)
       this.commitments.set(`${clientId}:${i}`, commitment);
+      this.commitmentRandomness.set(`${clientId}:${i}`, randomness);
     }
 
     return commitments;
@@ -975,19 +1077,30 @@ export class VerifiableAggregator extends SecureAggregator {
   ): boolean {
     const p = this.getConfig().prime;
     let productOfCommitments = BigInt(1);
+    let totalRandomness = BigInt(0);
 
-    // Multiply all commitments (homomorphic property)
+    // Multiply all commitments (homomorphic property) and accumulate the
+    // randomness needed to open the product
     for (const clientId of clientIds) {
       const key = `${clientId}:${index}`;
       const commitment = this.commitments.get(key);
       if (commitment === undefined) {
         return false;  // Missing commitment
       }
+      const randomness = this.commitmentRandomness.get(key);
+      if (randomness === undefined) {
+        return false;  // Cannot open the product without its randomness
+      }
       productOfCommitments = this.mod(productOfCommitments * commitment, p);
+      totalRandomness += randomness;
     }
 
-    // Check if product matches commitment of aggregate
-    const aggregateCommitment = this.createCommitment(BigInt(Math.floor(aggregateValue)));
+    // Check if product matches commitment of aggregate, opened with the
+    // summed randomness: product = g^(sum v) * h^(sum r) mod p
+    const aggregateCommitment = this.createCommitment(
+      BigInt(Math.floor(aggregateValue)),
+      totalRandomness
+    );
 
     return productOfCommitments === aggregateCommitment;
   }
@@ -1032,6 +1145,7 @@ export class VerifiableAggregator extends SecureAggregator {
    */
   clearCommitments(): void {
     this.commitments.clear();
+    this.commitmentRandomness.clear();
     super.clearRound();
   }
 }
@@ -1061,12 +1175,14 @@ export function compareAggregationMethods(
   };
 } {
   // Plain aggregation (FedAvg)
-  const plainStart = Date.now();
+  // performance.now(): the plain path is sub-millisecond, which Date.now()
+  // cannot measure (reports 0 ms).
+  const plainStart = performance.now();
   const plainResult = plainAggregate(updates);
-  const plainTime = Date.now() - plainStart;
+  const plainTime = performance.now() - plainStart;
 
   // Secure aggregation
-  const secureStart = Date.now();
+  const secureStart = performance.now();
   const aggregator = new SecureAggregator(secureConfig);
 
   // Encrypt all updates
@@ -1093,7 +1209,7 @@ export function compareAggregationMethods(
   const thresholdShares = aggregatedShares.slice(0, config.threshold);
   const doubleMaskCorrections = encryptedUpdates.map(u => u.doubleMaskCorrection).filter((c): c is number[] => c !== undefined);
   const secureResult = aggregator.decryptAggregate(thresholdShares, doubleMaskCorrections);
-  const secureTime = Date.now() - secureStart;
+  const secureTime = performance.now() - secureStart;
 
   // Compute differences
   const difference = plainResult.map((plain, i) =>

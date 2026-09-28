@@ -149,6 +149,7 @@ describe("Aggregation Benchmark", () => {
         modelDim: 20,
         dataDistribution: "iid",
         heterogeneity: 0,
+        numByzantine: 0,  // convergence check, not robustness (2/5 default Byzantine would dominate FedAvg)
         seed: 42,
       });
 
@@ -165,6 +166,7 @@ describe("Aggregation Benchmark", () => {
         modelDim: 20,
         dataDistribution: "non_iid",
         heterogeneity: 0.7,
+        numByzantine: 0,  // convergence check, not robustness
         seed: 42,
       });
 
@@ -181,6 +183,7 @@ describe("Aggregation Benchmark", () => {
         modelDim: 20,
         dataDistribution: "pathological",
         heterogeneity: 0.9,
+        numByzantine: 0,  // convergence check, not robustness
         seed: 42,
       });
 
@@ -222,6 +225,7 @@ describe("Aggregation Benchmark", () => {
         numClients: 8,
         modelDim: 30,
         heterogeneity: 0,
+        numByzantine: 0,  // convergence check, not robustness
         seed: 42,
       });
 
@@ -230,6 +234,7 @@ describe("Aggregation Benchmark", () => {
         numClients: 8,
         modelDim: 30,
         heterogeneity: 0.8,
+        numByzantine: 0,  // convergence check, not robustness
         seed: 42,
       });
 
